@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const { password } = body;
 
     if (password === ADMIN_PASSWORD) {
-      const cookieStore = cookies();
+      const cookieStore = await cookies();
       cookieStore.set("sgc-auth", "autenticado", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -22,13 +22,10 @@ export async function POST(request: Request) {
     } else {
       return NextResponse.json(
         { error: "Contraseña incorrecta" },
-        { status: 401 }
+        { status: 401 },
       );
     }
   } catch (error) {
-    return NextResponse.json(
-      { error: "Error interno" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }

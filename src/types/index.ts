@@ -1,2 +1,1 @@
-export { PuntoSGC, Documento, HistorialCambio } from "./models";
-export type { PuntoSGC, Documento, HistorialCambio };
+export type { PuntoSGC, Documento, HistorialCambio } from "./models";

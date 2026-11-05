@@ -1,131 +1,204 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { PuntoSGC, Documento, HistorialCambio } from "@/types/models";
-import { readAgenda, writeAgenda } from "@/lib/storage";
-import { readDocumentos, writeDocumentos } from "@/lib/storage";
+import { useCallback, useEffect, useState } from "react";
+import type { Documento, HistorialCambio, PuntoSGC } from "@/types/models";
 
-interface AdminPageProps {
-  query: { puntoId?: string };
+interface AgendaData {
+  puntos: PuntoSGC[];
+  metadata: Record<string, unknown>;
 }
 
-export default function Administracion({ query }: AdminPageProps) {
-  const [agenda, setAgenda] = useState<{
-    puntos: PuntoSGC[];
-    metadata: any;
-  } | null>(null);
-  const [documentos, setDocumentos] = useState<{
-    documentos: any[];
-    categorias: string[];
-  }>({ documentos: [], categorias: [] });
+interface DocumentosData {
+  documentos: Documento[];
+  categorias: string[];
+}
 
-  const [modo, setModo] = useState<"login" | "lista" | "formulario">("login");
-  const [editando, setEditando] = useState<PuntoSGC | null>(null);
-  const [nuevoDocumento, setNuevoDocumento] = useState({
-    nombre: "",
-    categoria: "",
-    puntoId: "",
-    planta: "",
-    version: "1.0",
-    responsable: "",
-    descripcion: "",
-    archivo: null as File | null,
+const CATEGORIAS_DEFAULT = [
+  "Resguardo de información",
+  "Muestras de Campana",
+  "Certificados de calibración",
+  "Layout",
+  "Seguridad vial",
+  "Administración",
+  "Muestreo",
+  "Control de calidad",
+  "Documentación del laboratorio",
+];
+
+const ESTADOS: PuntoSGC["estado"][] = [
+  "Pendiente",
+  "En curso",
+  "Bloqueado",
+  "Completado",
+];
+
+const estadoClasses: Record<PuntoSGC["estado"], string> = {
+  Pendiente: "border-slate-400/25 bg-slate-400/10 text-slate-300",
+  "En curso": "border-blue-400/30 bg-blue-400/10 text-blue-300",
+  Bloqueado: "border-red-400/30 bg-red-400/10 text-red-300",
+  Completado: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
+};
+
+const emptyDocumento = {
+  nombre: "",
+  categoria: "",
+  puntoId: "",
+  planta: "Campana",
+  version: "1.0",
+  responsable: "",
+  descripcion: "",
+  archivo: null as File | null,
+};
+
+export default function Administracion() {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [loadingData, setLoadingData] = useState(false);
+  const [agenda, setAgenda] = useState<AgendaData | null>(null);
+  const [documentos, setDocumentos] = useState<DocumentosData>({
+    documentos: [],
+    categorias: [],
   });
 
-  const [mensaje, setMensaje] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [passwordInvalido, setPasswordInvalido] = useState(false);
+  const [password, setPassword] = useState("");
+  const [editando, setEditando] = useState<PuntoSGC | null>(null);
+  const [nuevoDocumento, setNuevoDocumento] = useState(emptyDocumento);
+  const [mensaje, setMensaje] = useState<{
+    type: "success" | "error" | "info";
+    text: string;
+  } | null>(null);
 
-  // Verificar autenticacion al cargar
-  useEffect(() => {
-    fetch("/api/agenda")
-      .then((res) => {
-        if (res.status === 401) {
-          setPasswordInvalido(true);
-          setModo("login");
-        } else if (res.ok) {
-          setModo("lista");
-          fetch("/api/agenda").then((r) => r.json()).then((data) => setAgenda(data));
-          fetch("/api/documentos").then((r) => r.json()).then((data) =>
-            setDocumentos({ documentos: data.documentos || [], categorias: data.categorias || [] })
-          );
-        } else {
-          setModo("login");
-          setMensaje({ type: "error", text: "Error de conexión con el servidor" });
-        }
-      })
-      .catch(() => {
-        setModo("login");
-        setMensaje({ type: "error", text: "Error de conexión con el servidor" });
+  const cargarDatos = useCallback(async () => {
+    setLoadingData(true);
+    try {
+      const [agendaRes, docsRes] = await Promise.all([
+        fetch("/api/agenda"),
+        fetch("/api/documentos"),
+      ]);
+      if (agendaRes.ok) setAgenda(await agendaRes.json());
+      if (docsRes.ok) {
+        const data = await docsRes.json();
+        setDocumentos({
+          documentos: data.documentos || [],
+          categorias: data.categorias || [],
+        });
+      }
+    } catch {
+      setMensaje({
+        type: "error",
+        text: "Error de conexión con el servidor",
       });
+    } finally {
+      setLoadingData(false);
+    }
   }, []);
 
-  // Si la contraseña es inválida, mostrar formulario de login
-  if (passwordInvalido) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full text-center border border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Acceso a Administración
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            La sesión expiró o no está autenticada.
-          </p>
-          <form
-            onSubmit={async (e: React.FormEvent) => {
-              e.preventDefault();
-              const form = e.target as HTMLFormElement;
-              const password = form.elements["admin-password"] as HTMLInputElement;
-              const res = await fetch("/api/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ password: password.value }),
-              });
-              const data = await res.json();
-              if (data.success) {
-                setModo("lista");
-                password.value = "";
-              } else {
-                setMensaje({ type: "error", text: data.error || "Contraseña incorrecta" });
-              }
-            }}
-          >
-            <input
-              type="password"
-              name="admin-password"
-              placeholder="Contraseña de administración"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white mb-3"
-            />
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium"
-            >
-              Autenticar
-            </button>
-          </form>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
-            No tiene permisos para ver esta página.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetch("/api/session")
+      .then((res) => res.json())
+      .then(async (data) => {
+        if (data.authenticated) {
+          setAuthenticated(true);
+          await cargarDatos();
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => setChecking(false));
+  }, [cargarDatos]);
 
-  if (!agenda) {
-    return (
-      <div className="min-h-screen flex items-center justify-center py-12">
-        <span className="text-gray-600">Cargando administración...</span>
-      </div>
-    );
-  }
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMensaje(null);
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAuthenticated(true);
+        setPassword("");
+        await cargarDatos();
+      } else {
+        setMensaje({
+          type: "error",
+          text: data.error || "Contraseña incorrecta",
+        });
+      }
+    } catch {
+      setMensaje({ type: "error", text: "Error de conexión" });
+    }
+  };
 
-  const puntos = agenda.puntos;
+  const handleLogout = async () => {
+    await fetch("/api/session", { method: "POST" });
+    setAuthenticated(false);
+    setAgenda(null);
+    setEditando(null);
+    setMensaje(null);
+  };
 
-  // Filtrar punto específico
-  const punto = query.puntoId
-    ? puntos.find((p: any) => p.id === query.puntoId)
-    : null;
+  const guardarPunto = useCallback(
+    async (puntoData: PuntoSGC) => {
+      if (!agenda) return;
+      const existe = agenda.puntos.some((p) => p.id === puntoData.id);
+      const nuevosPuntos = existe
+        ? agenda.puntos.map((p) => (p.id === puntoData.id ? puntoData : p))
+        : [...agenda.puntos, puntoData];
 
-  // Manejar cambio de archivo
+      try {
+        const res = await fetch("/api/agenda", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            puntos: nuevosPuntos,
+            metadata: agenda.metadata,
+          }),
+        });
+
+        if (res.status === 401) {
+          setAuthenticated(false);
+          setMensaje({
+            type: "error",
+            text: "La sesión expiró. Volvé a ingresar.",
+          });
+          return;
+        }
+
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || "No se pudo guardar");
+
+        setAgenda({ puntos: nuevosPuntos, metadata: agenda.metadata });
+        setEditando(null);
+        setMensaje({
+          type: "success",
+          text: result.remote
+            ? "Guardado y publicado en GitHub correctamente"
+            : "Punto SGC actualizado correctamente",
+        });
+      } catch (error) {
+        setMensaje({
+          type: "error",
+          text:
+            error instanceof Error
+              ? error.message
+              : "Error al guardar el punto SGC",
+        });
+      }
+    },
+    [agenda],
+  );
+
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
+    const { name, value } = e.target;
+    setNuevoDocumento((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -134,79 +207,17 @@ export default function Administracion({ query }: AdminPageProps) {
     }
   };
 
-  // Manejar cambio de formulario
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setNuevoDocumento((prev) => ({ ...prev, [name]: value as any }));
-  };
-
-  // Guardar punto SGC (editando o nuevo)
-  const guardarPunto = useCallback(async (puntoData: PuntoSGC) => {
-    try {
-      await writeAgenda({ puntos: agenda.puntos.map((p) => p.id === puntoData.id ? puntoData : p), metadata: agenda.metadata });
-      setMensaje({ type: "success", text: "Punto SGC actualizado correctamente" });
-      setEditando(null);
-      fetch("/api/agenda").then((res) => res.json()).then((data) => setAgenda(data));
-    } catch (error) {
-      setMensaje({ type: "error", text: "Error al guardar el punto SGC" });
-    }
-  }, [agenda]);
-
-  // Cambiar estado de un punto
-  const cambiarEstado = useCallback(async (puntoId: string, nuevoEstado: PuntoSGC["estado"], usuario: string) => {
-    const punto = agenda.puntos.find((p: any) => p.id === puntoId);
-    if (!punto) return;
-
-    const historial: HistorialCambio = {
-      fecha: new Date().toISOString(),
-      usuario,
-      campo: "estado",
-      valorAnterior: punto.estado,
-      valorNuevo: nuevoEstado,
-    };
-
-    const updatedPunto = {
-      ...punto,
-      estado: nuevoEstado,
-      fechaActualizacion: new Date().toISOString(),
-      historial: [...(punto.historial || []), historial],
-    };
-
-    await guardarPunto(updatedPunto);
-  }, [agenda, guardarPunto]);
-
-  // Agregar nota a un punto
-  const agregarNota = useCallback(async (puntoId: string, nota: string, usuario: string) => {
-    const punto = agenda.puntos.find((p: any) => p.id === puntoId);
-    if (!punto) return;
-
-    const historial: HistorialCambio = {
-      fecha: new Date().toISOString(),
-      usuario,
-      campo: "notas",
-      valorAnterior: punto.notas || "",
-      valorNuevo: nota,
-    };
-
-    const updatedPunto = {
-      ...punto,
-      notas: nota,
-      historial: [...(punto.historial || []), historial],
-    };
-
-    await guardarPunto(updatedPunto);
-  }, [agenda, guardarPunto]);
-
-  // Subir PDF mediante GitHub API
-  const subirPDF = useCallback(async () => {
+  const subirPDF = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!nuevoDocumento.archivo) {
-      setMensaje({ type: "error", text: "Seleccione un archivo PDF" });
+      setMensaje({ type: "error", text: "Seleccioná un archivo PDF" });
       return;
     }
     if (!nuevoDocumento.nombre.trim()) {
-      setMensaje({ type: "error", text: "Ingrese un nombre para el documento" });
+      setMensaje({
+        type: "error",
+        text: "Ingresá un nombre para el documento",
+      });
       return;
     }
 
@@ -221,449 +232,670 @@ export default function Administracion({ query }: AdminPageProps) {
     formData.append("responsable", nuevoDocumento.responsable);
     formData.append("descripcion", nuevoDocumento.descripcion);
     formData.append("nombre", nuevoDocumento.nombre);
-    formData.append("password", process.env.ADMIN_PASSWORD || "falpat-admin-2026");
 
     try {
-      const res = await fetch("/api/upload/pdf", {
+      const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
       const result = await res.json();
 
-      if (result.success) {
-        // Agregar referencia al documento a la lista
-        const nuevoDoc: any = {
-          id: Date.now().toString(),
-          nombre: nuevoDocumento.nombre,
-          categoria: nuevoDocumento.categoria,
-          puntoId: nuevoDocumento.puntoId,
-          planta: nuevoDocumento.planta,
-          fecha: new Date().toISOString().split("T")[0],
-          version: nuevoDocumento.version,
-          responsable: nuevoDocumento.responsable,
-          descripcion: nuevoDocumento.descripcion,
-          archivoUrl: result.url,
-          tipo: "pdf",
-        };
-
-        // Actualizar documentos.json
-        const currentDocs = documentos.documentos || [];
-        await writeDocumentos({ ...documentos, documentos: [...currentDocs, nuevoDoc] });
-
-        // Agregar al punto SGC correspondiente
-        if (nuevoDocumento.puntoId) {
-          const punto = agenda.puntos.find((p: any) => p.id === nuevoDocumento.puntoId);
-          if (punto) {
-            const updatedPunto = {
-              ...punto,
-              documentosIds: [...(punto.documentosIds || []), nuevoDoc.id],
-            };
-            await guardarPunto(updatedPunto);
-          }
-        }
-
-        setMensaje({ type: "success", text: "PDF subido y guardado correctamente" });
-        setNuevoDocumento({
-          nombre: "",
-          categoria: "",
-          puntoId: "",
-          planta: "",
-          version: "1.0",
-          responsable: "",
-          descripcion: "",
-          archivo: null,
+      if (res.ok && result.success) {
+        setMensaje({
+          type: "success",
+          text: "PDF subido y guardado correctamente",
         });
-
-        // Recargar documentos
-        fetch("/api/documentos").then((res) => res.json()).then((data) =>
-          setDocumentos(data)
-        );
+        setNuevoDocumento(emptyDocumento);
+        await cargarDatos();
       } else {
-        setMensaje({ type: "error", text: result.error || "Error al subir PDF" });
+        setMensaje({
+          type: "error",
+          text: result.error || "Error al subir PDF",
+        });
       }
-    } catch (error) {
+    } catch {
       setMensaje({ type: "error", text: "Error de conexión al subir PDF" });
     }
-  }, [nuevoDocumento, documentos, agenda, guardarPunto, writeDocumentos]);
-
-  // Obtener URL pública de un PDF subido a GitHub
-  const obtenerURLPDF = (filename: string): string => {
-    return `https://github.com/grupo-falpat/portal-sgc/raw/main/public/documentos/${filename}`;
   };
 
+  const categorias = documentos.categorias.length
+    ? documentos.categorias
+    : CATEGORIAS_DEFAULT;
+  const puntos = agenda?.puntos ?? [];
+
+  if (checking) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <span className="inline-flex items-center gap-2 text-sm text-[#9fb0c9]">
+          <i
+            className="fa-solid fa-spinner fa-spin text-gold"
+            aria-hidden="true"
+          />
+          Verificando sesión...
+        </span>
+      </main>
+    );
+  }
+
+  if (!authenticated) {
+    return (
+      <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-gold/10 via-transparent to-blue-600/10 blur-2xl"
+        />
+        <div className="relative w-full max-w-md">
+          <a
+            href="/"
+            className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:text-white"
+          >
+            <i
+              className="fa-solid fa-arrow-left text-gold"
+              aria-hidden="true"
+            />
+            Volver al portal
+          </a>
+          <div className="glass rounded-2xl p-7">
+            <h1 className="font-display text-2xl font-bold text-white">
+              Acceso administrativo
+            </h1>
+            <p className="mt-2 text-sm text-[#9fb0c9]">
+              Ingresá la contraseña para administrar el SGC.
+            </p>
+
+            {mensaje && (
+              <div className="mt-4 flex items-center gap-2 rounded-lg border border-red-400/25 bg-red-400/10 px-3 py-2 text-sm text-red-300">
+                <i
+                  className="fa-solid fa-triangle-exclamation"
+                  aria-hidden="true"
+                />
+                {mensaje.text}
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="mt-5 space-y-4">
+              <div className="relative">
+                <i
+                  className="fa-solid fa-lock pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#6f7f99]"
+                  aria-hidden="true"
+                />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Contraseña"
+                  autoComplete="current-password"
+                  required
+                  className="w-full rounded-lg border border-white/10 bg-[#0a0e17] py-2.5 pl-9 pr-3 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+                />
+              </div>
+              <button
+                type="submit"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-4 py-2.5 text-sm font-bold text-[#1a1405] shadow-[0_10px_30px_-8px_rgba(212,175,55,0.6)] transition-all duration-300 hover:-translate-y-0.5"
+              >
+                <i
+                  className="fa-solid fa-arrow-right-to-bracket"
+                  aria-hidden="true"
+                />
+                Ingresar
+              </button>
+            </form>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <main className="bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Message toast */}
+    <main className="min-h-screen">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#02040a]/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:text-white"
+          >
+            <i
+              className="fa-solid fa-arrow-left text-gold"
+              aria-hidden="true"
+            />
+            Volver al portal
+          </a>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={cargarDatos}
+              disabled={loadingData}
+              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-[#c7d2e3] transition-colors hover:bg-white/10 disabled:opacity-60"
+            >
+              <i
+                className={`fa-solid fa-rotate ${loadingData ? "fa-spin" : ""}`}
+                aria-hidden="true"
+              />
+              Actualizar
+            </button>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2 rounded-lg border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs font-medium text-red-300 transition-colors hover:bg-red-400/20"
+            >
+              <i
+                className="fa-solid fa-right-from-bracket"
+                aria-hidden="true"
+              />
+              Salir
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {mensaje && (
-          <div className="mb-4 rounded-md px-4 py-2 text-sm {
-            mensaje.type === "success"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          } animate-in fade-in-0">
+          <div
+            className={`mb-6 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm ${
+              mensaje.type === "success"
+                ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
+                : mensaje.type === "info"
+                  ? "border-blue-400/25 bg-blue-400/10 text-blue-300"
+                  : "border-red-400/25 bg-red-400/10 text-red-300"
+            }`}
+          >
+            <i
+              className={`fa-solid ${
+                mensaje.type === "success"
+                  ? "fa-circle-check"
+                  : mensaje.type === "info"
+                    ? "fa-circle-info"
+                    : "fa-triangle-exclamation"
+              }`}
+              aria-hidden="true"
+            />
             {mensaje.text}
           </div>
         )}
 
-        {/* Modo lista de puntos */}
-        {modo === "lista" && (
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              Panel de Administración SGC
-            </h2>
+            <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">
+              <i className="fa-solid fa-lock" aria-hidden="true" />
+              Administración
+            </span>
+            <h1 className="font-display mt-3 text-3xl font-bold tracking-tight text-white">
+              Panel SGC
+            </h1>
+          </div>
+          <button
+            onClick={() =>
+              setEditando({
+                id: `P${Date.now()}`,
+                titulo: "",
+                descripcion: "",
+                categoria: categorias[0] ?? "",
+                plantas: [],
+                responsable: "A definir",
+                prioridad: "media",
+                estado: "Pendiente",
+                fechaCompromiso: "",
+                fechaActualizacion: new Date().toISOString(),
+                notas: "",
+                documentosIds: [],
+                historial: [],
+              })
+            }
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-4 py-2.5 text-sm font-bold text-[#1a1405] shadow-[0_10px_30px_-8px_rgba(212,175,55,0.6)] transition-all duration-300 hover:-translate-y-0.5"
+          >
+            <i className="fa-solid fa-plus" aria-hidden="true" />
+            Nuevo punto SGC
+          </button>
+        </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              {puntos.map((p: PuntoSGC) => (
-                <div
-                  key={p.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => setEditando(p)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                        {p.titulo}
-                      </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                        {p.descripcion}
-                      </p>
-                    </div>
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        p.estado === "Pendiente"
-                          ? "bg-gray-100 text-gray-800"
-                          : p.estado === "En curso"
-                          ? "bg-blue-100 text-blue-800"
-                          : p.estado === "Bloqueado"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {p.estado}
-                    </span>
-                  </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {puntos.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setEditando(p)}
+              className="glass glass-hover rounded-xl p-4 text-left"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f7f99]">
+                    {p.id}
+                  </p>
+                  <h2 className="mt-1 truncate text-sm font-semibold text-white">
+                    {p.titulo}
+                  </h2>
+                  <p className="mt-1 line-clamp-2 text-xs text-[#9fb0c9]">
+                    {p.descripcion}
+                  </p>
                 </div>
-              ))}
-            </div>
+                <span
+                  className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${estadoClasses[p.estado]}`}
+                >
+                  {p.estado}
+                </span>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-[#9fb0c9]">
+                <span className="inline-flex items-center gap-1">
+                  <i className="fa-solid fa-user" aria-hidden="true" />
+                  {p.responsable}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <i className="fa-solid fa-industry" aria-hidden="true" />
+                  {p.plantas.length ? p.plantas.join(" · ") : "General"}
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
 
-            {/* Acciones rápidas */}
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <h3 className="text-base font-medium text-gray-700 dark:text-gray-300 mb-4">Acciones rápidas</h3>
-              <div className="grid grid-cols-2 gap-2">
+        {editando && (
+          <section className="mt-8">
+            <div className="glass rounded-2xl p-6">
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <h2 className="font-display text-xl font-bold text-white">
+                  {puntos.some((p) => p.id === editando.id)
+                    ? `Editar: ${editando.titulo}`
+                    : "Nuevo punto SGC"}
+                </h2>
                 <button
-                  className="flex-1 bg-blue-50 text-blue-700 px-4 py-2 rounded-md hover:bg-blue-100 dark:hover:bg-blue-600 text-sm font-medium"
+                  type="button"
+                  onClick={() => setEditando(null)}
+                  className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-[#c7d2e3] transition-colors hover:bg-white/10"
                 >
-                  Nuevo punto SGC
-                </button>
-                <button
-                  className="flex-1 bg-gray-50 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900 text-sm font-medium"
-                >
-                  Actualizar datos
+                  <i className="fa-solid fa-xmark" aria-hidden="true" />
+                  Cerrar
                 </button>
               </div>
+
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const plantas = Array.from(
+                    (
+                      e.currentTarget.elements.namedItem(
+                        "plantas",
+                      ) as HTMLSelectElement
+                    ).selectedOptions,
+                  ).map((o) => o.value);
+
+                  await guardarPunto({
+                    ...editando,
+                    titulo: formData.get("titulo") as string,
+                    descripcion: formData.get("descripcion") as string,
+                    categoria: formData.get("categoria") as string,
+                    plantas,
+                    responsable:
+                      (formData.get("responsable") as string) || "A definir",
+                    prioridad:
+                      (formData.get("prioridad") as PuntoSGC["prioridad"]) ||
+                      "media",
+                    estado:
+                      (formData.get("estado") as PuntoSGC["estado"]) ||
+                      "Pendiente",
+                    fechaCompromiso:
+                      (formData.get("fechaCompromiso") as string) || "",
+                    fechaActualizacion: new Date().toISOString(),
+                    notas: (formData.get("notas") as string) || "",
+                  });
+                }}
+                className="grid grid-cols-1 gap-4 md:grid-cols-2"
+              >
+                <div className="md:col-span-2">
+                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                    Título
+                  </label>
+                  <input
+                    name="titulo"
+                    defaultValue={editando.titulo}
+                    required
+                    className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                    Descripción
+                  </label>
+                  <textarea
+                    name="descripcion"
+                    rows={2}
+                    defaultValue={editando.descripcion}
+                    className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                    Categoría
+                  </label>
+                  <select
+                    name="categoria"
+                    defaultValue={editando.categoria}
+                    className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+                  >
+                    {categorias.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                    Plantas
+                  </label>
+                  <select
+                    name="plantas"
+                    multiple
+                    defaultValue={editando.plantas}
+                    className="h-[42px] w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+                  >
+                    <option value="Campana">Campana</option>
+                    <option value="Luján">Luján</option>
+                    <option value="General">General</option>
+                  </select>
+                  <p className="mt-1 text-[10px] text-[#6f7f99]">
+                    Ctrl/Cmd para seleccionar varias.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                    Responsable
+                  </label>
+                  <select
+                    name="responsable"
+                    defaultValue={editando.responsable}
+                    className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+                  >
+                    <option value="A definir">A definir</option>
+                    <option value="Juan Pérez">Juan Pérez</option>
+                    <option value="María García">María García</option>
+                    <option value="Carlos López">Carlos López</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                    Prioridad
+                  </label>
+                  <select
+                    name="prioridad"
+                    defaultValue={editando.prioridad}
+                    className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+                  >
+                    <option value="alta">Alta</option>
+                    <option value="media">Media</option>
+                    <option value="baja">Baja</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                    Estado
+                  </label>
+                  <select
+                    name="estado"
+                    defaultValue={editando.estado}
+                    className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+                  >
+                    {ESTADOS.map((estado) => (
+                      <option key={estado} value={estado}>
+                        {estado}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                    Fecha compromiso
+                  </label>
+                  <input
+                    type="date"
+                    name="fechaCompromiso"
+                    defaultValue={editando.fechaCompromiso?.slice(0, 10) ?? ""}
+                    className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                    Notas
+                  </label>
+                  <textarea
+                    name="notas"
+                    rows={3}
+                    defaultValue={editando.notas}
+                    className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+                  />
+                </div>
+
+                <div className="flex gap-2 md:col-span-2">
+                  <button
+                    type="submit"
+                    className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-5 py-2.5 text-sm font-bold text-[#1a1405] shadow-[0_10px_30px_-8px_rgba(212,175,55,0.6)] transition-all duration-300 hover:-translate-y-0.5"
+                  >
+                    <i className="fa-solid fa-floppy-disk" aria-hidden="true" />
+                    Guardar cambios
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditando(null)}
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-[#c7d2e3] transition-colors hover:bg-white/10"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
             </div>
-          </div>
+
+            <div className="glass mt-5 rounded-2xl p-6">
+              <h3 className="mb-4 text-sm font-semibold text-white">
+                Historial de cambios
+              </h3>
+              {editando.historial?.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-white/10">
+                        {["Fecha", "Usuario", "Campo", "Anterior", "Nuevo"].map(
+                          (label) => (
+                            <th
+                              key={label}
+                              className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f7f99]"
+                            >
+                              {label}
+                            </th>
+                          ),
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {editando.historial.map(
+                        (h: HistorialCambio, i: number) => (
+                          <tr key={i} className="border-b border-white/[0.06]">
+                            <td className="px-3 py-2 text-xs text-[#9fb0c9]">
+                              {new Date(h.fecha).toLocaleDateString("es-AR")}
+                            </td>
+                            <td className="px-3 py-2 text-xs text-[#9fb0c9]">
+                              {h.usuario}
+                            </td>
+                            <td className="px-3 py-2 text-xs text-[#9fb0c9]">
+                              {h.campo}
+                            </td>
+                            <td className="px-3 py-2 text-xs text-[#6f7f99]">
+                              {h.valorAnterior || "—"}
+                            </td>
+                            <td className="px-3 py-2 text-xs text-[#c7d2e3]">
+                              {h.valorNuevo}
+                            </td>
+                          </tr>
+                        ),
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="py-4 text-center text-sm text-[#6f7f99]">
+                  Sin historial de cambios aún.
+                </p>
+              )}
+            </div>
+          </section>
         )}
 
-        {/* Formulario de edición de punto */}
-        {editando && modo !== "login" && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              {editando.id === "NUEVO" ? "Nuevo Punto SGC" : `Editar: ${editando.titulo}`}
-            </h2>
+        <section className="mt-10">
+          <h2 className="font-display text-xl font-bold text-white">
+            Subir PDF / Documento
+          </h2>
+          <p className="mb-4 mt-1 text-sm text-[#9fb0c9]">
+            El archivo se sube a GitHub y queda disponible en la documentoteca.
+          </p>
 
-            <form
-              onSubmit={async (e: React.FormEvent) => {
-                e.preventDefault();
-                const formData = new FormData(e.target as HTMLFormElement);
-                const puntoData: PuntoSGC = {
-                  id: editando.id,
-                  titulo: formData.get("titulo") as string,
-                  descripcion: formData.get("descripcion") as string,
-                  categoria: formData.get("categoria") as string,
-                  plantas: (formData.get("plantas") as string || "")
-                    .split(",")
-                    .map((s: string) => s.trim())
-                    .filter((s: string) => s.length > 0),
-                  responsable: formData.get("responsable") as string || "A definir",
-                  prioridad: formData.get("prioridad") as "alta" | "media" | "baja" || "media",
-                  estado: formData.get("estado") as PuntoSGC["estado"] || "Pendiente",
-                  fechaCompromiso: formData.get("fechaCompromiso") as string || "",
-                  fechaActualizacion: new Date().toISOString(),
-                  notas: formData.get("notas") as string || editando.notas,
-                  documentosIds: editando.documentosIds,
-                  historial: editando.historial,
-                };
-                await guardarPunto(puntoData);
-              }}
-            >
-              <input type="hidden" name="id" value={editando.id} />
+          <form
+            onSubmit={subirPDF}
+            className="glass grid grid-cols-1 gap-4 rounded-2xl p-6 md:grid-cols-2"
+          >
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                Nombre del documento
+              </label>
               <input
                 type="text"
-                name="titulo"
-                defaultValue={editando?.titulo || ""}
-                placeholder="Título del punto"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md mb-3 focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                name="nombre"
+                value={nuevoDocumento.nombre}
+                onChange={handleInputChange}
+                placeholder="Ej: Certificado balanza 01/2026"
+                required
+                className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
               />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                Punto SGC asociado
+              </label>
+              <select
+                name="puntoId"
+                value={nuevoDocumento.puntoId}
+                onChange={handleInputChange}
+                className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+              >
+                <option value="">Sin asociar</option>
+                {puntos.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.id} · {p.titulo}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                Categoría
+              </label>
               <select
                 name="categoria"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md mb-3 focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                value={nuevoDocumento.categoria}
+                onChange={handleInputChange}
+                className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
               >
                 <option value="">Seleccionar categoría</option>
-                <option value="Resguardo de información">Resguardo de información</option>
-                <option value="Muestras de Campana">Muestras de Campana</option>
-                <option value="Certificados de calibración">Certificados de calibración</option>
-                <option value="Layout">Layout</option>
-                <option value="Seguridad vial">Seguridad vial</option>
-                <option value="Administración">Administración</option>
-                <option value="Muestreo">Muestreo</option>
-                <option value="Control de calidad">Control de calidad</option>
-                <option value="Documentación del laboratorio">Documentación del laboratorio</option>
+                {categorias.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
               </select>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                Planta
+              </label>
               <select
-                name="plantas"
-                multiple
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md mb-3 focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                name="planta"
+                value={nuevoDocumento.planta}
+                onChange={handleInputChange}
+                className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
               >
                 <option value="Campana">Campana</option>
                 <option value="Luján">Luján</option>
                 <option value="General">General</option>
               </select>
-              <select
-                name="responsable"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md mb-3 focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="A definir">A definir</option>
-                <option value="Juan Pérez">Juan Pérez</option>
-                <option value="María García">María García</option>
-                <option value="Carlos López">Carlos López</option>
-              </select>
-              <select
-                name="prioridad"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md mb-3 focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="alta">Alta</option>
-                <option value="media">Media</option>
-                <option value="baja">Baja</option>
-              </select>
-              <select
-                name="estado"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md mb-3 focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="Pendiente">Pendiente</option>
-                <option value="En curso">En curso</option>
-                <option value="Bloqueado">Bloqueado</option>
-                <option value="Completado">Completado</option>
-              </select>
-              <textarea
-                name="notas"
-                rows={3}
-                placeholder="Notas adicionales..."
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md mb-3 focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              >{editando?.notas || ""}</textarea>
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium"
-                >
-                  Guardar cambios
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditando(null)}
-                  className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 font-medium"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+            </div>
 
-        {/* Historial de cambios del punto seleccionado */}
-        {editando && modo !== "login" && (
-          <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-              Historial de cambios
-            </h2>
-            {editando.historial?.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <th className="py-3 px-3 text-left text-gray-600 dark:text-gray-400">Fecha</th>
-                      <th className="py-3 px-3 text-left text-gray-600 dark:text-gray-400">Usuario</th>
-                      <th className="py-3 px-3 text-left text-gray-600 dark:text-gray-400">Campo</th>
-                      <th className="py-3 px-3 text-left text-gray-600 dark:text-gray-400">Anterior</th>
-                      <th className="py-3 px-3 text-left text-gray-600 dark:text-gray-400">Nuevo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {editando.historial.map((h: HistorialCambio, i: number) => (
-                      <tr key={i} className="border-b dark:border-gray-700">
-                        <td className="py-3 px-3 text-xs text-gray-500 dark:text-gray-400">
-                          {new Date(h.fecha).toLocaleDateString("es-AR")}
-                        </td>
-                        <td className="py-3 px-3 text-xs text-gray-500 dark:text-gray-400">
-                          {h.usuario}
-                        </td>
-                        <td className="py-3 px-3 text-xs text-gray-500 dark:text-gray-400">
-                          {h.campo}
-                        </td>
-                        <td className="py-3 px-3 text-xs text-gray-500 dark:text-gray-400">
-                          {h.valorAnterior || "—"}
-                        </td>
-                        <td className="py-3 px-3 text-xs text-gray-500 dark:text-gray-400">
-                          {h.valorNuevo}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                Sin historial de cambios aún.
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Subir PDF Section */}
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Subir PDF / Documento
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
-            Cargar un nuevo documento PDF asociado a un punto SGC. Los archivos se
-            suben mediante la API de GitHub y se guardan en la documentoteca.
-          </p>
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <form onSubmit={subirPDF} className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                Versión
+              </label>
               <input
-                type="hidden"
-                name="puntoId"
-                value={nuevoDocumento.puntoId}
+                type="text"
+                name="version"
+                value={nuevoDocumento.version}
+                onChange={handleInputChange}
+                placeholder="1.0"
+                className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
               />
-              <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nombre del documento
-                </label>
-                <input
-                  type="text"
-                  value={nuevoDocumento.nombre}
-                  onChange={handleInputChange}
-                  name="nombre"
-                  placeholder="Ej: Certificado balanza 01/2026"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
+            </div>
 
-              <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Categoría
-                </label>
-                <select
-                  value={nuevoDocumento.categoria}
-                  onChange={handleInputChange}
-                  name="categoria"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="">Seleccionar categoría</option>
-                  {documentos.categorias.map((cat: string) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                Responsable
+              </label>
+              <input
+                type="text"
+                name="responsable"
+                value={nuevoDocumento.responsable}
+                onChange={handleInputChange}
+                placeholder="Ej: Laboratorio Luján"
+                className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+              />
+            </div>
 
-              <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Planta
-                </label>
-                <select
-                  value={nuevoDocumento.planta}
-                  onChange={handleInputChange}
-                  name="planta"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="Campana">Campana</option>
-                  <option value="Luján">Luján</option>
-                  <option value="General">General</option>
-                </select>
-              </div>
+            <div className="md:col-span-2">
+              <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                Descripción
+              </label>
+              <textarea
+                name="descripcion"
+                rows={2}
+                value={nuevoDocumento.descripcion}
+                onChange={handleInputChange}
+                placeholder="Descripción del documento..."
+                className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+              />
+            </div>
 
-              <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Version
-                </label>
-                <input
-                  type="text"
-                  value={nuevoDocumento.version}
-                  onChange={handleInputChange}
-                  name="version"
-                  placeholder="1.0"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
+            <div className="md:col-span-2">
+              <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                Archivo PDF
+              </label>
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={handleFileChange}
+                className="w-full cursor-pointer rounded-lg border border-dashed border-white/15 bg-[#0a0e17] px-3 py-3 text-sm text-[#9fb0c9] outline-none transition file:mr-3 file:rounded-md file:border-0 file:bg-gold/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-gold hover:border-gold/40"
+              />
+              {nuevoDocumento.archivo && (
+                <p className="mt-1 text-xs text-[#6f7f99]">
+                  Archivo seleccionado: {nuevoDocumento.archivo.name}
+                </p>
+              )}
+            </div>
 
-              <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Responsable
-                </label>
-                <input
-                  type="text"
-                  value={nuevoDocumento.responsable}
-                  onChange={handleInputChange}
-                  name="responsable"
-                  placeholder="Ej: Laboratorio Luján"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Descripción
-                </label>
-                <textarea
-                  rows={3}
-                  value={nuevoDocumento.descripcion}
-                  onChange={handleInputChange}
-                  name="descripcion"
-                  placeholder="Descripción del documento..."
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                ></textarea>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Archivo PDF
-                </label>
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={handleFileChange}
-                  name="archivo"
-                  className="w-full px-3 py-2 border border-dashed border-gray-300 dark:border-gray-600 rounded-md cursor-pointer bg-white dark:bg-gray-800 text-center focus:outline-none"
-                />
-                {nuevoDocumento.archivo && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Archivo seleccionado: {nuevoDocumento.archivo.name}
-                  </p>
-                )}
-              </div>
-
+            <div className="md:col-span-2">
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium text-lg"
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-5 py-2.5 text-sm font-bold text-[#1a1405] shadow-[0_10px_30px_-8px_rgba(212,175,55,0.6)] transition-all duration-300 hover:-translate-y-0.5"
               >
-                Subir PDF y actualizar documento
+                <i className="fa-solid fa-cloud-arrow-up" aria-hidden="true" />
+                Subir PDF
               </button>
-            </form>
-          </div>
-        </div>
+            </div>
+          </form>
+        </section>
       </div>
     </main>
   );

@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { readDocumentos } from "@/lib/storage";
+"use client";
+
+import { useEffect, useState } from "react";
 
 interface Documento {
   id: string;
@@ -19,136 +20,193 @@ export default function Documentoteca() {
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/documentos")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("No se pudo cargar la documentoteca");
+        return res.json();
+      })
       .then((data) => {
         setDocumentos(data.documentos || []);
         setCategorias(data.categorias || []);
-        setLoading(false);
       })
-      .catch((err) => {
-        console.error("Error al cargar documentos:", err);
-        setLoading(false);
-      });
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center py-12">
-        <span className="text-gray-600">Cargando documentoteca...</span>
-      </div>
-    );
-  }
-
   return (
-    <main className="bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-            Documentoteca / Evidencias
+    <main className="min-h-screen">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#02040a]/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:text-white"
+          >
+            <i
+              className="fa-solid fa-arrow-left text-gold"
+              aria-hidden="true"
+            />
+            Volver al portal
+          </a>
+          <a
+            href="/administracion"
+            className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3.5 py-2 text-xs font-semibold text-gold transition-colors hover:bg-gold/20"
+          >
+            <i className="fa-solid fa-lock" aria-hidden="true" />
+            Administración
+          </a>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">
+            <i className="fa-solid fa-folder-open" aria-hidden="true" />
+            Evidencias del SGC
+          </span>
+          <h1 className="font-display mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            Documentoteca
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Repositorio de PDFs y documentos de soporte del SGC
+          <p className="mt-2 max-w-2xl text-[#9fb0c9]">
+            Repositorio de PDFs, certificados y documentos de soporte del
+            Sistema de Gestión de Calidad.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {categorias.map((categoria) => (
-            <div
-              key={categoria}
-              className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {categoria}
-                </span>
-                <span className="text-xs text-gray-400 dark:text-gray-500">
-                  {documentos.filter((d) => d.categoria === categoria).length}
-                </span>
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Ver documentos
-              </p>
-            </div>
-          ))}
-        </div>
+        {error && (
+          <div className="mb-6 flex items-center gap-2 rounded-xl border border-red-400/25 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+            <i
+              className="fa-solid fa-triangle-exclamation"
+              aria-hidden="true"
+            />
+            {error}
+          </div>
+        )}
 
-        <div className="mt-6">
-          <h2 className="text-base font-medium text-gray-900 dark:text-white mb-4">
+        <section className="mb-8">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#9fb0c9]">
+            Categorías
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {categorias.map((categoria) => {
+              const count = documentos.filter(
+                (d) => d.categoria === categoria,
+              ).length;
+              return (
+                <div
+                  key={categoria}
+                  className="glass glass-hover flex items-center justify-between rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold/10 text-gold">
+                      <i className="fa-solid fa-folder" aria-hidden="true" />
+                    </span>
+                    <span className="text-sm font-medium text-white">
+                      {categoria}
+                    </span>
+                  </div>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs text-[#9fb0c9]">
+                    {count}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#9fb0c9]">
             Todos los documentos
           </h2>
-          {documentos.length === 0
-            ? <p className="text-gray-500 dark:text-gray-400 py-8">
+
+          {loading ? (
+            <div className="glass flex items-center justify-center rounded-2xl p-12 text-sm text-[#9fb0c9]">
+              <i
+                className="fa-solid fa-spinner fa-spin mr-2 text-gold"
+                aria-hidden="true"
+              />
+              Cargando documentoteca...
+            </div>
+          ) : documentos.length === 0 ? (
+            <div className="glass rounded-2xl p-10 text-center">
+              <i
+                className="fa-solid fa-inbox mb-3 text-3xl text-gold/60"
+                aria-hidden="true"
+              />
+              <p className="text-sm text-[#9fb0c9]">
                 No hay documentos cargados aún.
-                <br />
-                Suba PDFs mediante la administración o agréguelos manualmente en
-                <code className="font-medium text-blue-600 dark:text-blue-400">
-                  /public/documentos
-                </code> y actualice data/documentos.json.
               </p>
-            : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <th className="py-3 px-3 text-left text-gray-600 dark:text-gray-400">
-                        Nombre
+              <p className="mt-1 text-xs text-[#6f7f99]">
+                Podés subir PDFs desde la administración.
+              </p>
+            </div>
+          ) : (
+            <div className="glass overflow-x-auto rounded-2xl">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    {[
+                      "Nombre",
+                      "Categoría",
+                      "Punto SGC",
+                      "Planta",
+                      "Fecha",
+                      "Versión",
+                      "Descargar",
+                    ].map((label) => (
+                      <th
+                        key={label}
+                        className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f7f99]"
+                      >
+                        {label}
                       </th>
-                      <th className="py-3 px-3 text-left text-gray-600 dark:text-gray-400">
-                        Categoría
-                      </th>
-                      <th className="py-3 px-3 text-left text-gray-600 dark:text-gray-400">
-                        Punto SGC
-                      </th>
-                      <th className="py-3 px-3 text-left text-gray-600 dark:text-gray-400">
-                        Planta
-                      </th>
-                      <th className="py-3 px-3 text-left text-gray-600 dark:text-gray-400">
-                        Fecha
-                      </th>
-                      <th className="py-3 px-3 text-left text-gray-600 dark:text-gray-400">
-                        Version
-                      </th>
-                      <th className="py-3 px-3 text-left text-gray-600 dark:text-gray-400">
-                        Descargar
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {documentos.map((d: any) => (
-                      <tr key={d.id} className="border-b dark:border-gray-700">
-                        <td className="py-3 px-3">
-                          <a
-                            href={d.archivoUrl}
-                            className="text-blue-600 dark:text-blue-400 hover:underline"
-                          >
-                            {d.nombre}
-                          </a>
-                        </td>
-                        <td className="py-3 px-3">{d.categoria}</td>
-                        <td className="py-3 px-3">{d.puntoId}</td>
-                        <td className="py-3 px-3">{d.planta}</td>
-                        <td className="py-3 px-3">{d.fecha}</td>
-                        <td className="py-3 px-3">{d.version}</td>
-                        <td className="py-3 px-3">
-                          <a
-                            href={d.archivoUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-green-600 dark:text-green-400 text-sm hover:underline"
-                          >
-                            Descargar
-                          </a>
-                        </td>
-                      </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-        </div>
+                  </tr>
+                </thead>
+                <tbody>
+                  {documentos.map((d) => (
+                    <tr
+                      key={d.id}
+                      className="border-b border-white/[0.06] transition-colors hover:bg-white/[0.04]"
+                    >
+                      <td className="px-4 py-3">
+                        <a
+                          href={d.archivoUrl}
+                          className="font-medium text-gold hover:text-amber-200"
+                        >
+                          {d.nombre}
+                        </a>
+                      </td>
+                      <td className="px-4 py-3 text-[#9fb0c9]">
+                        {d.categoria}
+                      </td>
+                      <td className="px-4 py-3 text-[#9fb0c9]">{d.puntoId}</td>
+                      <td className="px-4 py-3 text-[#9fb0c9]">{d.planta}</td>
+                      <td className="px-4 py-3 text-[#9fb0c9]">{d.fecha}</td>
+                      <td className="px-4 py-3 text-[#9fb0c9]">{d.version}</td>
+                      <td className="px-4 py-3">
+                        <a
+                          href={d.archivoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-emerald-300 hover:text-emerald-200"
+                        >
+                          <i
+                            className="fa-solid fa-download"
+                            aria-hidden="true"
+                          />
+                          Descargar
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </div>
     </main>
   );

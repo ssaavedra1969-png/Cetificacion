@@ -1,19 +1,24 @@
 import "./globals.css";
-import { Geist, Geist_Mono } from "next/font/google";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import type { Metadata } from "next";
+import { Inter, Sora } from "next/font/google";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const sora = Sora({
+  variable: "--font-sora",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Portal SGC – Grupo Falpat SRL",
-  description: "Portal de certificación y seguimiento del Sistema de Gestión de Calidad para Grupo Falpat SRL",
+  description:
+    "Portal de certificación y seguimiento del Sistema de Gestión de Calidad para Grupo Falpat SRL",
 };
 
 export default function RootLayout({
@@ -24,11 +29,9 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${sora.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-gray-50 dark:bg-gray-900 text-gray-900 antialiased">
-        <children />
-      </body>
+      <body className="min-h-full font-sans">{children}</body>
     </html>
   );
 }

@@ -7,43 +7,66 @@ interface KPIProps {
   avance: number;
 }
 
-export default function KPIs({ total, pendientes, enCurso, bloqueados, completados, avance }: KPIProps) {
+export default function KPIs({
+  total,
+  pendientes,
+  enCurso,
+  bloqueados,
+  completados,
+  avance,
+}: KPIProps) {
+  const cards = [
+    { label: "Total", value: total, tone: "text-white" },
+    { label: "Pendientes", value: pendientes, tone: "text-amber-300" },
+    { label: "En curso", value: enCurso, tone: "text-blue-300" },
+    { label: "Bloqueados", value: bloqueados, tone: "text-red-300" },
+  ];
+
   return (
     <div>
-      <h3 className="mb-4 text-sm font-medium text-gray-500 dark:text-gray-400">KPIs del SGC</h3>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-700">
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">{total}</div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">Total de puntos</div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-700">
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">{pendientes}</div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">Pendientes</div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-700">
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">{enCurso}</div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">En curso</div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-700">
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">{bloqueados}</div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">Bloqueados</div>
-        </div>
+      <div className="mb-4 flex items-center gap-2">
+        <i className="fa-solid fa-chart-simple text-gold" aria-hidden="true" />
+        <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9fb0c9]">
+          KPIs del SGC
+        </h3>
       </div>
 
-      <div className="mt-4">
-        <div className="text-sm text-gray-500 dark:text-gray-400">Avance general</div>
-        <div className="mt-2">
-          <div className="bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden" style={{ width: `${avance}%` }}>
-            <div
-              className="h-full bg-gradient-to-r from-blue-600 to-blue-800 w-full"
-              style={{ width: `${avance}%` }}
-            ></div>
+      <div className="grid grid-cols-2 gap-3">
+        {cards.map((card) => (
+          <div
+            key={card.label}
+            className="rounded-xl border border-white/10 bg-white/[0.03] p-4"
+          >
+            <div className={`font-display text-2xl font-bold ${card.tone}`}>
+              {card.value}
+            </div>
+            <div className="mt-0.5 text-xs text-[#7f8ea8]">{card.label}</div>
           </div>
-          <div className="mt-1 flex justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>0%</span>
-            <span>{avance}%</span>
-          </div>
+        ))}
+      </div>
+
+      <div className="mt-5">
+        <div className="flex items-center justify-between text-xs text-[#9fb0c9]">
+          <span>
+            <i
+              className="fa-solid fa-arrow-trend-up mr-1.5 text-emerald-400"
+              aria-hidden="true"
+            />
+            Avance general
+          </span>
+          <span className="font-semibold text-white">{avance}%</span>
+        </div>
+        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/8">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-gold to-gold-dark transition-all duration-700"
+            style={{ width: `${avance}%` }}
+          />
+        </div>
+        <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-wider text-[#6f7f99]">
+          <span>0%</span>
+          <span>
+            {completados} de {total} completados
+          </span>
         </div>
       </div>
     </div>
