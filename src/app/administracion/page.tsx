@@ -67,6 +67,9 @@ export default function Administracion() {
     type: "success" | "error" | "info";
     text: string;
   } | null>(null);
+  const [archivoAdjunto, setArchivoAdjunto] = useState<File | null>(null);
+  const [nombreAdjunto, setNombreAdjunto] = useState("");
+  const [subiendoAdjunto, setSubiendoAdjunto] = useState(false);
 
   const cargarDatos = useCallback(async () => {
     setLoadingData(true);
@@ -140,7 +143,7 @@ export default function Administracion() {
   };
 
   const guardarPunto = useCallback(
-    async (puntoData: PuntoSGC) => {
+    async (puntoData: PuntoSGC, cerrar: boolean = true) => {
       if (!agenda) return;
       const existe = agenda.puntos.some((p) => p.id === puntoData.id);
       const nuevosPuntos = existe
@@ -170,7 +173,8 @@ export default function Administracion() {
         if (!res.ok) throw new Error(result.error || "No se pudo guardar");
 
         setAgenda({ puntos: nuevosPuntos, metadata: agenda.metadata });
-        setEditando(null);
+        if (cerrar) setEditando(null);
+        else setEditando(puntoData);
         setMensaje({
           type: "success",
           text: result.remote
@@ -255,6 +259,63 @@ export default function Administracion() {
       }
     } catch {
       setMensaje({ type: "error", text: "Error de conexión al subir PDF" });
+    }
+  };
+
+  const subirYAdjuntar = async () => {
+    if (!editando || !archivoAdjunto) {
+      setMensaje({
+        type: "error",
+        text: "Seleccioná un archivo PDF para adjuntar",
+      });
+      return;
+    }
+
+    setSubiendoAdjunto(true);
+    setMensaje({ type: "info", text: "Subiendo y adjuntando PDF..." });
+
+    const formData = new FormData();
+    formData.append("file", archivoAdjunto);
+    formData.append("puntoId", editando.id);
+    formData.append("categoria", editando.categoria || "Administración");
+    formData.append("planta", editando.plantas[0] || "General");
+    formData.append("version", "1.0");
+    formData.append("responsable", editando.responsable);
+    formData.append("descripcion", editando.titulo);
+    formData.append("nombre", nombreAdjunto.trim() || editando.titulo);
+
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const result = await res.json();
+
+      if (res.ok && result.success) {
+        const docId = result.documento?.id;
+        const nuevosIds = docId
+          ? [...(editando.documentosIds || []), docId]
+          : editando.documentosIds || [];
+        const puntoActualizado: PuntoSGC = {
+          ...editando,
+          documentosIds: nuevosIds,
+          fechaActualizacion: new Date().toISOString(),
+        };
+        await guardarPunto(puntoActualizado, false);
+        setArchivoAdjunto(null);
+        setNombreAdjunto("");
+        await cargarDatos();
+        setMensaje({
+          type: "success",
+          text: "PDF adjuntado al punto correctamente",
+        });
+      } else {
+        setMensaje({
+          type: "error",
+          text: result.error || "Error al subir PDF",
+        });
+      }
+    } catch {
+      setMensaje({ type: "error", text: "Error de conexión al subir PDF" });
+    } finally {
+      setSubiendoAdjunto(false);
     }
   };
 
@@ -481,6 +542,12 @@ export default function Administracion() {
                   <i className="fa-solid fa-industry" aria-hidden="true" />
                   {p.plantas.length ? p.plantas.join(" · ") : "General"}
                 </span>
+                {(p.documentosIds?.length ?? 0) > 0 && (
+                  <span className="inline-flex items-center gap-1 text-gold">
+                    <i className="fa-solid fa-paperclip" aria-hidden="true" />
+                    {p.documentosIds?.length} docs
+                  </span>
+                )}
               </div>
             </button>
           ))}
@@ -671,6 +738,75 @@ export default function Administracion() {
                   />
                 </div>
 
+                <div className="md:col-span-2 rounded-xl border border-white/10 bg-[#0a0e17]/60 p-4">
+                  <h3 className="mb-3 text-sm font-semibold text-white">
+                    Documentos adjuntos a este punto
+                  </h3>
+
+                  {documentos.documentos.filter(
+                    (d) => d.puntoId === editando.id,
+                  ).length === 0 ? (
+                    <p className="mb-3 text-xs text-[#6f7f99]">
+                      Sin documentos adjuntos aún.
+                    </p>
+                  ) : (
+                    <ul className="mb-3 space-y-1.5">
+                      {documentos.documentos
+                        .filter((d) => d.puntoId === editando.id)
+                        .map((d) => (
+                          <li
+                            key={d.id}
+                            className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs"
+                          >
+                            <a
+                              href={d.archivoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="truncate text-gold hover:text-amber-200"
+                            >
+                              {d.nombre}
+                            </a>
+                            <span className="shrink-0 text-[#6f7f99]">
+                              v{d.version}
+                            </span>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                    <input
+                      type="text"
+                      placeholder="Nombre del documento"
+                      value={nombreAdjunto}
+                      onChange={(e) => setNombreAdjunto(e.target.value)}
+                      className="rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20 md:col-span-1"
+                    />
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) =>
+                        setArchivoAdjunto(e.target.files?.[0] ?? null)
+                      }
+                      className="rounded-lg border border-dashed border-white/15 bg-[#0a0e17] px-3 py-2 text-xs text-[#9fb0c9] file:mr-2 file:rounded-md file:border-0 file:bg-gold/15 file:px-2 file:py-1 file:text-xs file:font-semibold file:text-gold"
+                    />
+                    <button
+                      type="button"
+                      onClick={subirYAdjuntar}
+                      disabled={subiendoAdjunto || !archivoAdjunto}
+                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-3 py-2 text-xs font-bold text-[#1a1405] shadow-[0_10px_30px_-8px_rgba(212,175,55,0.6)] transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <i
+                        className={`fa-solid ${
+                          subiendoAdjunto ? "fa-spinner fa-spin" : "fa-paperclip"
+                        }`}
+                        aria-hidden="true"
+                      />
+                      {subiendoAdjunto ? "Subiendo..." : "Adjuntar PDF"}
+                    </button>
+                  </div>
+                </div>
+
                 <div className="flex gap-2 md:col-span-2">
                   <button
                     type="submit"
@@ -747,7 +883,7 @@ export default function Administracion() {
 
         <section className="mt-10">
           <h2 className="font-display text-xl font-bold text-white">
-            Subir PDF / Documento
+            Subir PDF / Documento (general)
           </h2>
           <p className="mb-4 mt-1 text-sm text-[#9fb0c9]">
             El archivo se sube a GitHub y queda disponible en la documentoteca.
