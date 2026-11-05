@@ -1,19 +1,5 @@
 {
-  "documentos": [
-    {
-      "id": "1793906386672",
-      "nombre": "Prueba carga",
-      "categoria": "Administración",
-      "puntoId": "",
-      "planta": "General",
-      "fecha": "2026-11-05",
-      "version": "1.0",
-      "responsable": "Test",
-      "descripcion": "prueba",
-      "archivoUrl": "https://github.com/ssaavedra1969-png/Cetificacion/blob/main/public/documentos/2026-11-05T19-19-44-802Z-prueba-carga.pdf",
-      "tipo": "pdf"
-    }
-  ],
+  "documentos": [],
   "categorias": [
     "Resguardo de información",
     "Muestras de Campana",

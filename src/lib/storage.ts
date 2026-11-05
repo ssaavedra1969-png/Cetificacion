@@ -1,13 +1,24 @@
 import { promises as fs } from "fs";
 import path from "path";
 import type { PuntoSGC, Documento, HistorialCambio } from "../types/models";
+import { githubConfigured, getJSON } from "./github";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
-export async function readAgenda(): Promise<{
-  puntos: PuntoSGC[];
-  metadata: any;
-}> {
+const isVercel = process.env.VERCEL === "1";
+
+export async function readAgenda(): Promise<{ puntos: PuntoSGC[]; metadata: any }> {
+  if (isVercel && githubConfigured()) {
+    try {
+      const data = await getJSON<{ puntos: PuntoSGC[]; metadata: any }>(
+        "data/agenda.json",
+      );
+      if (data) return data;
+    } catch {
+      // caer al filesystem empaquetado
+    }
+  }
+
   const raw = await fs.readFile(path.join(DATA_DIR, "agenda.json"), "utf-8");
   return JSON.parse(raw);
 }
@@ -28,6 +39,19 @@ export async function readDocumentos(): Promise<{
   categorias: string[];
   metadata: any;
 }> {
+  if (isVercel && githubConfigured()) {
+    try {
+      const data = await getJSON<{
+        documentos: Documento[];
+        categorias: string[];
+        metadata: any;
+      }>("data/documentos.json");
+      if (data) return data;
+    } catch {
+      // caer al filesystem empaquetado
+    }
+  }
+
   const raw = await fs.readFile(
     path.join(DATA_DIR, "documentos.json"),
     "utf-8",
