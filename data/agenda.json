@@ -5,7 +5,10 @@
       "titulo": "Resguardo de información",
       "descripcion": "evaluar la migración de la información almacenada en la PC a una nube corporativa, con accesos controlados y una rutina de backups periódicos",
       "categoria": "Resguardo de información",
-      "plantas": ["Campana", "Luján"],
+      "plantas": [
+        "Campana",
+        "Luján"
+      ],
       "responsable": "A definir",
       "prioridad": "alta",
       "estado": "Pendiente",
@@ -20,7 +23,9 @@
       "titulo": "Muestras de Campana",
       "descripcion": "regularizar el envío de muestras al laboratorio de Luján para realizar los ensayos correspondientes. Este punto ya se había conversado en la visita anterior y continúa pendiente",
       "categoria": "Muestras de Campana",
-      "plantas": ["Campana"],
+      "plantas": [
+        "Campana"
+      ],
       "responsable": "A definir",
       "prioridad": "alta",
       "estado": "Pendiente",
@@ -35,7 +40,10 @@
       "titulo": "Certificados de calibración",
       "descripcion": "reunir los certificados vigentes de las balanzas de camiones y de laboratorio de ambas plantas",
       "categoria": "Certificados de calibración",
-      "plantas": ["Campana", "Luján"],
+      "plantas": [
+        "Campana",
+        "Luján"
+      ],
       "responsable": "A definir",
       "prioridad": "alta",
       "estado": "Pendiente",
@@ -50,7 +58,9 @@
       "titulo": "Layout de Luján",
       "descripcion": "conseguir una imagen aérea actualizada del predio para analizar la distribución de las instalaciones, los flujos de circulación y las oportunidades de mejora del layout",
       "categoria": "Layout",
-      "plantas": ["Luján"],
+      "plantas": [
+        "Luján"
+      ],
       "responsable": "A definir",
       "prioridad": "media",
       "estado": "Pendiente",
@@ -65,7 +75,10 @@
       "titulo": "Seguridad vial interna",
       "descripcion": "reforzar las buenas prácticas de manejo defensivo y circulación dentro del predio, considerando la convivencia entre vehículos livianos y equipos pesados. Establecer y señalar el criterio de estacionamiento en reversa, de manera que los vehículos queden orientados hacia la salida",
       "categoria": "Seguridad vial",
-      "plantas": ["Campana", "Luján"],
+      "plantas": [
+        "Campana",
+        "Luján"
+      ],
       "responsable": "A definir",
       "prioridad": "media",
       "estado": "Pendiente",
@@ -80,7 +93,10 @@
       "titulo": "Teléfono del laboratorio",
       "descripcion": "revisar el uso del teléfono particular del laboratorista para gestionar información de la empresa, considerando el resguardo, la disponibilidad y la continuidad de esa información",
       "categoria": "Administración",
-      "plantas": ["Campana", "Luján"],
+      "plantas": [
+        "Campana",
+        "Luján"
+      ],
       "responsable": "A definir",
       "prioridad": "baja",
       "estado": "Pendiente",
@@ -95,7 +111,10 @@
       "titulo": "Plan de muestreo",
       "descripcion": "revisar la frecuencia de toma de muestras de materias primas en relación con los volúmenes recibidos y los ensayos requeridos",
       "categoria": "Muestreo",
-      "plantas": ["Campana", "Luján"],
+      "plantas": [
+        "Campana",
+        "Luján"
+      ],
       "responsable": "A definir",
       "prioridad": "alta",
       "estado": "Pendiente",
@@ -110,7 +129,10 @@
       "titulo": "Control de calidad de áridos de cantera propia",
       "descripcion": "solicitar y centralizar los informes de ensayos granulométricos y sus respectivas curvas, para evaluar la calidad y uniformidad de los materiales utilizados en la elaboración del hormigón. Coordinar con el responsable de cantera el envío periódico de esta información",
       "categoria": "Control de calidad",
-      "plantas": ["Campana", "Luján"],
+      "plantas": [
+        "Campana",
+        "Luján"
+      ],
       "responsable": "A definir",
       "prioridad": "alta",
       "estado": "Pendiente",
@@ -125,7 +147,10 @@
       "titulo": "Control de calidad del agua",
       "descripcion": "verificar la disponibilidad y vigencia de los análisis del agua utilizada para elaborar hormigón en ambas plantas, su aptitud conforme a los requisitos técnicos aplicables y la necesidad de establecer una frecuencia de control según su procedencia",
       "categoria": "Control de calidad",
-      "plantas": ["Campana", "Luján"],
+      "plantas": [
+        "Campana",
+        "Luján"
+      ],
       "responsable": "A definir",
       "prioridad": "alta",
       "estado": "Pendiente",
@@ -140,7 +165,10 @@
       "titulo": "Documentación del laboratorio",
       "descripcion": "centralizar los registros de ensayos y controles, asegurando su disponibilidad y trazabilidad para ambas plantas",
       "categoria": "Documentación del laboratorio",
-      "plantas": ["Campana", "Luján"],
+      "plantas": [
+        "Campana",
+        "Luján"
+      ],
       "responsable": "A definir",
       "prioridad": "media",
       "estado": "Pendiente",
