@@ -11,6 +11,7 @@ export interface AgendaFiltersValue {
 
 interface AgendaFiltersProps {
   onFilterChange?: (filters: AgendaFiltersValue) => void;
+  showPlanta?: boolean;
 }
 
 const initialFilters: AgendaFiltersValue = {
@@ -23,7 +24,10 @@ const initialFilters: AgendaFiltersValue = {
 const selectClass =
   "w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20";
 
-export default function AgendaFilters({ onFilterChange }: AgendaFiltersProps) {
+export default function AgendaFilters({
+  onFilterChange,
+  showPlanta = true,
+}: AgendaFiltersProps) {
   const [filtros, setFiltros] = useState<AgendaFiltersValue>(initialFilters);
 
   const handleChange = (
@@ -76,6 +80,10 @@ export default function AgendaFilters({ onFilterChange }: AgendaFiltersProps) {
     },
   ] as const;
 
+  const visibleFields = showPlanta
+    ? fields
+    : fields.filter((field) => field.name !== "planta");
+
   return (
     <div className="glass rounded-2xl p-5">
       <div className="mb-4 flex items-center gap-2">
@@ -86,7 +94,7 @@ export default function AgendaFilters({ onFilterChange }: AgendaFiltersProps) {
       </div>
 
       <div className="space-y-4">
-        {fields.map((field) => (
+        {visibleFields.map((field) => (
           <div key={field.name}>
             <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-[#9fb0c9]">
               <i

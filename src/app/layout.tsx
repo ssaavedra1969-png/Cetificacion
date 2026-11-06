@@ -16,7 +16,7 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
-  title: "Portal SGC – Grupo Falpat SRL",
+  title: "Sistema de Gestión de la Calidad – Grupo Falpat SRL",
   description:
     "Portal de certificación y seguimiento del Sistema de Gestión de Calidad para Grupo Falpat SRL",
 };

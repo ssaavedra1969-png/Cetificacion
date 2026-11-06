@@ -27,7 +27,7 @@ export default function KPIs({
       <div className="mb-4 flex items-center gap-2">
         <i className="fa-solid fa-chart-simple text-gold" aria-hidden="true" />
         <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9fb0c9]">
-          KPIs del SGC
+          KPIs de calidad
         </h3>
       </div>
 

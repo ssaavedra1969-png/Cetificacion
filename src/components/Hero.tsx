@@ -42,7 +42,7 @@ export default function Hero() {
                   className="fa-solid fa-arrow-right transition-transform duration-300 group-hover:translate-x-1"
                   aria-hidden="true"
                 />
-                Explorar agenda SGC
+                Explorar agenda
               </a>
 
               <a
@@ -76,7 +76,7 @@ export default function Hero() {
             <dl className="mt-8 grid max-w-lg grid-cols-3 gap-4 border-t border-white/10 pt-6">
               <div>
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-[#6f7f99]">
-                  Puntos SGC
+                  Puntos de agenda
                 </dt>
                 <dd className="font-display mt-1 text-2xl font-bold text-white">
                   10
@@ -129,7 +129,7 @@ export default function Hero() {
                     priority
                   />
                   <span className="hidden text-[11px] font-medium uppercase tracking-[0.16em] text-[#7f8ea8] sm:inline">
-                    Panel SGC
+                     Panel de calidad
                   </span>
                 </div>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
@@ -169,7 +169,7 @@ export default function Hero() {
               {/* Barra de avance */}
               <div className="mt-4">
                 <div className="flex items-center justify-between text-[11px] text-[#7f8ea8]">
-                  <span>Avance general del SGC</span>
+                  <span>Avance general</span>
                   <span className="font-semibold text-white">0%</span>
                 </div>
                 <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/8">

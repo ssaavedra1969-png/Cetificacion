@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
@@ -40,7 +41,7 @@ export default function LoginPage() {
 
       <div className="relative w-full max-w-md">
         <div className="mb-8 text-center">
-          <a
+          <Link
             href="/"
             className="inline-flex items-center gap-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:text-white"
           >
@@ -49,12 +50,12 @@ export default function LoginPage() {
               aria-hidden="true"
             />
             Volver al portal
-          </a>
+          </Link>
           <h1 className="font-display mt-5 text-3xl font-bold tracking-tight text-white">
             Acceso administrativo
           </h1>
           <p className="mt-2 text-sm text-[#9fb0c9]">
-            Ingresá la contraseña para administrar el SGC.
+            Ingresá la contraseña para administrar el sistema.
           </p>
         </div>
 

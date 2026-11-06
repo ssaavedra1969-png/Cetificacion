@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 interface Documento {
   id: string;
@@ -40,7 +41,7 @@ export default function Documentoteca() {
     <main className="min-h-screen">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#02040a]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <a
+          <Link
             href="/"
             className="inline-flex items-center gap-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:text-white"
           >
@@ -49,7 +50,7 @@ export default function Documentoteca() {
               aria-hidden="true"
             />
             Volver al portal
-          </a>
+          </Link>
           <a
             href="/administracion"
             className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3.5 py-2 text-xs font-semibold text-gold transition-colors hover:bg-gold/20"
@@ -64,7 +65,7 @@ export default function Documentoteca() {
         <div className="mb-8">
           <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">
             <i className="fa-solid fa-folder-open" aria-hidden="true" />
-            Evidencias del SGC
+            Evidencias de calidad
           </span>
           <h1 className="font-display mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Documentoteca
@@ -150,11 +151,11 @@ export default function Documentoteca() {
                     {[
                       "Nombre",
                       "Categoría",
-                      "Punto SGC",
+                      "Tema",
                       "Planta",
                       "Fecha",
                       "Versión",
-                      "Descargar",
+                      "Abrir",
                     ].map((label) => (
                       <th
                         key={label}
@@ -173,7 +174,7 @@ export default function Documentoteca() {
                     >
                       <td className="px-4 py-3">
                         <a
-                          href={d.archivoUrl}
+                          href={`/documentos/${d.id}`}
                           className="font-medium text-gold hover:text-amber-200"
                         >
                           {d.nombre}
@@ -188,16 +189,14 @@ export default function Documentoteca() {
                       <td className="px-4 py-3 text-[#9fb0c9]">{d.version}</td>
                       <td className="px-4 py-3">
                         <a
-                          href={d.archivoUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                          href={`/documentos/${d.id}`}
                           className="inline-flex items-center gap-1.5 text-emerald-300 hover:text-emerald-200"
                         >
                           <i
-                            className="fa-solid fa-download"
+                            className="fa-solid fa-up-right-from-square"
                             aria-hidden="true"
                           />
-                          Descargar
+                          Abrir
                         </a>
                       </td>
                     </tr>

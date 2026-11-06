@@ -1,21 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-
-interface Punto {
-  id: string;
-  titulo: string;
-  descripcion?: string;
-  categoria?: string;
-  plantas?: string[];
-  estado?: string;
-  responsable?: string;
-  prioridad?: string;
-  fechaCompromiso?: string;
-}
+import type { Documento, PuntoSGC } from "@/types/models";
+import PuntoModal from "@/components/PuntoModal";
 
 interface AgendaTableProps {
-  puntos: Punto[];
+  puntos: PuntoSGC[];
+  documentos?: Documento[];
+  categorias?: string[];
+  auth?: boolean;
+  onReload?: () => Promise<void> | void;
 }
 
 function statusClasses(estado?: string): string {
@@ -32,9 +26,16 @@ function statusClasses(estado?: string): string {
   }
 }
 
-export default function AgendaTable({ puntos }: AgendaTableProps) {
+export default function AgendaTable({
+  puntos,
+  documentos = [],
+  categorias = [],
+  auth = false,
+  onReload,
+}: AgendaTableProps) {
   const [view, setView] = useState<"table" | "cards">("table");
   const [search, setSearch] = useState("");
+  const [detalleId, setDetalleId] = useState<string | null>(null);
 
   const filteredPuntos = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -47,13 +48,17 @@ export default function AgendaTable({ puntos }: AgendaTableProps) {
     });
   }, [puntos, search]);
 
+  const detalle = detalleId
+    ? (puntos.find((p) => p.id === detalleId) ?? null)
+    : null;
+
   return (
     <div className="glass rounded-2xl p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <i className="fa-solid fa-list-check text-gold" aria-hidden="true" />
           <h2 className="font-display text-lg font-bold text-white">
-            Agenda de Trabajo SGC
+            Agenda de Trabajo
           </h2>
         </div>
 
@@ -68,7 +73,7 @@ export default function AgendaTable({ puntos }: AgendaTableProps) {
         </select>
       </div>
 
-      <div className="relative mb-4">
+      <div className="relative mb-2">
         <i
           className="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#6f7f99]"
           aria-hidden="true"
@@ -81,6 +86,11 @@ export default function AgendaTable({ puntos }: AgendaTableProps) {
           className="w-full rounded-lg border border-white/10 bg-[#0a0e17] py-2 pl-9 pr-3 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20 md:w-80"
         />
       </div>
+
+      <p className="mb-4 flex items-center gap-1.5 text-[11px] text-[#6f7f99]">
+        <i className="fa-solid fa-circle-info text-gold/70" aria-hidden="true" />
+        Los temas compartidos por ambas plantas aparecen en las dos solapas.
+      </p>
 
       {filteredPuntos.length === 0 ? (
         <p className="py-10 text-center text-sm text-[#7f8ea8]">
@@ -97,9 +107,10 @@ export default function AgendaTable({ puntos }: AgendaTableProps) {
                   "Planta(s)",
                   "Estado",
                   "Responsable",
-                ].map((label) => (
+                  "",
+                ].map((label, index) => (
                   <th
-                    key={label}
+                    key={`${label}-${index}`}
                     className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f7f99]"
                   >
                     {label}
@@ -114,13 +125,24 @@ export default function AgendaTable({ puntos }: AgendaTableProps) {
                   className="border-b border-white/[0.06] transition-colors hover:bg-white/[0.04]"
                 >
                   <td className="px-3 py-3 font-medium text-white">
-                    {p.titulo}
+                    <button
+                      type="button"
+                      onClick={() => setDetalleId(p.id)}
+                      className="text-left transition-colors hover:text-gold"
+                    >
+                      {p.titulo}
+                    </button>
                   </td>
                   <td className="px-3 py-3 text-[#9fb0c9]">
                     {p.categoria ?? "-"}
                   </td>
                   <td className="px-3 py-3 text-[#9fb0c9]">
-                    {(p.plantas ?? []).join(", ") || "-"}
+                    <span>{(p.plantas ?? []).join(", ") || "-"}</span>
+                    {(p.plantas?.length ?? 0) > 1 && (
+                      <span className="ml-1.5 whitespace-nowrap rounded-full border border-gold/25 bg-gold/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-gold">
+                        Compartido
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-3">
                     <span
@@ -134,6 +156,19 @@ export default function AgendaTable({ puntos }: AgendaTableProps) {
                   <td className="px-3 py-3 text-[#9fb0c9]">
                     {p.responsable || "A definir"}
                   </td>
+                  <td className="px-3 py-3 text-right">
+                    <button
+                      type="button"
+                      onClick={() => setDetalleId(p.id)}
+                      className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-semibold text-gold transition-colors hover:text-amber-200"
+                    >
+                      Ver detalle
+                      <i
+                        className="fa-solid fa-arrow-up-right-from-square text-[10px]"
+                        aria-hidden="true"
+                      />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -142,12 +177,16 @@ export default function AgendaTable({ puntos }: AgendaTableProps) {
       ) : (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {filteredPuntos.map((p) => (
-            <div
+            <button
               key={p.id}
-              className="rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:border-white/20"
+              type="button"
+              onClick={() => setDetalleId(p.id)}
+              className="block rounded-xl border border-white/10 bg-white/[0.03] p-4 text-left transition-colors hover:border-gold/40 hover:bg-white/[0.05]"
             >
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold text-white">{p.titulo}</h3>
+              <span className="flex items-start justify-between gap-2">
+                <span className="block font-semibold text-white">
+                  {p.titulo}
+                </span>
                 <span
                   className={`inline-block whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-semibold ${statusClasses(
                     p.estado,
@@ -155,27 +194,39 @@ export default function AgendaTable({ puntos }: AgendaTableProps) {
                 >
                   {p.estado ?? "Pendiente"}
                 </span>
-              </div>
+              </span>
               {p.descripcion && (
-                <p className="mt-2 text-sm leading-relaxed text-[#9fb0c9]">
+                <span className="mt-2 block line-clamp-2 text-sm leading-relaxed text-[#9fb0c9]">
                   {p.descripcion}
-                </p>
+                </span>
               )}
-              <div className="mt-3 space-y-1 text-[11px] text-[#7f8ea8]">
-                <div>
+              <span className="mt-3 block space-y-1 text-[11px] text-[#7f8ea8]">
+                <span className="block">
                   <i className="fa-solid fa-tag mr-1.5 text-gold/70" />
                   {p.categoria ?? "-"}
-                </div>
-                <div>
+                </span>
+                <span className="block">
                   <i className="fa-solid fa-industry mr-1.5 text-gold/70" />
                   {(p.plantas ?? []).join(", ") || "-"}
-                </div>
-                <div>
+                  {(p.plantas?.length ?? 0) > 1 && (
+                    <span className="ml-1.5 rounded-full border border-gold/25 bg-gold/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-gold">
+                      Compartido
+                    </span>
+                  )}
+                </span>
+                <span className="block">
                   <i className="fa-solid fa-user-tie mr-1.5 text-gold/70" />
                   {p.responsable || "A definir"}
-                </div>
-              </div>
-            </div>
+                </span>
+              </span>
+              <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-gold">
+                Ver detalle
+                <i
+                  className="fa-solid fa-arrow-up-right-from-square text-[10px]"
+                  aria-hidden="true"
+                />
+              </span>
+            </button>
           ))}
         </div>
       )}
@@ -183,6 +234,17 @@ export default function AgendaTable({ puntos }: AgendaTableProps) {
       <p className="mt-4 text-xs text-[#6f7f99]">
         Mostrando {filteredPuntos.length} de {puntos.length} puntos
       </p>
+
+      {detalle && (
+        <PuntoModal
+          punto={detalle}
+          documentos={documentos}
+          categorias={categorias}
+          auth={auth}
+          onReload={onReload}
+          onClose={() => setDetalleId(null)}
+        />
+      )}
     </div>
   );
 }

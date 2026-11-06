@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import type { Documento, HistorialCambio, PuntoSGC } from "@/types/models";
 
 interface AgendaData {
@@ -179,7 +180,7 @@ export default function Administracion() {
           type: "success",
           text: result.remote
             ? "Guardado y publicado en GitHub correctamente"
-            : "Punto SGC actualizado correctamente",
+            : "Tema actualizado correctamente",
         });
       } catch (error) {
         setMensaje({
@@ -187,7 +188,7 @@ export default function Administracion() {
           text:
             error instanceof Error
               ? error.message
-              : "Error al guardar el punto SGC",
+              : "Error al guardar el tema",
         });
       }
     },
@@ -346,7 +347,7 @@ export default function Administracion() {
           className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-gold/10 via-transparent to-blue-600/10 blur-2xl"
         />
         <div className="relative w-full max-w-md">
-          <a
+          <Link
             href="/"
             className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:text-white"
           >
@@ -355,13 +356,13 @@ export default function Administracion() {
               aria-hidden="true"
             />
             Volver al portal
-          </a>
+          </Link>
           <div className="glass rounded-2xl p-7">
             <h1 className="font-display text-2xl font-bold text-white">
               Acceso administrativo
             </h1>
             <p className="mt-2 text-sm text-[#9fb0c9]">
-              Ingresá la contraseña para administrar el SGC.
+              Ingresá la contraseña para administrar el sistema.
             </p>
 
             {mensaje && (
@@ -411,7 +412,7 @@ export default function Administracion() {
     <main className="min-h-screen">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#02040a]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-          <a
+          <Link
             href="/"
             className="inline-flex items-center gap-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:text-white"
           >
@@ -420,7 +421,7 @@ export default function Administracion() {
               aria-hidden="true"
             />
             Volver al portal
-          </a>
+          </Link>
           <div className="flex items-center gap-2">
             <button
               onClick={cargarDatos}
@@ -479,7 +480,7 @@ export default function Administracion() {
               Administración
             </span>
             <h1 className="font-display mt-3 text-3xl font-bold tracking-tight text-white">
-              Panel SGC
+              Panel de administración
             </h1>
           </div>
           <button
@@ -503,7 +504,7 @@ export default function Administracion() {
             className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-4 py-2.5 text-sm font-bold text-[#1a1405] shadow-[0_10px_30px_-8px_rgba(212,175,55,0.6)] transition-all duration-300 hover:-translate-y-0.5"
           >
             <i className="fa-solid fa-plus" aria-hidden="true" />
-            Nuevo punto SGC
+            Nuevo tema
           </button>
         </div>
 
@@ -560,7 +561,7 @@ export default function Administracion() {
                 <h2 className="font-display text-xl font-bold text-white">
                   {puntos.some((p) => p.id === editando.id)
                     ? `Editar: ${editando.titulo}`
-                    : "Nuevo punto SGC"}
+                    : "Nuevo tema"}
                 </h2>
                 <button
                   type="button"
@@ -910,7 +911,7 @@ export default function Administracion() {
 
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
-                Punto SGC asociado
+                Tema asociado
               </label>
               <select
                 name="puntoId"

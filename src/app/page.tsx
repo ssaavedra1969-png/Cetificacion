@@ -1,24 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import Hero from "@/components/Hero";
 import KPIs from "@/components/KPIs";
 import AgendaTable from "@/components/AgendaTable";
 import AgendaFilters, {
   type AgendaFiltersValue,
 } from "@/components/AgendaFilters";
+import type { Documento, PuntoSGC } from "@/types/models";
 
-interface Punto {
-  id: string;
-  titulo: string;
-  descripcion?: string;
-  categoria?: string;
-  plantas?: string[];
-  estado?: string;
-  responsable?: string;
-  prioridad?: string;
-  fechaCompromiso?: string;
+const PLANTAS = ["Luján", "Campana"] as const;
+type Planta = (typeof PLANTAS)[number];
+
+function perteneceAPlanta(punto: PuntoSGC, planta: Planta): boolean {
+  const plantas = punto.plantas ?? [];
+  if (plantas.length === 0) return true;
+  return plantas.includes(planta) || plantas.includes("General");
 }
 
 const initialFilters: AgendaFiltersValue = {
@@ -28,43 +27,116 @@ const initialFilters: AgendaFiltersValue = {
   categoria: "",
 };
 
+interface AgendaCargada {
+  puntos: PuntoSGC[];
+  documentos: Documento[];
+  categorias: string[];
+  auth: boolean;
+}
+
 export default function Dashboard() {
-  const [puntos, setPuntos] = useState<Punto[]>([]);
+  const [puntos, setPuntos] = useState<PuntoSGC[]>([]);
+  const [documentos, setDocumentos] = useState<Documento[]>([]);
+  const [categorias, setCategorias] = useState<string[]>([]);
+  const [auth, setAuth] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filtros, setFiltros] = useState<AgendaFiltersValue>(initialFilters);
+  const [plantaActiva, setPlantaActiva] = useState<Planta>("Luján");
 
-  useEffect(() => {
-    fetch("/api/agenda")
-      .then((res) => {
-        if (!res.ok) throw new Error("No se pudo cargar la agenda");
-        return res.json();
-      })
-      .then((data) => setPuntos(Array.isArray(data.puntos) ? data.puntos : []))
-      .catch((err) => {
-        console.error("Error al cargar agenda:", err);
-        setError(err.message);
-      })
-      .finally(() => setLoading(false));
+  const cargarTodo = useCallback(async (): Promise<AgendaCargada> => {
+    const [agendaRes, docsRes, sessionRes] = await Promise.all([
+      fetch("/api/agenda"),
+      fetch("/api/documentos"),
+      fetch("/api/session"),
+    ]);
+
+    if (!agendaRes.ok) throw new Error("No se pudo cargar la agenda");
+
+    const agendaData = await agendaRes.json();
+    const docsData = docsRes.ok
+      ? await docsRes.json()
+      : { documentos: [], categorias: [] };
+    const sessionData = sessionRes.ok
+      ? await sessionRes.json()
+      : { authenticated: false };
+
+    return {
+      puntos: (Array.isArray(agendaData.puntos)
+        ? agendaData.puntos
+        : []) as PuntoSGC[],
+      documentos: (Array.isArray(docsData.documentos)
+        ? docsData.documentos
+        : []) as Documento[],
+      categorias: (Array.isArray(docsData.categorias)
+        ? docsData.categorias
+        : []) as string[],
+      auth: Boolean(sessionData.authenticated),
+    };
   }, []);
 
+  const aplicarDatos = useCallback((data: AgendaCargada) => {
+    setPuntos(data.puntos);
+    setDocumentos(data.documentos);
+    setCategorias(data.categorias);
+    setAuth(data.auth);
+  }, []);
+
+  useEffect(() => {
+    let activo = true;
+    cargarTodo()
+      .then((data) => {
+        if (activo) aplicarDatos(data);
+      })
+      .catch((err) => {
+        if (!activo) return;
+        console.error("Error al cargar agenda:", err);
+        setError(err instanceof Error ? err.message : "Error desconocido");
+      })
+      .finally(() => {
+        if (activo) setLoading(false);
+      });
+    return () => {
+      activo = false;
+    };
+  }, [cargarTodo, aplicarDatos]);
+
+  const recargar = useCallback(async () => {
+    try {
+      const data = await cargarTodo();
+      aplicarDatos(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+    }
+  }, [cargarTodo, aplicarDatos]);
+
+  const puntosDe = useCallback(
+    (planta: Planta) => puntos.filter((p) => perteneceAPlanta(p, planta)),
+    [puntos],
+  );
+
+  const puntosPlanta = useMemo(
+    () => puntosDe(plantaActiva),
+    [puntosDe, plantaActiva],
+  );
+
   const filteredPuntos = useMemo(() => {
-    return puntos.filter((p) => {
+    return puntosPlanta.filter((p) => {
       if (filtros.estado && p.estado !== filtros.estado) return false;
       if (filtros.responsable && p.responsable !== filtros.responsable)
         return false;
       if (filtros.categoria && p.categoria !== filtros.categoria) return false;
-      if (filtros.planta && !(p.plantas ?? []).includes(filtros.planta))
-        return false;
       return true;
     });
-  }, [puntos, filtros]);
+  }, [puntosPlanta, filtros]);
 
-  const total = puntos.length;
-  const pendientes = puntos.filter((p) => p.estado === "Pendiente").length;
-  const enCurso = puntos.filter((p) => p.estado === "En curso").length;
-  const bloqueados = puntos.filter((p) => p.estado === "Bloqueado").length;
-  const completados = puntos.filter((p) => p.estado === "Completado").length;
+  const total = puntosPlanta.length;
+  const pendientes = puntosPlanta.filter((p) => p.estado === "Pendiente").length;
+  const enCurso = puntosPlanta.filter((p) => p.estado === "En curso").length;
+  const bloqueados = puntosPlanta.filter((p) => p.estado === "Bloqueado").length;
+  const completados = puntosPlanta.filter(
+    (p) => p.estado === "Completado",
+  ).length;
   const avance = total > 0 ? Math.round((completados / total) * 100) : 0;
 
   return (
@@ -72,19 +144,29 @@ export default function Dashboard() {
       {/* ===== Barra superior ===== */}
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#02040a]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <a href="/" className="flex items-center gap-2.5">
+          <Link href="/" className="flex min-w-0 items-center gap-2.5">
             <Image
               src="/images/logo-falpat.png"
               alt="Grupo Falpat Hormigones"
               width={160}
               height={83}
-              className="h-8 w-auto"
+              className="h-8 w-auto shrink-0"
               priority
             />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">
-              SGC
+            <span
+              className="hidden h-9 w-px shrink-0 bg-white/15 sm:block"
+              aria-hidden="true"
+            />
+            <span className="flex min-w-0 flex-col items-center text-center leading-tight">
+              <span className="text-[9px] font-semibold uppercase leading-tight tracking-[0.05em] text-gold sm:text-[11px] sm:tracking-[0.12em]">
+                Sistema de Gestión de la Calidad{" "}
+                <span className="text-[#9fb0c9]">(Certificación)</span>
+              </span>
+              <span className="mt-0.5 block text-[7px] font-medium tracking-[0.12em] text-[#6f7f99] sm:text-[8px]">
+                Quality Management System
+              </span>
             </span>
-          </a>
+          </Link>
 
           <nav className="hidden items-center gap-1 md:flex">
             <a
@@ -125,19 +207,52 @@ export default function Dashboard() {
         id="agenda"
         className="relative mx-auto max-w-7xl scroll-mt-20 px-4 pb-20 sm:px-6 lg:px-8"
       >
-        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
               Panel de control
             </h2>
             <p className="mt-1 text-sm text-[#9fb0c9]">
-              Estado general de la agenda de certificación
+              Agenda de certificación por planta
             </p>
           </div>
           <span className="inline-flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-medium text-[#9fb0c9]">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-dot" />
             Datos en tiempo real
           </span>
+        </div>
+
+        <div
+          className="mb-6 inline-flex w-full rounded-xl border border-white/10 bg-white/[0.03] p-1 sm:w-auto"
+          role="group"
+          aria-label="Seleccionar planta"
+        >
+          {PLANTAS.map((planta) => {
+            const activa = plantaActiva === planta;
+            return (
+              <button
+                key={planta}
+                type="button"
+                onClick={() => setPlantaActiva(planta)}
+                aria-pressed={activa}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all sm:flex-none ${
+                  activa
+                    ? "bg-gradient-to-r from-gold to-gold-dark text-[#1a1405] shadow-[0_10px_30px_-10px_rgba(212,175,55,0.7)]"
+                    : "text-[#9fb0c9] hover:bg-white/5 hover:text-white"
+                }`}
+              >
+                <i className="fa-solid fa-industry" aria-hidden="true" />
+                {planta}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                    activa ? "bg-black/15" : "bg-white/10"
+                  }`}
+                >
+                  {puntosDe(planta).length}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {error && (
@@ -174,7 +289,7 @@ export default function Dashboard() {
             </div>
             <p className="text-sm leading-relaxed text-[#9fb0c9]">
               Consultá la Documentoteca para ver las evidencias y certificados
-              cargados del SGC.
+              cargados del sistema.
             </p>
             <a
               href="/documentoteca"
@@ -199,7 +314,7 @@ export default function Dashboard() {
               </h3>
             </div>
             <p className="text-sm leading-relaxed text-[#9fb0c9]">
-              {puntos.filter((p) => p.fechaCompromiso).length > 0
+              {puntosPlanta.filter((p) => p.fechaCompromiso).length > 0
                 ? "Revisá las fechas compromiso cargadas en la agenda."
                 : "Sin fechas compromiso cargadas por el momento."}
             </p>
@@ -221,7 +336,7 @@ export default function Dashboard() {
           className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-4"
         >
           <div className="lg:col-span-1">
-            <AgendaFilters onFilterChange={setFiltros} />
+            <AgendaFilters onFilterChange={setFiltros} showPlanta={false} />
           </div>
           <div className="lg:col-span-3">
             {loading ? (
@@ -233,7 +348,13 @@ export default function Dashboard() {
                 Cargando agenda...
               </div>
             ) : (
-              <AgendaTable puntos={filteredPuntos} />
+              <AgendaTable
+                puntos={filteredPuntos}
+                documentos={documentos}
+                categorias={categorias}
+                auth={auth}
+                onReload={recargar}
+              />
             )}
           </div>
         </div>
@@ -242,7 +363,7 @@ export default function Dashboard() {
       {/* ===== Footer ===== */}
       <footer className="border-t border-white/10 py-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-xs text-[#6f7f99] sm:flex-row sm:px-6 lg:px-8">
-          <p>© 2026 Grupo Falpat SRL · Portal SGC</p>
+          <p>© 2026 Grupo Falpat SRL · Sistema de Gestión de la Calidad</p>
           <p className="flex items-center gap-1.5">
             <i
               className="fa-solid fa-shield-halved text-gold/70"
