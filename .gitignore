@@ -29,3 +29,6 @@ next-env.d.ts
 .temp/
 .vercel
 .env*
+
+# Plantilla de variables de entorno (sí se versiona)
+!.env.local.example

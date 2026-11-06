@@ -1,6 +1,8 @@
 # Portal SGC – Grupo Falpat SRL
 ## Repositorio: https://github.com/ssaavedra1969-png/Cetificacion.git
 
+> **Nota (nov 2026):** para el estado actual y cómo continuar desde otra máquina, ver [`INSTRUCCIONES.md`](./INSTRUCCIONES.md). Este documento describe el deploy original en Vercel.
+
 Estado actual: ✅ Código subido a GitHub con todos los archivos del proyecto.
 
 ---

@@ -2,6 +2,8 @@
 
 Portal interno de certificación y seguimiento del Sistema de Gestión de Calidad (SGC) para el área de cemento, orientado a la planta principal y sus plantas de Campana y Luján.
 
+> **Actualización (nov 2026):** la arquitectura vigente usa un share SMB (`SGC_SHARE_ROOT`), solapas por planta y modal de detalle. Ver [`INSTRUCCIONES.md`](./INSTRUCCIONES.md) para el estado actual y cómo continuar. Las secciones de Vercel/GitHub de este README describen el flujo anterior.
+
 ## Visión general
 
 Este es un portal web full-stack construido con **Next.js + TypeScript + Tailwind CSS**, diseñado para ser desplegado gratuitamente en **GitHub + Vercel**. El sistema sirve como:
