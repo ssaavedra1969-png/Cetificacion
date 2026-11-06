@@ -17,6 +17,7 @@ export interface Documento {
   responsable: string;
   descripcion: string;
   archivoUrl: string;
+  ruta?: string;
   tipo: "pdf" | "imagen" | "otro";
 }
 
