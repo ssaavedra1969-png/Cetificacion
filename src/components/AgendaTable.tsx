@@ -7,9 +7,6 @@ import PuntoModal from "@/components/PuntoModal";
 interface AgendaTableProps {
   puntos: PuntoSGC[];
   documentos?: Documento[];
-  categorias?: string[];
-  auth?: boolean;
-  onReload?: () => Promise<void> | void;
 }
 
 function statusClasses(estado?: string): string {
@@ -29,9 +26,6 @@ function statusClasses(estado?: string): string {
 export default function AgendaTable({
   puntos,
   documentos = [],
-  categorias = [],
-  auth = false,
-  onReload,
 }: AgendaTableProps) {
   const [view, setView] = useState<"table" | "cards">("table");
   const [search, setSearch] = useState("");
@@ -239,9 +233,6 @@ export default function AgendaTable({
         <PuntoModal
           punto={detalle}
           documentos={documentos}
-          categorias={categorias}
-          auth={auth}
-          onReload={onReload}
           onClose={() => setDetalleId(null)}
         />
       )}

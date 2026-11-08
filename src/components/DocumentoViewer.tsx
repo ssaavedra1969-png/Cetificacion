@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import type { Documento } from "@/types/models";
-import { downloadUrl, isImageUrl, normalizeUrl } from "@/lib/urls";
+import { downloadUrl } from "@/lib/urls";
+import { useDocumentoEmbed } from "@/components/useDocumentoEmbed";
 
 export default function DocumentoViewer() {
   const params = useParams<{ id: string }>();
@@ -32,9 +33,9 @@ export default function DocumentoViewer() {
     [documentos, id],
   );
 
-  const url = doc ? normalizeUrl(doc.archivoUrl) : "";
+  const { url, kind, officeSrc, signing, signError } =
+    useDocumentoEmbed(doc);
   const descargaUrl = downloadUrl(url);
-  const esImagen = doc ? doc.tipo === "imagen" || isImageUrl(url) : false;
   const volver = doc?.puntoId ? `/temas/${doc.puntoId}` : "/documentoteca";
 
   return (
@@ -101,7 +102,7 @@ export default function DocumentoViewer() {
               Ir a la Documentoteca
             </Link>
           </div>
-        ) : esImagen ? (
+        ) : kind === "imagen" ? (
           <div className="h-[calc(100vh-64px)] overflow-auto p-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -110,12 +111,65 @@ export default function DocumentoViewer() {
               className="mx-auto max-w-full rounded-lg"
             />
           </div>
-        ) : (
+        ) : kind === "pdf" ? (
           <iframe
             src={url}
             title={doc.nombre}
             className="h-[calc(100vh-64px)] w-full border-0 bg-white"
           />
+        ) : kind === "office" ? (
+          officeSrc ? (
+            <iframe
+              src={officeSrc}
+              title={doc.nombre}
+              className="h-[calc(100vh-64px)] w-full border-0 bg-white"
+            />
+          ) : (
+            <div className="flex h-[calc(100vh-64px)] flex-col items-center justify-center gap-3 px-6 text-center">
+              {signing ? (
+                <span className="inline-flex items-center gap-2 text-sm text-[#9fb0c9]">
+                  <i
+                    className="fa-solid fa-spinner fa-spin text-gold"
+                    aria-hidden="true"
+                  />
+                  Preparando visor...
+                </span>
+              ) : (
+                <>
+                  <i
+                    className="fa-solid fa-file-word text-3xl text-gold"
+                    aria-hidden="true"
+                  />
+                  <p className="max-w-md text-sm text-[#9fb0c9]">
+                    {signError ??
+                      "El visor de Office no está disponible. Descargá el archivo para abrirlo."}
+                  </p>
+                  <a
+                    href={descargaUrl}
+                    className="rounded-lg border border-gold/30 bg-gold/10 px-4 py-2 text-sm font-semibold text-gold transition-colors hover:bg-gold/20"
+                  >
+                    Descargar archivo
+                  </a>
+                </>
+              )}
+            </div>
+          )
+        ) : (
+          <div className="flex h-[calc(100vh-64px)] flex-col items-center justify-center gap-3 px-6 text-center">
+            <i
+              className="fa-solid fa-file text-3xl text-gold"
+              aria-hidden="true"
+            />
+            <p className="text-sm text-[#9fb0c9]">
+              Este tipo de archivo no se puede previsualizar.
+            </p>
+            <a
+              href={descargaUrl}
+              className="rounded-lg border border-gold/30 bg-gold/10 px-4 py-2 text-sm font-semibold text-gold transition-colors hover:bg-gold/20"
+            >
+              Descargar archivo
+            </a>
+          </div>
         )}
       </div>
     </main>

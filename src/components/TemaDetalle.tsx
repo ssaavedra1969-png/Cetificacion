@@ -13,6 +13,8 @@ const estadoClasses: Record<PuntoSGC["estado"], string> = {
 
 const tipoIcon: Record<Documento["tipo"], string> = {
   pdf: "fa-file-pdf",
+  word: "fa-file-word",
+  excel: "fa-file-excel",
   imagen: "fa-file-image",
   otro: "fa-file",
 };
@@ -24,33 +26,16 @@ interface Props {
 export default function TemaDetalle({ id }: Props) {
   const [punto, setPunto] = useState<PuntoSGC | null>(null);
   const [documentos, setDocumentos] = useState<Documento[]>([]);
-  const [categorias, setCategorias] = useState<string[]>([]);
-  const [auth, setAuth] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [nombre, setNombre] = useState("");
-  const [ruta, setRuta] = useState("");
-  const [version, setVersion] = useState("1.0");
-  const [categoria, setCategoria] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [enviando, setEnviando] = useState(false);
-  const [mensaje, setMensaje] = useState<{
-    type: "success" | "error" | "info";
-    text: string;
-  } | null>(null);
-
   const fetchTema = useCallback(async () => {
-    const [agendaRes, docsRes, sessionRes] = await Promise.all([
+    const [agendaRes, docsRes] = await Promise.all([
       fetch("/api/agenda"),
       fetch("/api/documentos"),
-      fetch("/api/session"),
     ]);
     const agenda = agendaRes.ok ? await agendaRes.json() : { puntos: [] };
     const docs = docsRes.ok ? await docsRes.json() : { documentos: [] };
-    const session = sessionRes.ok
-      ? await sessionRes.json()
-      : { authenticated: false };
 
     const encontrado =
       ((agenda.puntos ?? []) as PuntoSGC[]).find((p) => p.id === id) ?? null;
@@ -58,8 +43,6 @@ export default function TemaDetalle({ id }: Props) {
     return {
       punto: encontrado,
       documentos: (docs.documentos ?? []) as Documento[],
-      categorias: (docs.categorias ?? []) as string[],
-      auth: Boolean(session.authenticated),
     };
   }, [id]);
 
@@ -70,9 +53,6 @@ export default function TemaDetalle({ id }: Props) {
         if (!activo) return;
         setPunto(data.punto);
         setDocumentos(data.documentos);
-        setCategorias(data.categorias);
-        setAuth(data.auth);
-        setCategoria((prev) => prev || data.punto?.categoria || "");
       })
       .catch(() => {
         if (activo) setError("No se pudo cargar la información del tema.");
@@ -85,81 +65,11 @@ export default function TemaDetalle({ id }: Props) {
     };
   }, [fetchTema]);
 
-  const recargar = useCallback(async () => {
-    try {
-      setError(null);
-      const data = await fetchTema();
-      setPunto(data.punto);
-      setDocumentos(data.documentos);
-      setCategorias(data.categorias);
-      setAuth(data.auth);
-    } catch {
-      setError("No se pudo cargar la información del tema.");
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchTema]);
-
   const docsDelTema = useMemo(() => {
     if (!punto) return [] as Documento[];
     const ids = new Set(punto.documentosIds ?? []);
     return documentos.filter((d) => d.puntoId === punto.id || ids.has(d.id));
   }, [documentos, punto]);
-
-  const anexar = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMensaje(null);
-
-    if (!nombre.trim()) {
-      setMensaje({ type: "error", text: "Ingresá un nombre para el documento" });
-      return;
-    }
-    if (!ruta.trim()) {
-      setMensaje({
-        type: "error",
-        text: "Ingresá la ruta del archivo en el compartido o una URL",
-      });
-      return;
-    }
-
-    setEnviando(true);
-    setMensaje({ type: "info", text: "Anexando documento..." });
-    try {
-      const res = await fetch("/api/anexar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          puntoId: id,
-          nombre,
-          ruta,
-          version,
-          categoria,
-          descripcion,
-        }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 401) setAuth(false);
-        setMensaje({
-          type: "error",
-          text: data.error || "No se pudo anexar el documento",
-        });
-        return;
-      }
-
-      setNombre("");
-      setRuta("");
-      setDescripcion("");
-      setVersion("1.0");
-      setMensaje({ type: "success", text: "Documento anexado correctamente" });
-      await recargar();
-    } catch {
-      setMensaje({ type: "error", text: "Error de conexión al anexar" });
-    } finally {
-      setEnviando(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -197,24 +107,6 @@ export default function TemaDetalle({ id }: Props) {
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#02040a]/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:text-white"
-          >
-            <i
-              className="fa-solid fa-arrow-left text-gold"
-              aria-hidden="true"
-            />
-            Volver al portal
-          </Link>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">
-            {punto.id}
-          </span>
-        </div>
-      </header>
-
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Ficha del tema */}
         <section className="glass rounded-2xl p-6">
@@ -360,139 +252,22 @@ export default function TemaDetalle({ id }: Props) {
           )}
         </section>
 
-        {/* Anexar (solo admin) */}
         <section className="mt-6">
-          <div className="glass rounded-2xl p-6">
-            <h2 className="font-display text-lg font-bold text-white">
-              Anexar documento
-            </h2>
-            {!auth ? (
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-[#9fb0c9]">
-                <i className="fa-solid fa-lock text-gold" aria-hidden="true" />
-                Necesitás iniciar sesión como administrador para anexar
-                documentos.
-                <Link
-                  href="/administracion"
-                  className="font-semibold text-gold hover:text-amber-200"
-                >
-                  Iniciar sesión
-                </Link>
-              </div>
-            ) : (
-              <form onSubmit={anexar} className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
-                    Nombre del documento
-                  </label>
-                  <input
-                    type="text"
-                    value={nombre}
-                    onChange={(e) => setNombre(e.target.value)}
-                    placeholder="Ej: Certificado balanza 01/2026"
-                    className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
-                    Ruta en el compartido o URL
-                  </label>
-                  <input
-                    type="text"
-                    value={ruta}
-                    onChange={(e) => setRuta(e.target.value)}
-                    placeholder={"\\\\SRV-FALPAT\\SGC\\P001\\certificado.pdf"}
-                    className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
-                  />
-                  <p className="mt-1 text-[10px] text-[#6f7f99]">
-                    Se acepta PDF o imagen dentro de la carpeta configurada, o
-                    una URL https.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
-                    Categoría
-                  </label>
-                  <input
-                    type="text"
-                    value={categoria}
-                    onChange={(e) => setCategoria(e.target.value)}
-                    list="categorias-tema"
-                    className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
-                  />
-                  <datalist id="categorias-tema">
-                    {categorias.map((c) => (
-                      <option key={c} value={c} />
-                    ))}
-                  </datalist>
-                </div>
-
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
-                    Versión
-                  </label>
-                  <input
-                    type="text"
-                    value={version}
-                    onChange={(e) => setVersion(e.target.value)}
-                    className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
-                    Descripción (opcional)
-                  </label>
-                  <textarea
-                    value={descripcion}
-                    onChange={(e) => setDescripcion(e.target.value)}
-                    rows={2}
-                    className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
-                  />
-                </div>
-
-                {mensaje && (
-                  <div
-                    className={`md:col-span-2 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-                      mensaje.type === "success"
-                        ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
-                        : mensaje.type === "info"
-                          ? "border-blue-400/25 bg-blue-400/10 text-blue-300"
-                          : "border-red-400/25 bg-red-400/10 text-red-300"
-                    }`}
-                  >
-                    <i
-                      className={`fa-solid ${
-                        mensaje.type === "success"
-                          ? "fa-circle-check"
-                          : mensaje.type === "info"
-                            ? "fa-circle-info"
-                            : "fa-triangle-exclamation"
-                      }`}
-                      aria-hidden="true"
-                    />
-                    {mensaje.text}
-                  </div>
-                )}
-
-                <div className="md:col-span-2">
-                  <button
-                    type="submit"
-                    disabled={enviando}
-                    className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-5 py-2.5 text-sm font-bold text-[#1a1405] shadow-[0_10px_30px_-8px_rgba(212,175,55,0.6)] transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <i
-                      className={`fa-solid ${enviando ? "fa-spinner fa-spin" : "fa-paperclip"}`}
-                      aria-hidden="true"
-                    />
-                    {enviando ? "Anexando..." : "Anexar documento"}
-                  </button>
-                </div>
-              </form>
-            )}
+          <div className="glass flex flex-wrap items-center justify-between gap-3 rounded-2xl p-5">
+            <p className="text-sm text-[#9fb0c9]">
+              Los documentos se cargan, editan y eliminan desde el panel de
+              administración.
+            </p>
+            <Link
+              href="/administracion#documentos"
+              className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-4 py-2 text-sm font-semibold text-gold transition-colors hover:bg-gold/20"
+            >
+              <i className="fa-solid fa-paperclip" aria-hidden="true" />
+              Gestionar documentos
+            </Link>
           </div>
         </section>
+
 
         {/* Historial */}
         <section className="mt-6">

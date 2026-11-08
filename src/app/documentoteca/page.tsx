@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 interface Documento {
   id: string;
@@ -39,28 +38,6 @@ export default function Documentoteca() {
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#02040a]/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:text-white"
-          >
-            <i
-              className="fa-solid fa-arrow-left text-gold"
-              aria-hidden="true"
-            />
-            Volver al portal
-          </Link>
-          <a
-            href="/administracion"
-            className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3.5 py-2 text-xs font-semibold text-gold transition-colors hover:bg-gold/20"
-          >
-            <i className="fa-solid fa-lock" aria-hidden="true" />
-            Administración
-          </a>
-        </div>
-      </header>
-
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-8">
           <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">

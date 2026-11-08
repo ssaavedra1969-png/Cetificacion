@@ -1,0 +1,19 @@
+{
+  "usuarios": [
+    {
+      "id": "U001",
+      "email": "admin@falpat.com",
+      "nombre": "Administrador",
+      "rol": "admin",
+      "plantas": ["Campana", "Luján", "General"],
+      "activo": true,
+      "salt": "caf8059aa4963aec78c91e14d851be40",
+      "passwordHash": "805f017f856e99389384a2528fdf775a3f2cc309b081d09519363717b6f6a17f3c381e24e0fcbc8742da5fe4f668a53f298420702f033f74f04187dc45a37ab8",
+      "creadoEl": "2026-11-08"
+    }
+  ],
+  "metadata": {
+    "generadoEl": "2026-11-08",
+    "empresa": "Grupo Falpat SRL"
+  }
+}

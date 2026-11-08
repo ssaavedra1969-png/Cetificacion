@@ -1,7 +1,9 @@
 import "./globals.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Inter, Sora } from "next/font/google";
+import RootShell from "@/components/RootShell";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -31,7 +33,11 @@ export default function RootLayout({
       lang="es"
       className={`${inter.variable} ${sora.variable} h-full antialiased`}
     >
-      <body className="min-h-full font-sans">{children}</body>
+      <body className="min-h-full font-sans">
+        <Suspense fallback={<div className="min-h-screen bg-[#02040a]" />}>
+          <RootShell>{children}</RootShell>
+        </Suspense>
+      </body>
     </html>
   );
 }

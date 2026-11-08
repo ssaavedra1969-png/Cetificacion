@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -13,17 +14,20 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
 
       if (data.success) {
-        window.location.href = "/administracion";
+        const params = new URLSearchParams(window.location.search);
+        const next = params.get("next");
+        window.location.href =
+          next && next.startsWith("/") ? next : "/administracion";
       } else {
-        setError(data.error || "Contraseña incorrecta");
+        setError(data.error || "Email o contraseña incorrectos");
       }
     } catch {
       setError("Error de conexión con el servidor");
@@ -52,10 +56,10 @@ export default function LoginPage() {
             Volver al portal
           </Link>
           <h1 className="font-display mt-5 text-3xl font-bold tracking-tight text-white">
-            Acceso administrativo
+            Iniciar sesión
           </h1>
           <p className="mt-2 text-sm text-[#9fb0c9]">
-            Ingresá la contraseña para administrar el sistema.
+            Acceso para responsables del Sistema de Gestión de la Calidad.
           </p>
         </div>
 
@@ -71,6 +75,27 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+                Email
+              </label>
+              <div className="relative">
+                <i
+                  className="fa-solid fa-envelope pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#6f7f99]"
+                  aria-hidden="true"
+                />
+                <input
+                  type="email"
+                  placeholder="nombre@falpat.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="username"
+                  required
+                  className="w-full rounded-lg border border-white/10 bg-[#0a0e17] py-2.5 pl-9 pr-3 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
                 Contraseña
@@ -110,8 +135,8 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-4 text-center text-[11px] text-[#6f7f99]">
-            Contraseña por defecto:{" "}
-            <code className="font-medium text-gold">falpat-admin-2026</code>
+            Si no tenés credenciales, solicitá acceso al administrador del
+            sistema.
           </p>
         </div>
       </div>

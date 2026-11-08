@@ -1,8 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import Hero from "@/components/Hero";
 import KPIs from "@/components/KPIs";
 import AgendaTable from "@/components/AgendaTable";
@@ -30,25 +28,20 @@ const initialFilters: AgendaFiltersValue = {
 interface AgendaCargada {
   puntos: PuntoSGC[];
   documentos: Documento[];
-  categorias: string[];
-  auth: boolean;
 }
 
 export default function Dashboard() {
   const [puntos, setPuntos] = useState<PuntoSGC[]>([]);
   const [documentos, setDocumentos] = useState<Documento[]>([]);
-  const [categorias, setCategorias] = useState<string[]>([]);
-  const [auth, setAuth] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filtros, setFiltros] = useState<AgendaFiltersValue>(initialFilters);
   const [plantaActiva, setPlantaActiva] = useState<Planta>("Luján");
 
   const cargarTodo = useCallback(async (): Promise<AgendaCargada> => {
-    const [agendaRes, docsRes, sessionRes] = await Promise.all([
+    const [agendaRes, docsRes] = await Promise.all([
       fetch("/api/agenda"),
       fetch("/api/documentos"),
-      fetch("/api/session"),
     ]);
 
     if (!agendaRes.ok) throw new Error("No se pudo cargar la agenda");
@@ -56,10 +49,7 @@ export default function Dashboard() {
     const agendaData = await agendaRes.json();
     const docsData = docsRes.ok
       ? await docsRes.json()
-      : { documentos: [], categorias: [] };
-    const sessionData = sessionRes.ok
-      ? await sessionRes.json()
-      : { authenticated: false };
+      : { documentos: [] };
 
     return {
       puntos: (Array.isArray(agendaData.puntos)
@@ -68,18 +58,12 @@ export default function Dashboard() {
       documentos: (Array.isArray(docsData.documentos)
         ? docsData.documentos
         : []) as Documento[],
-      categorias: (Array.isArray(docsData.categorias)
-        ? docsData.categorias
-        : []) as string[],
-      auth: Boolean(sessionData.authenticated),
     };
   }, []);
 
   const aplicarDatos = useCallback((data: AgendaCargada) => {
     setPuntos(data.puntos);
     setDocumentos(data.documentos);
-    setCategorias(data.categorias);
-    setAuth(data.auth);
   }, []);
 
   useEffect(() => {
@@ -99,15 +83,6 @@ export default function Dashboard() {
     return () => {
       activo = false;
     };
-  }, [cargarTodo, aplicarDatos]);
-
-  const recargar = useCallback(async () => {
-    try {
-      const data = await cargarTodo();
-      aplicarDatos(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
-    }
   }, [cargarTodo, aplicarDatos]);
 
   const puntosDe = useCallback(
@@ -141,64 +116,6 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen">
-      {/* ===== Barra superior ===== */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#02040a]/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <Link href="/" className="flex min-w-0 items-center gap-2.5">
-            <Image
-              src="/images/logo-falpat.png"
-              alt="Grupo Falpat Hormigones"
-              width={160}
-              height={83}
-              className="h-8 w-auto shrink-0"
-              priority
-            />
-            <span
-              className="hidden h-9 w-px shrink-0 bg-white/15 sm:block"
-              aria-hidden="true"
-            />
-            <span className="flex min-w-0 flex-col items-center text-center leading-tight">
-              <span className="text-[9px] font-semibold uppercase leading-tight tracking-[0.05em] text-gold sm:text-[11px] sm:tracking-[0.12em]">
-                Sistema de Gestión de la Calidad{" "}
-                <span className="text-[#9fb0c9]">(Certificación)</span>
-              </span>
-              <span className="mt-0.5 block text-[7px] font-medium tracking-[0.12em] text-[#6f7f99] sm:text-[8px]">
-                Quality Management System
-              </span>
-            </span>
-          </Link>
-
-          <nav className="hidden items-center gap-1 md:flex">
-            <a
-              href="#agenda"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:bg-white/5 hover:text-white"
-            >
-              Agenda
-            </a>
-            <a
-              href="/documentoteca"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:bg-white/5 hover:text-white"
-            >
-              Documentoteca
-            </a>
-            <a
-              href="/administracion"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:bg-white/5 hover:text-white"
-            >
-              Administración
-            </a>
-          </nav>
-
-          <a
-            href="/administracion"
-            className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3.5 py-2 text-xs font-semibold text-gold transition-colors hover:bg-gold/20"
-          >
-            <i className="fa-solid fa-lock" aria-hidden="true" />
-            <span className="hidden sm:inline">Acceso admin</span>
-          </a>
-        </div>
-      </header>
-
       {/* ===== Hero ===== */}
       <Hero />
 
@@ -217,8 +134,8 @@ export default function Dashboard() {
             </p>
           </div>
           <span className="inline-flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-medium text-[#9fb0c9]">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-dot" />
-            Datos en tiempo real
+            <i className="fa-solid fa-clock-rotate-left text-gold/70" aria-hidden="true" />
+            Actualizado al abrir
           </span>
         </div>
 
@@ -265,77 +182,21 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-          <div className="glass rounded-2xl p-5">
-            <KPIs
-              total={total}
-              pendientes={pendientes}
-              enCurso={enCurso}
-              bloqueados={bloqueados}
-              completados={completados}
-              avance={avance}
-            />
-          </div>
-
-          <div className="glass glass-hover rounded-2xl p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <i
-                className="fa-solid fa-folder-open text-gold"
-                aria-hidden="true"
-              />
-              <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9fb0c9]">
-                Últimos documentos
-              </h3>
-            </div>
-            <p className="text-sm leading-relaxed text-[#9fb0c9]">
-              Consultá la Documentoteca para ver las evidencias y certificados
-              cargados del sistema.
-            </p>
-            <a
-              href="/documentoteca"
-              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-gold transition-colors hover:text-amber-200"
-            >
-              Ir a la documentoteca
-              <i
-                className="fa-solid fa-arrow-right text-xs"
-                aria-hidden="true"
-              />
-            </a>
-          </div>
-
-          <div className="glass glass-hover rounded-2xl p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <i
-                className="fa-solid fa-calendar-days text-gold"
-                aria-hidden="true"
-              />
-              <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9fb0c9]">
-                Próximos vencimientos
-              </h3>
-            </div>
-            <p className="text-sm leading-relaxed text-[#9fb0c9]">
-              {puntosPlanta.filter((p) => p.fechaCompromiso).length > 0
-                ? "Revisá las fechas compromiso cargadas en la agenda."
-                : "Sin fechas compromiso cargadas por el momento."}
-            </p>
-            <a
-              href="#agenda-tabla"
-              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-gold transition-colors hover:text-amber-200"
-            >
-              Ver agenda
-              <i
-                className="fa-solid fa-arrow-right text-xs"
-                aria-hidden="true"
-              />
-            </a>
-          </div>
-        </div>
-
         <div
           id="agenda-tabla"
-          className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-4"
+          className="grid grid-cols-1 gap-5 lg:grid-cols-4"
         >
-          <div className="lg:col-span-1">
+          <div className="space-y-5 lg:col-span-1">
+            <div className="glass rounded-2xl p-5">
+              <KPIs
+                total={total}
+                pendientes={pendientes}
+                enCurso={enCurso}
+                bloqueados={bloqueados}
+                completados={completados}
+                avance={avance}
+              />
+            </div>
             <AgendaFilters onFilterChange={setFiltros} showPlanta={false} />
           </div>
           <div className="lg:col-span-3">
@@ -351,9 +212,6 @@ export default function Dashboard() {
               <AgendaTable
                 puntos={filteredPuntos}
                 documentos={documentos}
-                categorias={categorias}
-                auth={auth}
-                onReload={recargar}
               />
             )}
           </div>

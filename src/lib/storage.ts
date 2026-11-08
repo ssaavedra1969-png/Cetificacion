@@ -5,12 +5,14 @@ import { githubConfigured, getJSON } from "./github";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
-const isVercel = process.env.VERCEL === "1";
+const preferRemote =
+  (process.env.VERCEL === "1" || process.env.NODE_ENV === "production") &&
+  githubConfigured();
 
-export async function readAgenda(): Promise<{ puntos: PuntoSGC[]; metadata: any }> {
-  if (isVercel && githubConfigured()) {
+export async function readAgenda(): Promise<{ puntos: PuntoSGC[]; metadata: unknown }> {
+  if (preferRemote) {
     try {
-      const data = await getJSON<{ puntos: PuntoSGC[]; metadata: any }>(
+      const data = await getJSON<{ puntos: PuntoSGC[]; metadata: unknown }>(
         "data/agenda.json",
       );
       if (data) return data;
@@ -25,7 +27,7 @@ export async function readAgenda(): Promise<{ puntos: PuntoSGC[]; metadata: any 
 
 export async function writeAgenda(data: {
   puntos: PuntoSGC[];
-  metadata: any;
+  metadata: unknown;
 }): Promise<void> {
   await fs.writeFile(
     path.join(DATA_DIR, "agenda.json"),
@@ -37,14 +39,14 @@ export async function writeAgenda(data: {
 export async function readDocumentos(): Promise<{
   documentos: Documento[];
   categorias: string[];
-  metadata: any;
+  metadata: unknown;
 }> {
-  if (isVercel && githubConfigured()) {
+  if (preferRemote) {
     try {
       const data = await getJSON<{
         documentos: Documento[];
         categorias: string[];
-        metadata: any;
+        metadata: unknown;
       }>("data/documentos.json");
       if (data) return data;
     } catch {
@@ -62,7 +64,7 @@ export async function readDocumentos(): Promise<{
 export async function writeDocumentos(data: {
   documentos: Documento[];
   categorias: string[];
-  metadata: any;
+  metadata: unknown;
 }): Promise<void> {
   await fs.writeFile(
     path.join(DATA_DIR, "documentos.json"),

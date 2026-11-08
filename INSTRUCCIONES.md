@@ -1,46 +1,36 @@
 # Instrucciones de continuidad — Portal SGC FALPAT
 
-**Fecha:** 5 de noviembre de 2026  
+**Actualizado:** 8 de noviembre de 2026  
 **Repositorio:** https://github.com/ssaavedra1969-png/Cetificacion (rama `main`)  
-**Carpeta local de referencia:** `C:\AI\Antigravity\FALPAT srl\Certificacion`
-
-Este documento resume lo realizado y los pasos para continuar desde otra máquina.
-
----
-
-## 1. Estado actual (qué quedó funcionando)
-
-- **Dashboard con solapas Luján / Campana**: contadores y KPIs por planta.
-- **Temas compartidos**: si un tema pertenece a ambas plantas, aparece en las dos solapas con la etiqueta `Compartido`.
-- **Popup de detalle** (`PuntoModal`): se abre al hacer clic en el título del tema o en **Ver detalle**. Tiene solapas internas **Resumen / Documentos / Historial / Anexar**.
-- **Visor de documento** (`DocumentoModal`): se abre al hacer clic en un documento; permite **Abrir** en pestaña nueva y **Descargar**.
-- **Rutas**:
-  - `/` dashboard
-  - `/documentoteca`
-  - `/temas/[id]` ficha completa del tema
-  - `/documentos/[id]` visor a pantalla completa
-  - `/administracion` (requiere login)
-  - `/login`
-- **APIs**:
-  - `/api/agenda`, `/api/documentos`, `/api/session`, `/api/login`
-  - `/api/files` → stream de archivos del share (soporta `Range`, `?download=1`, valida traversal y extensión)
-  - `/api/anexar` → registra un documento por ruta del share o URL `http(s)`
-  - `/api/upload` → flujo legacy de subida a GitHub (se mantiene por compatibilidad)
-- **Branding**: header con **Sistema de Gestión de la Calidad (Certificación)** y, debajo centrado, **Quality Management System**. Se quitaron las siglas “SGC” de los textos visibles. El título de la pestaña es “Sistema de Gestión de la Calidad – Grupo Falpat SRL”.
-- **Páginas de error**: `error.tsx`, `global-error.tsx`, `not-found.tsx`.
-- **Build de producción verificado** con `npm run build` (webpack).
-- **TypeScript** limpio (`npx tsc --noEmit`).
-
-> En este Windows, Turbopack no funciona porque falta el binario nativo de SWC. Por eso los scripts usan `--webpack`. El warning de `@next/swc-win32-x64-msvc` es inofensivo: Next cae a WASM.
+**Sitio:** https://cetificacion.vercel.app/  
+**Carpeta local:** `C:\AI\Antigravity\FALPAT srl\Certificacion`
 
 ---
 
-## 2. Requisitos en la otra máquina
+## 1. Estado actual
 
-- **Node.js 20+** (recomendado 22 LTS) y npm.
-- **Git**.
-- Acceso de red al share SMB (solo si se van a servir documentos reales).
-- Windows, macOS o Linux. Los comandos de abajo son equivalentes.
+- **Layout con sidebar** (Inicio / Documentoteca / Administración). En móvil se abre como drawer.
+- **Portada simplificada**: hero compacto, KPIs + filtros a la izquierda y agenda a la derecha.
+- **Temas por planta** (Luján / Campana) con contadores, filtros, tabla/tarjetas y modal de detalle.
+- **Documentoteca** con tipos PDF, Word, Excel e imagen.
+- **CRUD completo de documentos** desde `/administracion#documentos`:
+  - alta con archivo,
+  - edición de metadatos y reemplazo opcional del archivo,
+  - baja con borrado del archivo,
+  - asociación a un tema (sincroniza `documentosIds` y el historial del punto).
+- **Autenticación por usuario** con roles `admin`, `editor`, `lector` y sesión JWT en cookie `sgc_session`.
+- **Persistencia**: JSON en `data/` y archivos en `documentos/`, ambos en el repositorio de GitHub en producción. En desarrollo, sin `GITHUB_TOKEN`, se guardan en el filesystem local.
+- **Build y TypeScript verificados** (`npm run build` con webpack, `npx tsc --noEmit`).
+
+> En este Windows el binario nativo de SWC falla; los scripts usan `--webpack`. El warning `@next/swc-win32-x64-msvc ... no es una aplicación Win32 válida` es inofensivo (Next cae a WASM).
+
+---
+
+## 2. Requisitos
+
+- Node.js 20+ (recomendado 22 LTS) y npm.
+- Git.
+- En producción: repositorio de GitHub y un token con permiso **Contents: Read and write**.
 
 ---
 
@@ -51,14 +41,14 @@ git clone https://github.com/ssaavedra1969-png/Cetificacion.git
 cd Cetificacion
 npm install
 Copy-Item .env.local.example .env.local
-# Editar .env.local con los valores reales (ver sección 4)
+# Editar .env.local (ver sección 4)
 npm run dev
 ```
 
-Abrir `http://localhost:3000`.
+Abrir `http://localhost:3000` (o el puerto que indique Next).
 
 - `npm run dev` ejecuta `next dev --webpack`.
-- Si en la otra máquina Turbopack funciona bien, se puede probar `npx next dev` sin `--webpack`.
+- Credenciales iniciales: `admin@falpat.com` / `falpat-admin-2026`. Cambiarlas en producción.
 
 ---
 
@@ -66,111 +56,130 @@ Abrir `http://localhost:3000`.
 
 | Variable | Obligatoria | Ejemplo | Descripción |
 |---|---|---|---|
-| `SGC_SHARE_ROOT` | Sí, para documentos reales | `\\SRV-FALPAT\SGC` | Carpeta UNC del share. Si no se define, se usa `./compartido` como fallback. |
-| `ADMIN_PASSWORD` | Recomendada | `falpat-admin-2026` | Contraseña de `/administracion`. Si no se define, el código usa el valor por defecto. |
-| `GITHUB_TOKEN` | No | `ghp_...` | Solo para el flujo legacy `/api/upload`. |
-| `GITHUB_REPO` | No | `ssaavedra1969-png/Cetificacion` | Solo para el flujo legacy. |
+| `AUTH_SECRET` | Sí en producción | cadena aleatoria de 48+ bytes | Firma la sesión y los enlaces temporales de archivos. Mínimo 16 caracteres. |
+| `GITHUB_TOKEN` | Sí en producción | `github_pat_...` | Token con **Contents: Read and write** sobre el repo. |
+| `GITHUB_REPO` | Sí en producción | `ssaavedra1969-png/Cetificacion` | Repositorio `usuario/repo`. |
+| `GITHUB_BRANCH` | No | `main` | Rama de trabajo. Por defecto `main`. |
 
-- `.env.local` **no** se sube al repositorio.
-- `.env.local.example` sí se versiona como plantilla.
-- Nunca commitear tokens ni contraseñas reales.
-
----
-
-## 5. Cómo cargar y ver documentos
-
-1. Entrar a `/administracion` e iniciar sesión (o desde el modal: **Anexar → Iniciar sesión**).
-2. Abrir un tema y ir a la solapa **Anexar**.
-3. Ingresar:
-   - ruta relativa al share: `P001\certificado.pdf`
-   - ruta UNC completa: `\\SRV-FALPAT\SGC\P001\certificado.pdf`
-   - o una URL `https://...`
-4. Verificar:
-   - `GET /api/files?p=P001%2Fcertificado.pdf` → `200`, `application/pdf`, `Accept-Ranges: bytes`.
-   - `Range: bytes=0-9` → `206` con `Content-Range`.
-   - `?download=1` → `Content-Disposition: attachment`.
-   - Traversal (`../`) → `400`; archivo inexistente → `404`; extensión no permitida → `400`.
+Sin `GITHUB_TOKEN`/`GITHUB_REPO` la app funciona en local y guarda en `data/` y `documentos/`.  
+En Vercel ambas son obligatorias para que los cambios persistan.
 
 ---
 
-## 6. Estructura relevante
+## 5. Roles y permisos
+
+- `admin`: puede todo, en todas las plantas.
+- `editor`: solo puede modificar documentos de sus plantas (o de planta `General`).
+- `lector`: solo lectura.
+
+Los usuarios se administran en `data/usuarios.json`. Las contraseñas se guardan con hash `scrypt` y salt.
+
+---
+
+## 6. Flujo de documentos
+
+1. Entrar a `/administracion` e iniciar sesión.
+2. Ir al sector **Documentos**.
+3. **Nuevo documento**: completar metadatos, elegir tema (opcional) y archivo.
+4. **Editar**: cambiar metadatos y, si se desea, seleccionar un archivo nuevo (reemplaza al anterior).
+5. **Eliminar**: borra el registro, el archivo y su vínculo con el tema.
+
+Límites y formatos:
+
+- Tamaño máximo: **4 MB** por archivo (límite de Vercel Hobby).
+- Extensiones: `pdf`, `doc`, `docx`, `xls`, `xlsx`, `csv`, `png`, `jpg`, `jpeg`, `webp`, `gif`.
+- SVG no está permitido por seguridad.
+- Word/Excel se abren con el visor de Office; en `localhost` o si el visor falla, se ofrece descarga.
+
+---
+
+## 7. APIs
+
+| Ruta | Método | Descripción |
+|---|---|---|
+| `/api/agenda` | GET / POST | Lee o guarda la agenda (POST requiere sesión). |
+| `/api/documentos` | GET | Lista normalizada (`archivoUrl` → `/api/files?id=...`). |
+| `/api/documentos` | POST | Alta multipart (requiere rol editor/admin). |
+| `/api/documentos` | PATCH | Edición multipart por `id` (archivo opcional). |
+| `/api/documentos` | DELETE | Baja por `?id=` (borra archivo y vínculos). |
+| `/api/files` | GET | Sirve `?id=` o `?p=`, soporta `Range` y `download=1`. Token opcional. |
+| `/api/files/sign` | POST | Devuelve URL absoluta firmada (10 min) para el visor Office. Requiere sesión. |
+| `/api/auth/login` | POST | Login por email/contraseña. |
+| `/api/auth/logout` | POST | Cierra sesión. |
+| `/api/auth/session` | GET | Devuelve el usuario de la sesión. |
+
+---
+
+## 8. Estructura relevante
 
 ```
 src/
   app/
-    page.tsx                     # Dashboard con solapas Luján/Campana
+    page.tsx                     # Dashboard
     documentoteca/page.tsx
-    administracion/page.tsx
+    administracion/page.tsx      # Temas + DocumentoManager
     login/page.tsx
-    temas/[id]/page.tsx          # Server Component + Suspense
-    documentos/[id]/page.tsx     # Server Component + Suspense
+    temas/[id]/page.tsx
+    documentos/[id]/page.tsx
     api/
       agenda/route.ts
-      documentos/route.ts
-      session/route.ts
-      login/route.ts
-      files/route.ts             # streaming del share + Range + download
-      anexar/route.ts            # alta de documento por ruta/URL
-      upload/route.ts            # legacy GitHub
+      documentos/route.ts        # CRUD multipart
+      files/route.ts             # stream local/GitHub + Range
+      files/sign/route.ts        # URL firmada para Office
+      auth/{login,logout,session}/route.ts
   components/
-    AgendaTable.tsx
-    AgendaFilters.tsx
-    PuntoModal.tsx               # popup de detalle
-    DocumentoModal.tsx           # visor dentro del popup
-    DocumentoViewer.tsx          # cliente de /documentos/[id]
-    TemaDetalle.tsx
-    TemaPageClient.tsx           # cliente de /temas/[id]
-    KPIs.tsx / Hero.tsx
+    Sidebar.tsx / RootShell.tsx
+    AgendaTable.tsx / PuntoModal.tsx
+    DocumentoManager.tsx         # UI CRUD de documentos
+    DocumentoModal.tsx / DocumentoViewer.tsx
+    useDocumentoEmbed.ts         # PDF/imagen/Office + firma
+    Hero.tsx / KPIs.tsx
   lib/
-    files.ts                     # getShareRoot, resolveSharedPath, MIME
-    urls.ts                      # normalizeUrl, isImageUrl, downloadUrl
-    storage.ts / persist.ts / auth.ts / github.ts
-  types/models.ts
+    documentos.ts                # servicio CRUD + roles + sync agenda
+    doc-files.ts                 # almacenamiento local/GitHub
+    github.ts                    # API GitHub (JSON y binarios)
+    files.ts                     # extensiones, MIME, tipo, tamaño
+    signing.ts                   # tokens HMAC de archivos
+    session.ts / users.ts / auth.ts / storage.ts / persist.ts
+  proxy.ts                       # protección de rutas
 data/
-  agenda.json                    # 10 temas
-  documentos.json                # catálogo de documentos
+  agenda.json
+  documentos.json
+  usuarios.json
+documentos/                      # archivos subidos (repo, no public/)
 ```
 
 ---
 
-## 7. Verificaciones realizadas
+## 9. Verificaciones realizadas
 
 - `npx tsc --noEmit` → OK.
 - `npm run build` → OK (webpack).
-- Flujo end-to-end probado:
-  - login `200`
-  - `POST /api/anexar` `200`
-  - `GET /api/files` `200` con `content-type` correcto
-  - `Range` → `206` con `Content-Range`
-  - traversal → `400`, inexistente → `404`, extensión inválida → `400`
-  - `/temas/P001`, `/documentos/<id>` y `/documentoteca` → `200`
-- Chrome headless: solapas, modal, tabs y estado sin sesión verificados.
-- Los datos de prueba y el PDF temporal se eliminaron al terminar.
+- `npx eslint` sobre archivos tocados → sin errores.
+- Flujo probado en local:
+  - login `200`,
+  - `POST /api/documentos` `201` con archivo PDF,
+  - `GET /api/files?id=...` `200` con `application/pdf`,
+  - `Range` → `206`,
+  - `POST /api/files/sign` autenticado `200`; sin sesión `401`,
+  - `PATCH` con reemplazo de archivo `200` (borra el archivo anterior),
+  - `DELETE` `200` (borra archivo y registro).
+- Datos y archivos de prueba eliminados al terminar.
 
 ---
 
-## 8. Pendientes y próximos pasos
+## 10. Pendientes y próximos pasos
 
-1. **Configurar `SGC_SHARE_ROOT`** con la UNC real del servidor de la empresa. Es el dato que falta para leer los documentos reales.
-2. **Distribución de temas compartidos**: la decisión actual es mostrarlos en ambas solapas con la etiqueta `Compartido`. Si se quiere separar más, evaluar:
-   - mostrarlos solo en su planta principal, o
-   - agregar una tercera solapa `Compartidos`.
-3. **Lint preexistente** (no bloquea el build):
-   - `src/app/api/upload/route.ts` → usos de `any`.
-   - `src/lib/storage.ts` → usos de `any`.
-   - `src/app/api/login/route.ts`, `error.tsx`, `global-error.tsx` → variables sin usar (warnings).
-   - `src/app/login/page.tsx` → `window.location.href` (warning).
-4. **Flujo legacy `/api/upload`** (GitHub): convive con `/api/anexar`. Decidir si se retira o se mantiene.
-5. **Deploy en Vercel**: `/api/files` necesita acceso al share, que no existe en Vercel. Opciones:
-   - ejecutar la app en un servidor on-prem con acceso al share,
-   - montar almacenamiento cloud (S3 / Azure Blob) y adaptar `/api/files`,
-   - o usar un proxy hacia el share.
-6. **Autenticación**: hoy es una cookie simple (`sgc-auth`) con `ADMIN_PASSWORD`. Para producción, evaluar un proveedor de identidad.
-7. Verificar que la cuenta que corre Node tenga permisos de lectura sobre el share.
+1. **Configurar `.env.local` / Vercel** con `AUTH_SECRET`, `GITHUB_TOKEN` y `GITHUB_REPO`.
+2. **Cambiar la contraseña inicial** de `admin@falpat.com` y revisar `data/usuarios.json`.
+3. **Commitear la carpeta `documentos/`** (vacía con `.gitkeep`) para que GitHub pueda crear archivos.
+4. Verificar el visor Office en producción (Vercel) con un `.docx` y un `.xlsx` reales.
+5. Evaluar auto-refresco de la agenda (hoy muestras “Actualizado al abrir”).
+6. Revisar que el token de GitHub tenga solo los permisos necesarios.
 
 ---
 
-## 9. Comandos útiles
+## 11. Comandos útiles
 
 ```powershell
 npx tsc --noEmit
@@ -179,15 +188,14 @@ npm run build
 npm run dev
 ```
 
-- En Windows, `npm run build` usa `--webpack`.
-- Si aparece el warning de `@next/swc-win32-x64-msvc`, es inofensivo.
-- En otra máquina con el binario nativo de SWC funcionando, se puede quitar `--webpack` de los scripts.
+- `npm run build` usa `--webpack` en este Windows.
+- Si se corre `tsc` en paralelo con `next build`, pueden aparecer errores por `.next/types`; correr `tsc` después del build.
 
 ---
 
-## 10. Git
+## 12. Git
 
 - **Remote:** `https://github.com/ssaavedra1969-png/Cetificacion`
 - **Rama:** `main`
-- Antes de empezar en la otra máquina: `git pull origin main`.
+- Antes de empezar: `git pull origin main`.
 - No se versionan `node_modules/`, `.next/` ni `.env.local`.

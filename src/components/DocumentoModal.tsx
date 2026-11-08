@@ -4,14 +4,26 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import type { Documento } from "@/types/models";
-import { downloadUrl, isImageUrl, normalizeUrl } from "@/lib/urls";
+import { downloadUrl } from "@/lib/urls";
+import { useDocumentoEmbed } from "@/components/useDocumentoEmbed";
 
 interface Props {
   documento: Documento;
   onClose: () => void;
 }
 
+const tipoIcon: Record<Documento["tipo"], string> = {
+  pdf: "fa-file-pdf",
+  word: "fa-file-word",
+  excel: "fa-file-excel",
+  imagen: "fa-file-image",
+  otro: "fa-file",
+};
+
 export default function DocumentoModal({ documento, onClose }: Props) {
+  const { url, kind, officeSrc, signing, signError } =
+    useDocumentoEmbed(documento);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -27,8 +39,6 @@ export default function DocumentoModal({ documento, onClose }: Props) {
 
   if (typeof document === "undefined") return null;
 
-  const url = normalizeUrl(documento.archivoUrl);
-  const esImagen = documento.tipo === "imagen" || isImageUrl(url);
   const descarga = downloadUrl(url);
 
   return createPortal(
@@ -46,9 +56,7 @@ export default function DocumentoModal({ documento, onClose }: Props) {
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gold/10 text-gold">
             <i
-              className={`fa-solid ${
-                esImagen ? "fa-file-image" : "fa-file-pdf"
-              }`}
+              className={`fa-solid ${tipoIcon[documento.tipo] ?? "fa-file"}`}
               aria-hidden="true"
             />
           </span>
@@ -95,7 +103,7 @@ export default function DocumentoModal({ documento, onClose }: Props) {
         className="flex-1 overflow-auto bg-[#0b0f16]"
         onClick={(e) => e.stopPropagation()}
       >
-        {esImagen ? (
+        {kind === "imagen" ? (
           <div className="flex min-h-full items-center justify-center p-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -104,12 +112,65 @@ export default function DocumentoModal({ documento, onClose }: Props) {
               className="max-h-full max-w-full rounded-lg object-contain"
             />
           </div>
-        ) : (
+        ) : kind === "pdf" ? (
           <iframe
             src={url}
             title={documento.nombre}
             className="h-full w-full border-0 bg-white"
           />
+        ) : kind === "office" ? (
+          officeSrc ? (
+            <iframe
+              src={officeSrc}
+              title={documento.nombre}
+              className="h-full w-full border-0 bg-white"
+            />
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+              {signing ? (
+                <span className="inline-flex items-center gap-2 text-sm text-[#9fb0c9]">
+                  <i
+                    className="fa-solid fa-spinner fa-spin text-gold"
+                    aria-hidden="true"
+                  />
+                  Preparando visor...
+                </span>
+              ) : (
+                <>
+                  <i
+                    className={`fa-solid ${tipoIcon[documento.tipo]} text-3xl text-gold`}
+                    aria-hidden="true"
+                  />
+                  <p className="max-w-md text-sm text-[#9fb0c9]">
+                    {signError ??
+                      "El visor de Office no está disponible. Descargá el archivo para abrirlo."}
+                  </p>
+                  <a
+                    href={descarga}
+                    className="rounded-lg border border-gold/30 bg-gold/10 px-4 py-2 text-sm font-semibold text-gold transition-colors hover:bg-gold/20"
+                  >
+                    Descargar archivo
+                  </a>
+                </>
+              )}
+            </div>
+          )
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+            <i
+              className="fa-solid fa-file text-3xl text-gold"
+              aria-hidden="true"
+            />
+            <p className="text-sm text-[#9fb0c9]">
+              Este tipo de archivo no se puede previsualizar.
+            </p>
+            <a
+              href={descarga}
+              className="rounded-lg border border-gold/30 bg-gold/10 px-4 py-2 text-sm font-semibold text-gold transition-colors hover:bg-gold/20"
+            >
+              Descargar archivo
+            </a>
+          </div>
         )}
       </div>
     </div>,

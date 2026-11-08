@@ -21,42 +21,23 @@ const prioridadClasses: Record<PuntoSGC["prioridad"], string> = {
 
 const tipoIcon: Record<Documento["tipo"], string> = {
   pdf: "fa-file-pdf",
+  word: "fa-file-word",
+  excel: "fa-file-excel",
   imagen: "fa-file-image",
   otro: "fa-file",
 };
 
-type Tab = "resumen" | "documentos" | "historial" | "anexar";
+type Tab = "resumen" | "documentos" | "historial";
 
 interface Props {
   punto: PuntoSGC;
   documentos: Documento[];
-  categorias: string[];
-  auth: boolean;
   onClose: () => void;
-  onReload?: () => Promise<void> | void;
 }
 
-export default function PuntoModal({
-  punto,
-  documentos,
-  categorias,
-  auth,
-  onClose,
-  onReload,
-}: Props) {
+export default function PuntoModal({ punto, documentos, onClose }: Props) {
   const [tab, setTab] = useState<Tab>("resumen");
   const [docAbierto, setDocAbierto] = useState<Documento | null>(null);
-
-  const [nombre, setNombre] = useState("");
-  const [ruta, setRuta] = useState("");
-  const [version, setVersion] = useState("1.0");
-  const [categoria, setCategoria] = useState(punto.categoria || "");
-  const [descripcion, setDescripcion] = useState("");
-  const [enviando, setEnviando] = useState(false);
-  const [mensaje, setMensaje] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -79,59 +60,6 @@ export default function PuntoModal({
     (d) => d.puntoId === punto.id || ids.has(d.id),
   );
 
-  const anexar = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMensaje(null);
-
-    if (!nombre.trim()) {
-      setMensaje({ type: "error", text: "Ingresá un nombre para el documento" });
-      return;
-    }
-    if (!ruta.trim()) {
-      setMensaje({
-        type: "error",
-        text: "Ingresá la ruta del archivo en el compartido o una URL",
-      });
-      return;
-    }
-
-    setEnviando(true);
-    try {
-      const res = await fetch("/api/anexar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          puntoId: punto.id,
-          nombre,
-          ruta,
-          version,
-          categoria,
-          descripcion,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setMensaje({
-          type: "error",
-          text: data.error || "No se pudo anexar el documento",
-        });
-        return;
-      }
-
-      setNombre("");
-      setRuta("");
-      setDescripcion("");
-      setVersion("1.0");
-      setMensaje({ type: "success", text: "Documento anexado correctamente" });
-      await onReload?.();
-    } catch {
-      setMensaje({ type: "error", text: "Error de conexión al anexar" });
-    } finally {
-      setEnviando(false);
-    }
-  };
-
   if (typeof document === "undefined") return null;
 
   const tabs: { id: Tab; label: string; icon: string; count?: number }[] = [
@@ -148,7 +76,6 @@ export default function PuntoModal({
       icon: "fa-clock-rotate-left",
       count: punto.historial?.length ?? 0,
     },
-    { id: "anexar", label: "Anexar", icon: "fa-plus" },
   ];
 
   const contenido = (
@@ -246,16 +173,13 @@ export default function PuntoModal({
               <p className="text-sm text-[#9fb0c9]">
                 Sin documentos adjuntos aún.
               </p>
-              {auth && (
-                <button
-                  type="button"
-                  onClick={() => setTab("anexar")}
-                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-amber-200"
-                >
-                  <i className="fa-solid fa-plus" aria-hidden="true" />
-                  Anexar el primero
-                </button>
-              )}
+              <Link
+                href="/administracion#documentos"
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-amber-200"
+              >
+                <i className="fa-solid fa-paperclip" aria-hidden="true" />
+                Cargar documentos
+              </Link>
             </div>
           ) : (
             <div className="space-y-2">
@@ -290,16 +214,13 @@ export default function PuntoModal({
                 </button>
               ))}
 
-              {auth && (
-                <button
-                  type="button"
-                  onClick={() => setTab("anexar")}
-                  className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-amber-200"
-                >
-                  <i className="fa-solid fa-plus" aria-hidden="true" />
-                  Anexar otro documento
-                </button>
-              )}
+              <Link
+                href="/administracion#documentos"
+                className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-amber-200"
+              >
+                <i className="fa-solid fa-paperclip" aria-hidden="true" />
+                Gestionar documentos
+              </Link>
             </div>
           )}
         </div>
@@ -350,130 +271,6 @@ export default function PuntoModal({
         </div>
       )}
 
-      {tab === "anexar" &&
-        (auth ? (
-          <form onSubmit={anexar} className="space-y-3">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-[11px] text-[#9fb0c9]">
-                  Nombre del documento
-                </label>
-                <input
-                  type="text"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  placeholder="Ej: Certificado balanza 01/2026"
-                  className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-[11px] text-[#9fb0c9]">
-                  Ruta en el compartido o URL
-                </label>
-                <input
-                  type="text"
-                  value={ruta}
-                  onChange={(e) => setRuta(e.target.value)}
-                  placeholder={"\\\\SRV-FALPAT\\SGC\\P001\\certificado.pdf"}
-                  className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-[11px] text-[#9fb0c9]">
-                  Categoría
-                </label>
-                <input
-                  type="text"
-                  value={categoria}
-                  onChange={(e) => setCategoria(e.target.value)}
-                  list={`categorias-${punto.id}`}
-                  className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
-                />
-                <datalist id={`categorias-${punto.id}`}>
-                  {categorias.map((c) => (
-                    <option key={c} value={c} />
-                  ))}
-                </datalist>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-[11px] text-[#9fb0c9]">
-                  Versión
-                </label>
-                <input
-                  type="text"
-                  value={version}
-                  onChange={(e) => setVersion(e.target.value)}
-                  className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="mb-1 block text-[11px] text-[#9fb0c9]">
-                  Descripción (opcional)
-                </label>
-                <textarea
-                  value={descripcion}
-                  onChange={(e) => setDescripcion(e.target.value)}
-                  rows={2}
-                  className="w-full rounded-lg border border-white/10 bg-[#0a0e17] px-3 py-2 text-sm text-white outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
-                />
-              </div>
-            </div>
-
-            {mensaje && (
-              <div
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
-                  mensaje.type === "success"
-                    ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
-                    : "border-red-400/25 bg-red-400/10 text-red-300"
-                }`}
-              >
-                <i
-                  className={`fa-solid ${
-                    mensaje.type === "success"
-                      ? "fa-circle-check"
-                      : "fa-triangle-exclamation"
-                  }`}
-                  aria-hidden="true"
-                />
-                {mensaje.text}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={enviando}
-              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-4 py-2 text-xs font-bold text-[#1a1405] transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <i
-                className={`fa-solid ${enviando ? "fa-spinner fa-spin" : "fa-paperclip"}`}
-                aria-hidden="true"
-              />
-              {enviando ? "Anexando..." : "Anexar documento"}
-            </button>
-          </form>
-        ) : (
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-8 text-center">
-            <i
-              className="fa-solid fa-lock mb-3 text-2xl text-gold"
-              aria-hidden="true"
-            />
-            <p className="text-sm text-[#c7d2e3]">
-              Necesitás iniciar sesión como administrador para anexar
-              documentos.
-            </p>
-            <Link
-              href="/administracion"
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-4 py-2 text-xs font-semibold text-gold transition-colors hover:bg-gold/20"
-            >
-              <i className="fa-solid fa-right-to-bracket" aria-hidden="true" />
-              Iniciar sesión
-            </Link>
-          </div>
-        ))}
     </>
   );
 
