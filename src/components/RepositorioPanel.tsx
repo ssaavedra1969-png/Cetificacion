@@ -1,72 +1,52 @@
 import Link from "next/link";
+import type { Documento } from "@/types/models";
 
-const metricas = [
-  {
-    label: "Documentos",
-    value: "248",
-    detail: "Archivos indexados",
-    icon: "fa-folder-open",
-    iconTone: "border-amber-400/20 bg-amber-400/10 text-amber-300",
-    ring: 82,
-    ringTone: "text-amber-400",
-    bar: "from-amber-400 to-orange-500",
-  },
-  {
-    label: "Normas IRAM",
-    value: "36",
-    detail: "Vigentes",
-    icon: "fa-certificate",
-    iconTone: "border-sky-400/20 bg-sky-400/10 text-sky-300",
-    ring: 64,
-    ringTone: "text-sky-400",
-    bar: "from-sky-400 to-cyan-400",
-  },
-  {
-    label: "Plantas",
-    value: "02",
-    detail: "Luján + Campana",
-    icon: "fa-industry",
-    iconTone: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
-    ring: 100,
-    ringTone: "text-emerald-400",
-    bar: "from-emerald-400 to-teal-400",
-  },
-];
+type TipoDocumento = Documento["tipo"];
 
-const archivos = [
-  {
-    nombre: "Manual de calidad IRAM",
-    meta: "PDF · General",
-    badge: "IRAM",
+const tipoVisual: Record<
+  TipoDocumento,
+  { icon: string; tone: string; label: string }
+> = {
+  pdf: {
     icon: "fa-file-pdf",
     tone: "border-rose-400/20 bg-rose-400/10 text-rose-300",
-    badgeTone: "border-amber-400/20 bg-amber-400/10 text-amber-300",
+    label: "PDF",
   },
-  {
-    nombre: "Certificado ISO 9001",
-    meta: "PDF · Campana",
-    badge: "ISO",
-    icon: "fa-file-lines",
+  word: {
+    icon: "fa-file-word",
     tone: "border-sky-400/20 bg-sky-400/10 text-sky-300",
-    badgeTone: "border-sky-400/20 bg-sky-400/10 text-sky-300",
+    label: "DOCX",
   },
-  {
-    nombre: "Protocolo de seguridad",
-    meta: "PDF · Luján",
-    badge: "Seguridad",
-    icon: "fa-shield-halved",
-    tone: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
-    badgeTone: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
-  },
-  {
-    nombre: "Plan de muestreo 2026",
-    meta: "XLSX · Luján",
-    badge: "IRAM",
+  excel: {
     icon: "fa-file-excel",
-    tone: "border-amber-400/20 bg-amber-400/10 text-amber-300",
-    badgeTone: "border-amber-400/20 bg-amber-400/10 text-amber-300",
+    tone: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
+    label: "XLSX",
   },
-];
+  imagen: {
+    icon: "fa-file-image",
+    tone: "border-violet-400/20 bg-violet-400/10 text-violet-300",
+    label: "IMG",
+  },
+  otro: {
+    icon: "fa-file",
+    tone: "border-slate-400/20 bg-slate-400/10 text-slate-300",
+    label: "ARCHIVO",
+  },
+};
+
+function archivoVisual(documento: Documento) {
+  const visual = tipoVisual[documento.tipo] ?? tipoVisual.otro;
+
+  return {
+    id: documento.id,
+    nombre: documento.nombre || "Documento sin nombre",
+    meta: `${visual.label} · ${documento.planta || "General"}`,
+    badge: documento.puntoId || "SGC",
+    icon: visual.icon,
+    tone: visual.tone,
+    badgeTone: "border-white/10 bg-white/[0.03] text-slate-300",
+  };
+}
 
 function ProgressRing({ value, tone }: { value: number; tone: string }) {
   const radio = 16;
@@ -103,7 +83,60 @@ function ProgressRing({ value, tone }: { value: number; tone: string }) {
   );
 }
 
-export default function RepositorioPanel() {
+export default function RepositorioPanel({
+  documentos = [],
+}: {
+  documentos?: Documento[];
+}) {
+  const totalDocumentos = documentos.length;
+  const normasIram = documentos.filter((documento) =>
+    `${documento.nombre} ${documento.categoria}`.toLowerCase().includes("iram"),
+  ).length;
+  const plantasConDocumentos = new Set(
+    documentos
+      .map((documento) => documento.planta)
+      .filter((planta) => planta && planta !== "General"),
+  ).size;
+
+  const metricas = [
+    {
+      label: "Documentos",
+      value: String(totalDocumentos),
+      detail: "Archivos indexados",
+      icon: "fa-folder-open",
+      iconTone: "border-amber-400/20 bg-amber-400/10 text-amber-300",
+      ring: totalDocumentos > 0 ? 100 : 0,
+      ringTone: "text-amber-400",
+      bar: "from-amber-400 to-orange-500",
+    },
+    {
+      label: "Normas IRAM",
+      value: String(normasIram),
+      detail: "Vigentes",
+      icon: "fa-certificate",
+      iconTone: "border-sky-400/20 bg-sky-400/10 text-sky-300",
+      ring: normasIram > 0 ? 100 : 0,
+      ringTone: "text-sky-400",
+      bar: "from-sky-400 to-cyan-400",
+    },
+    {
+      label: "Plantas",
+      value: String(plantasConDocumentos).padStart(2, "0"),
+      detail: plantasConDocumentos > 0 ? "Con documentación" : "Sin actividad",
+      icon: "fa-industry",
+      iconTone: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
+      ring: plantasConDocumentos > 0 ? 100 : 0,
+      ringTone: "text-emerald-400",
+      bar: "from-emerald-400 to-teal-400",
+    },
+  ];
+
+  const archivos = documentos
+    .slice()
+    .sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""))
+    .slice(0, 4)
+    .map(archivoVisual);
+
   return (
     <section className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/40 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_30px_90px_-50px_rgba(0,0,0,1)] backdrop-blur-md sm:p-6">
       <span
@@ -138,9 +171,21 @@ export default function RepositorioPanel() {
             />
             Normas IRAM
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-semibold text-emerald-300">
-            <span className="animate-pulse-dot h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            Sincronizado
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-semibold ${
+              totalDocumentos > 0
+                ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+                : "border-slate-800 bg-slate-900/60 text-slate-500"
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                totalDocumentos > 0
+                  ? "animate-pulse-dot bg-emerald-400"
+                  : "bg-slate-600"
+              }`}
+            />
+            {totalDocumentos > 0 ? "Sincronizado" : "Sin documentos"}
           </span>
         </div>
       </div>
@@ -202,36 +247,53 @@ export default function RepositorioPanel() {
         ))}
       </div>
 
-      <div className="relative grid grid-cols-1 gap-2.5 md:grid-cols-2">
-        {archivos.map((archivo) => (
-          <div
-            key={archivo.nombre}
-            className="group flex items-center gap-3 rounded-xl border border-white/10 bg-slate-950/40 px-3.5 py-3 transition-all duration-300 hover:border-amber-400/20 hover:bg-slate-900/60"
-          >
-            <span
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${archivo.tone}`}
+      {archivos.length === 0 ? (
+        <div className="relative rounded-xl border border-dashed border-slate-800 bg-slate-950/40 px-6 py-8 text-center">
+          <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-900/60 text-slate-500">
+            <i
+              className="fa-regular fa-folder-open text-sm"
+              aria-hidden="true"
+            />
+          </span>
+          <p className="mt-3 text-xs font-semibold text-slate-300">
+            Todavía no hay documentos cargados.
+          </p>
+          <p className="mt-1 text-[10px] text-slate-500">
+            Cuando cargues un archivo va a aparecer acá.
+          </p>
+        </div>
+      ) : (
+        <div className="relative grid grid-cols-1 gap-2.5 md:grid-cols-2">
+          {archivos.map((archivo) => (
+            <div
+              key={archivo.id}
+              className="group flex items-center gap-3 rounded-xl border border-white/10 bg-slate-950/40 px-3.5 py-3 transition-all duration-300 hover:border-amber-400/20 hover:bg-slate-900/60"
             >
-              <i
-                className={`fa-solid ${archivo.icon} text-xs`}
-                aria-hidden="true"
-              />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold text-slate-200">
-                {archivo.nombre}
-              </p>
-              <p className="mt-0.5 text-[10px] text-slate-500">
-                {archivo.meta}
-              </p>
+              <span
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${archivo.tone}`}
+              >
+                <i
+                  className={`fa-solid ${archivo.icon} text-xs`}
+                  aria-hidden="true"
+                />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-slate-200">
+                  {archivo.nombre}
+                </p>
+                <p className="mt-0.5 text-[10px] text-slate-500">
+                  {archivo.meta}
+                </p>
+              </div>
+              <span
+                className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-semibold ${archivo.badgeTone}`}
+              >
+                {archivo.badge}
+              </span>
             </div>
-            <span
-              className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-semibold ${archivo.badgeTone}`}
-            >
-              {archivo.badge}
-            </span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <div className="relative mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/5 pt-4">
         <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-slate-400">

@@ -6,23 +6,24 @@ import { SESSION_COOKIE, SESSION_MAX_AGE, signSession } from "@/lib/session";
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
+      usuario?: string;
       email?: string;
       password?: string;
     };
-    const email = (body.email ?? "").trim();
+    const identifier = (body.usuario ?? body.email ?? "").trim();
     const password = body.password ?? "";
 
-    if (!email || !password) {
+    if (!identifier || !password) {
       return NextResponse.json(
-        { error: "Ingresá email y contraseña" },
+        { error: "Ingresá usuario y contraseña" },
         { status: 400 },
       );
     }
 
-    const user = await authenticate(email, password);
+    const user = await authenticate(identifier, password);
     if (!user) {
       return NextResponse.json(
-        { error: "Email o contraseña incorrectos" },
+        { error: "Usuario o contraseña incorrectos" },
         { status: 401 },
       );
     }

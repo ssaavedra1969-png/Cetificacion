@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -17,7 +17,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ usuario, password }),
       });
       const data = await res.json();
 
@@ -33,7 +33,7 @@ export default function LoginPage() {
           !(rol === "lector" && next.startsWith("/administracion"));
         window.location.href = nextValido && next ? next : fallback;
       } else {
-        setError(data.error || "Email o contraseña incorrectos");
+        setError(data.error || "Usuario o contraseña incorrectos");
       }
     } catch {
       setError("Error de conexión con el servidor");
@@ -83,18 +83,18 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[#94a3b8]">
-                Email
+                Usuario
               </label>
               <div className="relative">
                 <i
-                  className="fa-solid fa-envelope pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#64748b]"
+                  className="fa-solid fa-user pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#64748b]"
                   aria-hidden="true"
                 />
                 <input
-                  type="email"
-                  placeholder="nombre@falpat.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  placeholder="admin"
+                  value={usuario}
+                  onChange={(e) => setUsuario(e.target.value)}
                   autoComplete="username"
                   required
                   className="w-full rounded-lg border border-white/10 bg-[#0f172a] py-2.5 pl-9 pr-3 text-sm text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"

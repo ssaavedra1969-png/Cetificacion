@@ -83,15 +83,18 @@ export function verifyPassword(
 }
 
 export async function authenticate(
-  email: string,
+  identifier: string,
   password: string,
 ): Promise<Usuario | null> {
-  const normalized = email.trim().toLowerCase();
+  const normalized = identifier.trim().toLowerCase();
   if (!normalized || !password) return null;
 
   const data = await readUsuarios();
   const user = data.usuarios.find(
-    (u) => u.email.toLowerCase() === normalized && u.activo,
+    (u) =>
+      u.activo &&
+      (u.usuario?.toLowerCase() === normalized ||
+        u.email.toLowerCase() === normalized),
   );
   if (!user) return null;
   if (!verifyPassword(password, user.salt, user.passwordHash)) return null;

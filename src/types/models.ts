@@ -2,6 +2,7 @@ export type Rol = "admin" | "editor" | "lector";
 
 export interface Usuario {
   id: string;
+  usuario?: string;
   email: string;
   nombre: string;
   rol: Rol;
