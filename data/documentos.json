@@ -13,6 +13,20 @@
       "archivoUrl": "/api/files?id=Dmw9tq2gi76d747",
       "ruta": "documentos/Dmw9tq2gi76d747-it-sgc-001-resguardo-de-informacion.pdf",
       "tipo": "pdf"
+    },
+    {
+      "id": "Dmw9tq5pfe67314",
+      "nombre": "IT-SGC-002 - Muestras de Campana",
+      "categoria": "SGC",
+      "puntoId": "P002",
+      "planta": "General",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-002 - Muestras de Campana. Informe técnico SGC, revisión v1.0, plantas Luján y Campana.",
+      "archivoUrl": "/api/files?id=Dmw9tq5pfe67314",
+      "ruta": "documentos/Dmw9tq5pfe67314-it-sgc-002-muestras-de-campana.pdf",
+      "tipo": "pdf"
     }
   ],
   "categorias": [
