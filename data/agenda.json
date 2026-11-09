@@ -191,11 +191,9 @@
       "prioridad": "alta",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "2026-11-09T20:26:36.536Z",
+      "fechaActualizacion": "2026-11-09T23:20:51.044Z",
       "notas": "",
-      "documentosIds": [
-        "Dmw9ieahy16d748"
-      ],
+      "documentosIds": [],
       "historial": [
         {
           "fecha": "2026-11-09T17:02:20.399Z",
@@ -203,6 +201,13 @@
           "campo": "documentos",
           "valorAnterior": "",
           "valorNuevo": "Dmw9ieahy16d748"
+        },
+        {
+          "fecha": "2026-11-09T23:20:51.044Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "Dmw9ieahy16d748",
+          "valorNuevo": ""
         }
       ]
     },
