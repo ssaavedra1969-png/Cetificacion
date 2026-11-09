@@ -151,10 +151,20 @@
       "prioridad": "baja",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T22:19:45.215Z",
       "notas": "",
-      "documentosIds": [],
-      "historial": []
+      "documentosIds": [
+        "Dmw9tqfzifabd16"
+      ],
+      "historial": [
+        {
+          "fecha": "2026-11-09T22:19:45.215Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "",
+          "valorNuevo": "Dmw9tqfzifabd16"
+        }
+      ]
     },
     {
       "id": "P007",
