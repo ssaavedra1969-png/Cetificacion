@@ -1,20 +1,6 @@
 {
   "documentos": [
     {
-      "id": "Dmw9ieahy16d748",
-      "nombre": "Listado de personal",
-      "categoria": "Control de calidad",
-      "puntoId": "",
-      "planta": "Campana",
-      "fecha": "2026-11-09",
-      "version": "1.0",
-      "responsable": "Administrador",
-      "descripcion": "",
-      "archivoUrl": "/api/files?id=Dmw9ieahy16d748",
-      "ruta": "documentos/Dmw9ieahy16d748-listado-de-personal.xlsx",
-      "tipo": "excel"
-    },
-    {
       "id": "Dmw9iegr8610c7f",
       "nombre": "ET",
       "categoria": "Documentación del laboratorio",
