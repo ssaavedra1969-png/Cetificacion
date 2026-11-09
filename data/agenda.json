@@ -2,26 +2,36 @@
   "puntos": [
     {
       "id": "P001",
-      "titulo": "Resguardo de información",
-      "descripcion": "evaluar la migración de la información almacenada en la PC a una nube corporativa, con accesos controlados y una rutina de backups periódicos",
+      "titulo": "Resguardo de información (IT-SGC-001)",
+      "descripcion": "Dictamina formalmente la migración total de los datos de la PC local hacia la nube corporativa. Regula la matriz de accesos controlados para personal autorizado y fija la rutina automatizada de backups periódicos cada 4 horas para erradicar pérdidas físicas.",
       "categoria": "Resguardo de información",
       "plantas": [
         "Campana",
         "Luján"
       ],
-      "responsable": "A definir",
+      "responsable": "Juan Pérez",
       "prioridad": "alta",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T21:25:54.063Z",
       "notas": "",
-      "documentosIds": [],
-      "historial": []
+      "documentosIds": [
+        "Dmw9h1p5l7693a7"
+      ],
+      "historial": [
+        {
+          "fecha": "2026-11-09T16:24:33.262Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "",
+          "valorNuevo": "Dmw9h1p5l7693a7"
+        }
+      ]
     },
     {
       "id": "P002",
-      "titulo": "Muestras de Campana",
-      "descripcion": "regularizar el envío de muestras al laboratorio de Luján para realizar los ensayos correspondientes. Este punto ya se había conversado en la visita anterior y continúa pendiente",
+      "titulo": "Muestras de Campana (IT-SGC-002)",
+      "descripcion": "Establece el apercibimiento y procedimiento de contingencia debido a que el envío sistemático de muestras al laboratorio de Luján continúa pendiente desde la visita anterior. Se fija un cronograma de despacho diario mandatorio.",
       "categoria": "Muestras de Campana",
       "plantas": [
         "Campana"
@@ -30,15 +40,44 @@
       "prioridad": "alta",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T21:26:11.172Z",
       "notas": "",
       "documentosIds": [],
-      "historial": []
+      "historial": [
+        {
+          "fecha": "2026-11-09T17:01:38.191Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "",
+          "valorNuevo": "Dmw9iddgfe7ba30"
+        },
+        {
+          "fecha": "2026-11-09T17:01:59.635Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "Dmw9iddgfe7ba30",
+          "valorNuevo": "Dmw9iddgfe7ba30, Dmw9idui48a2f47"
+        },
+        {
+          "fecha": "2026-11-09T21:26:08.811Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "Dmw9iddgfe7ba30, Dmw9idui48a2f47",
+          "valorNuevo": "Dmw9idui48a2f47"
+        },
+        {
+          "fecha": "2026-11-09T21:26:11.172Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "Dmw9idui48a2f47",
+          "valorNuevo": ""
+        }
+      ]
     },
     {
       "id": "P003",
-      "titulo": "Certificados de calibración",
-      "descripcion": "reunir los certificados vigentes de las balanzas de camiones y de laboratorio de ambas plantas",
+      "titulo": "Certificados de calibración (IT-SGC-003)",
+      "descripcion": "Añade la obligatoriedad de reunir, indexar en el SGC y verificar la vigencia técnico-legal de las certificaciones de las balanzas de camiones y balanzas analíticas de laboratorio de las plantas de Luján y Campana simultáneamente.",
       "categoria": "Certificados de calibración",
       "plantas": [
         "Campana",
@@ -48,15 +87,25 @@
       "prioridad": "alta",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T20:26:36.536Z",
       "notas": "",
-      "documentosIds": [],
-      "historial": []
+      "documentosIds": [
+        "Dmw9ie2hga4d186"
+      ],
+      "historial": [
+        {
+          "fecha": "2026-11-09T17:02:10.010Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "",
+          "valorNuevo": "Dmw9ie2hga4d186"
+        }
+      ]
     },
     {
       "id": "P004",
-      "titulo": "Layout de Luján",
-      "descripcion": "conseguir una imagen aérea actualizada del predio para analizar la distribución de las instalaciones, los flujos de circulación y las oportunidades de mejora del layout",
+      "titulo": "Layout de Luján (IT-SGC-004)",
+      "descripcion": "Define como requerimiento crítico la obtención de una imagen aérea actualizada del predio para modelar vectorialmente la convivencia física, los flujos logísticos, los radios de giro pesados y detectar los cuellos de botella en la disposición de tolvas.",
       "categoria": "Layout",
       "plantas": [
         "Luján"
@@ -65,15 +114,15 @@
       "prioridad": "media",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T20:26:36.536Z",
       "notas": "",
       "documentosIds": [],
       "historial": []
     },
     {
       "id": "P005",
-      "titulo": "Seguridad vial interna",
-      "descripcion": "reforzar las buenas prácticas de manejo defensivo y circulación dentro del predio, considerando la convivencia entre vehículos livianos y equipos pesados. Establecer y señalar el criterio de estacionamiento en reversa, de manera que los vehículos queden orientados hacia la salida",
+      "titulo": "Seguridad vial interna (IT-SGC-005)",
+      "descripcion": "Introduce directrices estrictas de manejo defensivo ante la interacción de camiones pesados y vehículos livianos. Regula e instituye la señalización obligatoria del criterio de estacionamiento en reversa para orientación inmediata hacia la salida.",
       "categoria": "Seguridad vial",
       "plantas": [
         "Campana",
@@ -83,15 +132,15 @@
       "prioridad": "media",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T20:26:36.536Z",
       "notas": "",
       "documentosIds": [],
       "historial": []
     },
     {
       "id": "P006",
-      "titulo": "Teléfono del laboratorio",
-      "descripcion": "revisar el uso del teléfono particular del laboratorista para gestionar información de la empresa, considerando el resguardo, la disponibilidad y la continuidad de esa información",
+      "titulo": "Teléfono del laboratorio (IT-SGC-006)",
+      "descripcion": "Prohíbe formalmente el uso de dispositivos celulares particulares para el manejo de datos de ensayos. El informe regula el resguardo, la trazabilidad, disponibilidad y continuidad de la información de la empresa en terminales controladas.",
       "categoria": "Administración",
       "plantas": [
         "Campana",
@@ -101,15 +150,15 @@
       "prioridad": "baja",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T20:26:36.536Z",
       "notas": "",
       "documentosIds": [],
       "historial": []
     },
     {
       "id": "P007",
-      "titulo": "Plan de muestreo",
-      "descripcion": "revisar la frecuencia de toma de muestras de materias primas en relación con los volúmenes recibidos y los ensayos requeridos",
+      "titulo": "Plan de muestreo (IT-SGC-007)",
+      "descripcion": "Reestructura las frecuencias de toma de muestras de materias primas, indexándolas directamente con los volúmenes métricos o toneladas totales recibidas en las plantas y los tipos de ensayos físicos/químicos mandatorios por lote.",
       "categoria": "Muestreo",
       "plantas": [
         "Campana",
@@ -119,15 +168,15 @@
       "prioridad": "alta",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T20:26:36.536Z",
       "notas": "",
       "documentosIds": [],
       "historial": []
     },
     {
       "id": "P008",
-      "titulo": "Control de calidad de áridos de cantera propia",
-      "descripcion": "solicitar y centralizar los informes de ensayos granulométricos y sus respectivas curvas, para evaluar la calidad y uniformidad de los materiales utilizados en la elaboración del hormigón. Coordinar con el responsable de cantera el envío periódico de esta información",
+      "titulo": "Control de calidad de áridos de cantera propia (IT-SGC-008)",
+      "descripcion": "Mandata la solicitud centralizada y periódica de los informes granulométricos y sus respectivas curvas de tamizado al responsable de cantera, estableciendo parámetros obligatorios de uniformidad para la mezcla del hormigón.",
       "categoria": "Control de calidad",
       "plantas": [
         "Campana",
@@ -137,15 +186,25 @@
       "prioridad": "alta",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T20:26:36.536Z",
       "notas": "",
-      "documentosIds": [],
-      "historial": []
+      "documentosIds": [
+        "Dmw9ieahy16d748"
+      ],
+      "historial": [
+        {
+          "fecha": "2026-11-09T17:02:20.399Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "",
+          "valorNuevo": "Dmw9ieahy16d748"
+        }
+      ]
     },
     {
       "id": "P009",
-      "titulo": "Control de calidad del agua",
-      "descripcion": "verificar la disponibilidad y vigencia de los análisis del agua utilizada para elaborar hormigón en ambas plantas, su aptitud conforme a los requisitos técnicos aplicables y la necesidad de establecer una frecuencia de control según su procedencia",
+      "titulo": "Control de calidad del agua (IT-SGC-009)",
+      "descripcion": "Exige la revisión inmediata de la vigencia de los análisis químicos del agua de amasado en Luján y Campana, regulando su aptitud técnica (límites de sulfatos y cloruros) y fijando una frecuencia de control diferencial según su procedencia (red, pozo o recirculado).",
       "categoria": "Control de calidad",
       "plantas": [
         "Campana",
@@ -155,15 +214,15 @@
       "prioridad": "alta",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T20:26:36.536Z",
       "notas": "",
       "documentosIds": [],
       "historial": []
     },
     {
       "id": "P010",
-      "titulo": "Documentación del laboratorio",
-      "descripcion": "centralizar los registros de ensayos y controles, asegurando su disponibilidad y trazabilidad para ambas plantas",
+      "titulo": "Documentación del laboratorio (IT-SGC-010)",
+      "descripcion": "Centraliza de manera definitiva todos los registros, planillas, y roturas de probetas, garantizando la disponibilidad en red en tiempo real y la trazabilidad cruzada entre ambas plantas operativas.",
       "categoria": "Documentación del laboratorio",
       "plantas": [
         "Campana",
@@ -173,15 +232,26 @@
       "prioridad": "media",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T20:26:36.536Z",
       "notas": "",
-      "documentosIds": [],
-      "historial": []
+      "documentosIds": [
+        "Dmw9iegr8610c7f"
+      ],
+      "historial": [
+        {
+          "fecha": "2026-11-09T17:02:29.411Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "",
+          "valorNuevo": "Dmw9iegr8610c7f"
+        }
+      ]
     }
   ],
   "metadata": {
     "generadoEl": "2026-11-05",
-    "versión": "1.0.0",
+    "versión": "1.1.0",
+    "actualizadoEl": "2026-11-09",
     "empresa": "Grupo Falpat SRL"
   }
 }

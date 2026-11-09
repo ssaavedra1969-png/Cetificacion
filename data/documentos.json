@@ -1,5 +1,90 @@
 {
-  "documentos": [],
+  "documentos": [
+    {
+      "id": "Dmw9h1p5l7693a7",
+      "nombre": "Informe Informe General 2026 11 081",
+      "categoria": "Resguardo de información",
+      "puntoId": "",
+      "planta": "General",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador",
+      "descripcion": "",
+      "archivoUrl": "/api/files?id=Dmw9h1p5l7693a7",
+      "ruta": "documentos/Dmw9h1p5l7693a7-informe-informe-general-2026-11-081.xlsx",
+      "tipo": "excel"
+    },
+    {
+      "id": "Dmw9iddgfe7ba30",
+      "nombre": "Informe Viajesporchofer 2026 11 08",
+      "categoria": "Muestras de Campana",
+      "puntoId": "",
+      "planta": "Campana",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador",
+      "descripcion": "",
+      "archivoUrl": "/api/files?id=Dmw9iddgfe7ba30",
+      "ruta": "documentos/Dmw9iddgfe7ba30-informe-viajesporchofer-2026-11-08.pdf",
+      "tipo": "pdf"
+    },
+    {
+      "id": "Dmw9idui48a2f47",
+      "nombre": "Informe Informe General 2026 11 08",
+      "categoria": "Muestras de Campana",
+      "puntoId": "",
+      "planta": "Campana",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador",
+      "descripcion": "",
+      "archivoUrl": "/api/files?id=Dmw9idui48a2f47",
+      "ruta": "documentos/Dmw9idui48a2f47-informe-informe-general-2026-11-08.xlsx",
+      "tipo": "excel"
+    },
+    {
+      "id": "Dmw9ie2hga4d186",
+      "nombre": "Informe Viajes por chofer 2026 11 08",
+      "categoria": "Certificados de calibración",
+      "puntoId": "P003",
+      "planta": "Campana",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador",
+      "descripcion": "",
+      "archivoUrl": "/api/files?id=Dmw9ie2hga4d186",
+      "ruta": "documentos/Dmw9ie2hga4d186-informe-viajes-por-chofer-2026-11-08.xlsx",
+      "tipo": "excel"
+    },
+    {
+      "id": "Dmw9ieahy16d748",
+      "nombre": "Listado de personal",
+      "categoria": "Control de calidad",
+      "puntoId": "P008",
+      "planta": "Campana",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador",
+      "descripcion": "",
+      "archivoUrl": "/api/files?id=Dmw9ieahy16d748",
+      "ruta": "documentos/Dmw9ieahy16d748-listado-de-personal.xlsx",
+      "tipo": "excel"
+    },
+    {
+      "id": "Dmw9iegr8610c7f",
+      "nombre": "ET",
+      "categoria": "Documentación del laboratorio",
+      "puntoId": "P010",
+      "planta": "Campana",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador",
+      "descripcion": "",
+      "archivoUrl": "/api/files?id=Dmw9iegr8610c7f",
+      "ruta": "documentos/Dmw9iegr8610c7f-et.pdf",
+      "tipo": "pdf"
+    }
+  ],
   "categorias": [
     "Resguardo de información",
     "Muestras de Campana",
@@ -12,7 +97,8 @@
     "Control de calidad del agua",
     "Documentación del laboratorio",
     "SGC general",
-    "Administración"
+    "Administración",
+    "Control de calidad"
   ],
   "metadata": {
     "generadoEl": "2026-11-05",
