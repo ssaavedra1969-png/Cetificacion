@@ -41,6 +41,20 @@
       "archivoUrl": "/api/files?id=Dmw9tq8g3f5be82",
       "ruta": "documentos/Dmw9tq8g3f5be82-it-sgc-003-certificados-de-calibracion.pdf",
       "tipo": "pdf"
+    },
+    {
+      "id": "Dmw9tqaym5c176e",
+      "nombre": "IT-SGC-004 - Layout de Luján",
+      "categoria": "SGC",
+      "puntoId": "P004",
+      "planta": "General",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-004 - Layout de Luján. Informe técnico SGC, revisión v1.0, plantas Luján y Campana.",
+      "archivoUrl": "/api/files?id=Dmw9tqaym5c176e",
+      "ruta": "documentos/Dmw9tqaym5c176e-it-sgc-004-layout-de-lujan.pdf",
+      "tipo": "pdf"
     }
   ],
   "categorias": [
