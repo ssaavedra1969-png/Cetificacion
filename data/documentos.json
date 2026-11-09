@@ -111,6 +111,20 @@
       "archivoUrl": "/api/files?id=Dmw9tqlelfe5813",
       "ruta": "documentos/Dmw9tqlelfe5813-it-sgc-008-control-de-calidad-de-aridos-de-cantera-propia.pdf",
       "tipo": "pdf"
+    },
+    {
+      "id": "Dmw9tqo2l217e71",
+      "nombre": "IT-SGC-009 - Control de calidad del agua",
+      "categoria": "SGC",
+      "puntoId": "P009",
+      "planta": "General",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-009 - Control de calidad del agua. Informe técnico SGC, revisión v1.0, plantas Luján y Campana.",
+      "archivoUrl": "/api/files?id=Dmw9tqo2l217e71",
+      "ruta": "documentos/Dmw9tqo2l217e71-it-sgc-009-control-de-calidad-del-agua.pdf",
+      "tipo": "pdf"
     }
   ],
   "categorias": [
