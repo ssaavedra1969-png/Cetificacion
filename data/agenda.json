@@ -123,10 +123,20 @@
       "prioridad": "media",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T22:19:41.824Z",
       "notas": "",
-      "documentosIds": [],
-      "historial": []
+      "documentosIds": [
+        "Dmw9tqde2576479"
+      ],
+      "historial": [
+        {
+          "fecha": "2026-11-09T22:19:41.824Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "",
+          "valorNuevo": "Dmw9tqde2576479"
+        }
+      ]
     },
     {
       "id": "P006",
