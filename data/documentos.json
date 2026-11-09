@@ -69,6 +69,20 @@
       "archivoUrl": "/api/files?id=Dmw9tqde2576479",
       "ruta": "documentos/Dmw9tqde2576479-it-sgc-005-seguridad-vial-interna.pdf",
       "tipo": "pdf"
+    },
+    {
+      "id": "Dmw9tqfzifabd16",
+      "nombre": "IT-SGC-006 - Teléfono del laboratorio",
+      "categoria": "SGC",
+      "puntoId": "P006",
+      "planta": "General",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-006 - Teléfono del laboratorio. Informe técnico SGC, revisión v1.0, plantas Luján y Campana.",
+      "archivoUrl": "/api/files?id=Dmw9tqfzifabd16",
+      "ruta": "documentos/Dmw9tqfzifabd16-it-sgc-006-telefono-del-laboratorio.pdf",
+      "tipo": "pdf"
     }
   ],
   "categorias": [
