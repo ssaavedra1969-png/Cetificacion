@@ -54,6 +54,7 @@ export default function Administracion() {
   const router = useRouter();
   const [authenticated, setAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [redirigiendo, setRedirigiendo] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
   const [agenda, setAgenda] = useState<AgendaData | null>(null);
   const [documentos, setDocumentos] = useState<DocumentosData>({
@@ -113,10 +114,13 @@ export default function Administracion() {
     fetch("/api/auth/session")
       .then((res) => res.json())
       .then(async (data) => {
-        if (data.authenticated) {
+        if (data.authenticated && data.user?.rol !== "lector") {
           setAuthenticated(true);
           setUsuario(data.user ?? null);
           await cargarDatos();
+        } else if (data.authenticated) {
+          setRedirigiendo(true);
+          router.replace("/");
         } else {
           router.replace("/login?next=/administracion");
         }
@@ -192,9 +196,7 @@ export default function Administracion() {
         setMensaje({
           type: "error",
           text:
-            error instanceof Error
-              ? error.message
-              : "Error al guardar el tema",
+            error instanceof Error ? error.message : "Error al guardar el tema",
         });
       }
     },
@@ -257,6 +259,20 @@ export default function Administracion() {
     );
   }
 
+  if (redirigiendo) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <span className="inline-flex items-center gap-2 text-sm text-[#94a3b8]">
+          <i
+            className="fa-solid fa-spinner fa-spin text-gold"
+            aria-hidden="true"
+          />
+          Redirigiendo al portal...
+        </span>
+      </main>
+    );
+  }
+
   if (!authenticated) {
     return (
       <main className="flex min-h-screen items-center justify-center">
@@ -282,7 +298,10 @@ export default function Administracion() {
           <div className="flex items-center gap-2">
             {usuario && (
               <span className="hidden items-center gap-2 text-xs text-[#94a3b8] sm:flex">
-                <i className="fa-solid fa-circle-user text-gold" aria-hidden="true" />
+                <i
+                  className="fa-solid fa-circle-user text-gold"
+                  aria-hidden="true"
+                />
                 {usuario.nombre}
                 <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#c7d2e3]">
                   {usuario.rol}
@@ -304,7 +323,10 @@ export default function Administracion() {
               onClick={handleLogout}
               className="inline-flex items-center gap-2 rounded-lg border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs font-medium text-red-300 transition-colors hover:bg-red-400/20"
             >
-              <i className="fa-solid fa-right-from-bracket" aria-hidden="true" />
+              <i
+                className="fa-solid fa-right-from-bracket"
+                aria-hidden="true"
+              />
               Salir
             </button>
           </div>
@@ -356,7 +378,9 @@ export default function Administracion() {
               Temas y Puntos de Control
             </h1>
             <p className="mt-1 text-sm text-[#94a3b8]">
-              Hacé clic en cualquier tema para editarlo o utilizá <strong>+ Adjuntar doc</strong> para subirle archivos directamente.
+              Hacé clic en cualquier tema para editarlo o utilizá{" "}
+              <strong>+ Adjuntar doc</strong> para subirle archivos
+              directamente.
             </p>
           </div>
           <button
@@ -430,7 +454,10 @@ export default function Administracion() {
                     </span>
                     {numDocs > 0 && (
                       <span className="inline-flex items-center gap-1 font-medium text-gold">
-                        <i className="fa-solid fa-paperclip" aria-hidden="true" />
+                        <i
+                          className="fa-solid fa-paperclip"
+                          aria-hidden="true"
+                        />
                         {numDocs} docs
                       </span>
                     )}
@@ -444,7 +471,10 @@ export default function Administracion() {
                     className="inline-flex items-center gap-1 rounded-md border border-gold/30 bg-gold/10 px-2 py-0.5 text-[10px] font-semibold text-gold transition-colors hover:bg-gold/20"
                     title={`Subir y vincular documento al tema ${p.id}`}
                   >
-                    <i className="fa-solid fa-cloud-arrow-up text-[9px]" aria-hidden="true" />
+                    <i
+                      className="fa-solid fa-cloud-arrow-up text-[9px]"
+                      aria-hidden="true"
+                    />
                     + Adjuntar doc
                   </button>
                 </div>
@@ -643,10 +673,17 @@ export default function Administracion() {
                 <div className="md:col-span-2 rounded-xl border border-white/10 bg-[#0f172a]/80 p-5 space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
                     <div className="flex items-center gap-2">
-                      <i className="fa-solid fa-paperclip text-gold" aria-hidden="true" />
+                      <i
+                        className="fa-solid fa-paperclip text-gold"
+                        aria-hidden="true"
+                      />
                       <h3 className="text-sm font-bold text-white">
                         Documentos adjuntos a este tema (
-                        {documentos.documentos.filter((d) => d.puntoId === editando.id).length}
+                        {
+                          documentos.documentos.filter(
+                            (d) => d.puntoId === editando.id,
+                          ).length
+                        }
                         )
                       </h3>
                     </div>
@@ -655,13 +692,17 @@ export default function Administracion() {
                       onClick={() => setTemaParaSubir(editando.id)}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-gold/40 bg-gold/15 px-3 py-1.5 text-xs font-bold text-gold transition-colors hover:bg-gold/25"
                     >
-                      <i className="fa-solid fa-cloud-arrow-up" aria-hidden="true" />
+                      <i
+                        className="fa-solid fa-cloud-arrow-up"
+                        aria-hidden="true"
+                      />
                       + Subir documento a este tema
                     </button>
                   </div>
 
-                  {documentos.documentos.filter((d) => d.puntoId === editando.id)
-                    .length === 0 ? (
+                  {documentos.documentos.filter(
+                    (d) => d.puntoId === editando.id,
+                  ).length === 0 ? (
                     <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
                       <i className="fa-solid fa-folder-open text-2xl text-gold/40 mb-2" />
                       <p className="text-xs text-[#94a3b8]">
@@ -824,7 +865,10 @@ export default function Administracion() {
 
       {/* Visor Modal de Documento */}
       {modalDoc && (
-        <DocumentoModal documento={modalDoc} onClose={() => setModalDoc(null)} />
+        <DocumentoModal
+          documento={modalDoc}
+          onClose={() => setModalDoc(null)}
+        />
       )}
     </main>
   );

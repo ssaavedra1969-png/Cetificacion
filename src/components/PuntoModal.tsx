@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import type { Documento, PuntoSGC } from "@/types/models";
 import DocumentoModal from "@/components/DocumentoModal";
+import { useSession } from "@/components/useSession";
 
 const estadoClasses: Record<PuntoSGC["estado"], string> = {
   Pendiente: "border-slate-400/25 bg-slate-400/10 text-slate-300",
@@ -36,6 +37,7 @@ interface Props {
 }
 
 export default function PuntoModal({ punto, documentos, onClose }: Props) {
+  const { canEdit } = useSession();
   const [tab, setTab] = useState<Tab>("resumen");
   const [docAbierto, setDocAbierto] = useState<Documento | null>(null);
 
@@ -173,13 +175,15 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
               <p className="text-sm text-[#94a3b8]">
                 Sin documentos adjuntos aún.
               </p>
-              <Link
-                href={`/administracion?tema=${punto.id}#documentos`}
-                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-amber-200"
-              >
-                <i className="fa-solid fa-paperclip" aria-hidden="true" />
-                Cargar documentos
-              </Link>
+              {canEdit && (
+                <Link
+                  href={`/administracion?tema=${punto.id}#documentos`}
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-amber-200"
+                >
+                  <i className="fa-solid fa-paperclip" aria-hidden="true" />
+                  Cargar documentos
+                </Link>
+              )}
             </div>
           ) : (
             <div className="space-y-2">
@@ -214,13 +218,15 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
                 </button>
               ))}
 
-              <Link
-                href={`/administracion?tema=${punto.id}#documentos`}
-                className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-amber-200"
-              >
-                <i className="fa-solid fa-paperclip" aria-hidden="true" />
-                Subir o vincular documento a este tema
-              </Link>
+              {canEdit && (
+                <Link
+                  href={`/administracion?tema=${punto.id}#documentos`}
+                  className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-amber-200"
+                >
+                  <i className="fa-solid fa-paperclip" aria-hidden="true" />
+                  Subir o vincular documento a este tema
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -270,7 +276,6 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
           )}
         </div>
       )}
-
     </>
   );
 
@@ -366,16 +371,21 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
               href={`/temas/${punto.id}`}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold transition-colors hover:text-amber-200"
             >
-              <i className="fa-solid fa-up-right-from-square" aria-hidden="true" />
+              <i
+                className="fa-solid fa-up-right-from-square"
+                aria-hidden="true"
+              />
               Abrir página completa
             </Link>
-            <Link
-              href="/administracion"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#94a3b8] transition-colors hover:text-white"
-            >
-              <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
-              Editar en administración
-            </Link>
+            {canEdit && (
+              <Link
+                href="/administracion"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-[#94a3b8] transition-colors hover:text-white"
+              >
+                <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
+                Editar en administración
+              </Link>
+            )}
           </footer>
         </div>
       </div>

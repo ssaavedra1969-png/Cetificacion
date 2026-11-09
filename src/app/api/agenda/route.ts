@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { PuntoSGC } from "@/types/models";
 import { readAgenda } from "@/lib/storage";
 import { saveAgenda } from "@/lib/persist";
-import { isAuthenticated } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export async function GET() {
   try {
@@ -17,8 +17,15 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  if (!(await isAuthenticated())) {
+  const session = await getSession();
+  if (!session) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+  if (session.rol === "lector") {
+    return NextResponse.json(
+      { error: "No tenés permisos para modificar la agenda" },
+      { status: 403 },
+    );
   }
 
   try {

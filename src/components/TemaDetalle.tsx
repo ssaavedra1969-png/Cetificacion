@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Documento, PuntoSGC } from "@/types/models";
 import DocumentoModal from "@/components/DocumentoModal";
+import { useSession } from "@/components/useSession";
 
 const estadoClasses: Record<PuntoSGC["estado"], string> = {
   Pendiente: "border-slate-400/25 bg-slate-400/10 text-slate-300",
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export default function TemaDetalle({ id }: Props) {
+  const { canEdit } = useSession();
   const [punto, setPunto] = useState<PuntoSGC | null>(null);
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [loading, setLoading] = useState(true);
@@ -209,13 +211,15 @@ export default function TemaDetalle({ id }: Props) {
               </span>
             </div>
 
-            <Link
-              href={`/administracion?tema=${punto.id}#documentos`}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gold/40 bg-gold/15 px-3 py-1.5 text-xs font-semibold text-gold transition-colors hover:bg-gold/25"
-            >
-              <i className="fa-solid fa-cloud-arrow-up" aria-hidden="true" />
-              Subir o vincular documento a este tema
-            </Link>
+            {canEdit && (
+              <Link
+                href={`/administracion?tema=${punto.id}#documentos`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gold/40 bg-gold/15 px-3 py-1.5 text-xs font-semibold text-gold transition-colors hover:bg-gold/25"
+              >
+                <i className="fa-solid fa-cloud-arrow-up" aria-hidden="true" />
+                Subir o vincular documento a este tema
+              </Link>
+            )}
           </div>
 
           {docsDelTema.length === 0 ? (
@@ -227,13 +231,15 @@ export default function TemaDetalle({ id }: Props) {
               <p className="text-sm text-[#94a3b8]">
                 Este tema todavía no tiene documentos anexados.
               </p>
-              <Link
-                href={`/administracion?tema=${punto.id}#documentos`}
-                className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-4 py-2 text-xs font-bold text-gold transition-colors hover:bg-gold/20"
-              >
-                <i className="fa-solid fa-plus" aria-hidden="true" />
-                Adjuntar primer documento
-              </Link>
+              {canEdit && (
+                <Link
+                  href={`/administracion?tema=${punto.id}#documentos`}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-4 py-2 text-xs font-bold text-gold transition-colors hover:bg-gold/20"
+                >
+                  <i className="fa-solid fa-plus" aria-hidden="true" />
+                  Adjuntar primer documento
+                </Link>
+              )}
             </div>
           ) : (
             <ul className="glass divide-y divide-white/[0.06] rounded-2xl">
@@ -292,7 +298,10 @@ export default function TemaDetalle({ id }: Props) {
       </div>
 
       {modalDoc && (
-        <DocumentoModal documento={modalDoc} onClose={() => setModalDoc(null)} />
+        <DocumentoModal
+          documento={modalDoc}
+          onClose={() => setModalDoc(null)}
+        />
       )}
     </main>
   );

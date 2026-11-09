@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import SessionAccess from "./SessionAccess";
 
 interface SessionInfo {
   nombre: string;
@@ -13,7 +14,6 @@ interface SessionInfo {
 const NAV = [
   { href: "/", label: "Inicio", icon: "fa-house" },
   { href: "/documentoteca", label: "Documentoteca", icon: "fa-folder-open" },
-  { href: "/administracion", label: "Administración", icon: "fa-sliders" },
 ];
 
 export default function Sidebar() {
@@ -164,14 +164,17 @@ export default function Sidebar() {
             className="h-7 w-auto"
           />
         </Link>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label="Abrir menú"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[#c7d2e3] transition-colors hover:bg-white/10"
-        >
-          <i className="fa-solid fa-bars" aria-hidden="true" />
-        </button>
+        <div className="flex items-center gap-2">
+          <SessionAccess compact />
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label="Abrir menú"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[#c7d2e3] transition-colors hover:bg-white/10"
+          >
+            <i className="fa-solid fa-bars" aria-hidden="true" />
+          </button>
+        </div>
       </div>
 
       {/* Drawer móvil */}

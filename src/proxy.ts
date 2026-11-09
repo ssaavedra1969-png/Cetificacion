@@ -16,6 +16,12 @@ export async function proxy(request: NextRequest) {
       url.searchParams.set("next", pathname);
       return NextResponse.redirect(url);
     }
+    if (session.rol === "lector") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
     return NextResponse.next();
   }
 
@@ -26,6 +32,16 @@ export async function proxy(request: NextRequest) {
   ) {
     if (!session) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (
+      session.rol === "lector" &&
+      (pathname.startsWith("/api/agenda") ||
+        pathname.startsWith("/api/documentos"))
+    ) {
+      return NextResponse.json(
+        { error: "No tenés permisos para modificar datos" },
+        { status: 403 },
+      );
     }
   }
 

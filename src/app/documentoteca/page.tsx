@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Documento } from "@/types/models";
 import DocumentoModal from "@/components/DocumentoModal";
+import { useSession } from "@/components/useSession";
 import { downloadUrl } from "@/lib/urls";
 import { isOfficeTipo } from "@/lib/files";
 
@@ -44,6 +45,7 @@ function iconFor(tipo: string): { icon: string; color: string; bg: string } {
 }
 
 export default function Documentoteca() {
+  const { canEdit } = useSession();
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,22 +117,28 @@ export default function Documentoteca() {
               Documentoteca SGC
             </h1>
             <p className="mt-1 text-sm text-[#94a3b8]">
-              Repositorio centralizado de certificados, especificaciones técnicas, actas y registros de calidad.
+              Repositorio centralizado de certificados, especificaciones
+              técnicas, actas y registros de calidad.
             </p>
           </div>
 
-          <Link
-            href="/administracion#documentos"
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-4 py-2.5 text-xs font-bold text-[#0f172a] shadow-[0_10px_25px_-5px_rgba(212,175,55,0.5)] transition-all hover:-translate-y-0.5"
-          >
-            <i className="fa-solid fa-cloud-arrow-up" aria-hidden="true" />
-            Subir documento
-          </Link>
+          {canEdit && (
+            <Link
+              href="/administracion#documentos"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-4 py-2.5 text-xs font-bold text-[#0f172a] shadow-[0_10px_25px_-5px_rgba(212,175,55,0.5)] transition-all hover:-translate-y-0.5"
+            >
+              <i className="fa-solid fa-cloud-arrow-up" aria-hidden="true" />
+              Subir documento
+            </Link>
+          )}
         </div>
 
         {error && (
           <div className="mb-6 flex items-center gap-2 rounded-xl border border-red-400/25 bg-red-400/10 px-4 py-3 text-sm text-red-300">
-            <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+            <i
+              className="fa-solid fa-triangle-exclamation"
+              aria-hidden="true"
+            />
             {error}
           </div>
         )}
@@ -180,7 +188,10 @@ export default function Documentoteca() {
                           : "bg-gold/10 text-gold"
                       }`}
                     >
-                      <i className="fa-solid fa-folder text-xs" aria-hidden="true" />
+                      <i
+                        className="fa-solid fa-folder text-xs"
+                        aria-hidden="true"
+                      />
                     </span>
                     <span className="truncate text-xs font-medium text-white">
                       {categoria}
@@ -249,27 +260,44 @@ export default function Documentoteca() {
             </div>
 
             <p className="text-xs text-[#64748b]">
-              Mostrando <span className="font-mono text-white font-semibold">{documentosFiltrados.length}</span> de{" "}
-              <span className="font-mono text-white">{documentos.length}</span> documentos
+              Mostrando{" "}
+              <span className="font-mono text-white font-semibold">
+                {documentosFiltrados.length}
+              </span>{" "}
+              de{" "}
+              <span className="font-mono text-white">{documentos.length}</span>{" "}
+              documentos
             </p>
           </div>
 
           {/* Listado / Tabla */}
           {loading ? (
             <div className="glass flex items-center justify-center rounded-2xl p-12 text-sm text-[#94a3b8]">
-              <i className="fa-solid fa-spinner fa-spin mr-2 text-gold" aria-hidden="true" />
+              <i
+                className="fa-solid fa-spinner fa-spin mr-2 text-gold"
+                aria-hidden="true"
+              />
               Cargando documentoteca...
             </div>
           ) : documentosFiltrados.length === 0 ? (
             <div className="glass rounded-2xl p-10 text-center">
-              <i className="fa-solid fa-inbox mb-3 text-3xl text-gold/60" aria-hidden="true" />
+              <i
+                className="fa-solid fa-inbox mb-3 text-3xl text-gold/60"
+                aria-hidden="true"
+              />
               <p className="text-sm text-[#94a3b8]">
-                {busqueda || filtroCategoria !== "Todas" || filtroPlanta !== "Todas" || filtroTipo !== "Todos"
+                {busqueda ||
+                filtroCategoria !== "Todas" ||
+                filtroPlanta !== "Todas" ||
+                filtroTipo !== "Todos"
                   ? "No se encontraron documentos con los filtros seleccionados."
                   : "No hay documentos cargados aún."}
               </p>
               <div className="mt-4 flex items-center justify-center gap-3">
-                {(busqueda || filtroCategoria !== "Todas" || filtroPlanta !== "Todas" || filtroTipo !== "Todos") ? (
+                {busqueda ||
+                filtroCategoria !== "Todas" ||
+                filtroPlanta !== "Todas" ||
+                filtroTipo !== "Todos" ? (
                   <button
                     type="button"
                     onClick={() => {
@@ -282,14 +310,14 @@ export default function Documentoteca() {
                   >
                     Restablecer filtros
                   </button>
-                ) : (
+                ) : canEdit ? (
                   <Link
                     href="/administracion#documentos"
                     className="rounded-lg border border-gold/30 bg-gold/10 px-4 py-2 text-xs font-semibold text-gold hover:bg-gold/20"
                   >
                     Subir el primer documento
                   </Link>
-                )}
+                ) : null}
               </div>
             </div>
           ) : (
@@ -303,7 +331,9 @@ export default function Documentoteca() {
                     <th className="px-3 py-3 font-semibold">Planta</th>
                     <th className="px-3 py-3 font-semibold">Fecha</th>
                     <th className="px-2 py-3 font-semibold">Versión</th>
-                    <th className="px-4 py-3 font-semibold text-right">Visualización</th>
+                    <th className="px-4 py-3 font-semibold text-right">
+                      Visualización
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.05]">
@@ -324,7 +354,10 @@ export default function Documentoteca() {
                               className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-transform group-hover:scale-105 ${style.bg} ${style.color}`}
                               title="Ver en visor integrado"
                             >
-                              <i className={`fa-solid ${style.icon} text-sm`} aria-hidden="true" />
+                              <i
+                                className={`fa-solid ${style.icon} text-sm`}
+                                aria-hidden="true"
+                              />
                             </button>
                             <div className="min-w-0">
                               <button
@@ -358,11 +391,16 @@ export default function Documentoteca() {
                               href={`/temas/${d.puntoId}`}
                               className="inline-flex items-center gap-1 font-mono text-[11px] text-gold/90 hover:underline"
                             >
-                              <i className="fa-solid fa-link text-[9px]" aria-hidden="true" />
+                              <i
+                                className="fa-solid fa-link text-[9px]"
+                                aria-hidden="true"
+                              />
                               {d.puntoId}
                             </Link>
                           ) : (
-                            <span className="text-[11px] text-[#64748b]">—</span>
+                            <span className="text-[11px] text-[#64748b]">
+                              —
+                            </span>
                           )}
                         </td>
 
@@ -385,7 +423,9 @@ export default function Documentoteca() {
                         <td className="px-3 py-3 text-[#94a3b8]">{d.fecha}</td>
 
                         {/* Versión */}
-                        <td className="px-2 py-3 font-mono text-[#94a3b8]">v{d.version}</td>
+                        <td className="px-2 py-3 font-mono text-[#94a3b8]">
+                          v{d.version}
+                        </td>
 
                         {/* Acciones */}
                         <td className="px-4 py-3 text-right">
@@ -397,7 +437,10 @@ export default function Documentoteca() {
                               className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold text-emerald-300 transition-colors hover:bg-emerald-400/20"
                               title="Abrir visor integrado"
                             >
-                              <i className="fa-solid fa-eye text-[11px]" aria-hidden="true" />
+                              <i
+                                className="fa-solid fa-eye text-[11px]"
+                                aria-hidden="true"
+                              />
                               Ver
                             </button>
 
@@ -409,7 +452,10 @@ export default function Documentoteca() {
                               className="inline-flex items-center rounded-lg border border-white/10 bg-white/5 p-1 text-xs text-[#94a3b8] transition-colors hover:bg-white/10 hover:text-white"
                               title="Abrir en página completa / pestaña nueva"
                             >
-                              <i className="fa-solid fa-arrow-up-right-from-square text-[11px]" aria-hidden="true" />
+                              <i
+                                className="fa-solid fa-arrow-up-right-from-square text-[11px]"
+                                aria-hidden="true"
+                              />
                             </Link>
 
                             {/* Descargar */}
@@ -420,7 +466,10 @@ export default function Documentoteca() {
                               className="inline-flex items-center rounded-lg border border-white/10 bg-white/5 p-1 text-xs text-[#94a3b8] transition-colors hover:bg-white/10 hover:text-white"
                               title="Descargar archivo"
                             >
-                              <i className="fa-solid fa-download text-[11px]" aria-hidden="true" />
+                              <i
+                                className="fa-solid fa-download text-[11px]"
+                                aria-hidden="true"
+                              />
                             </a>
                           </div>
                         </td>
@@ -436,7 +485,10 @@ export default function Documentoteca() {
 
       {/* Visor Modal de Documento */}
       {modalDoc && (
-        <DocumentoModal documento={modalDoc} onClose={() => setModalDoc(null)} />
+        <DocumentoModal
+          documento={modalDoc}
+          onClose={() => setModalDoc(null)}
+        />
       )}
     </main>
   );

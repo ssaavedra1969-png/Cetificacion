@@ -24,8 +24,14 @@ export default function LoginPage() {
       if (data.success) {
         const params = new URLSearchParams(window.location.search);
         const next = params.get("next");
-        window.location.href =
-          next && next.startsWith("/") ? next : "/administracion";
+        const rol = data.user?.rol as string | undefined;
+        const fallback = rol === "lector" ? "/" : "/administracion";
+        const nextValido =
+          next &&
+          next.startsWith("/") &&
+          !next.startsWith("//") &&
+          !(rol === "lector" && next.startsWith("/administracion"));
+        window.location.href = nextValido && next ? next : fallback;
       } else {
         setError(data.error || "Email o contraseña incorrectos");
       }

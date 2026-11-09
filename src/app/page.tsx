@@ -3,14 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Hero from "@/components/Hero";
 import KPIs from "@/components/KPIs";
-import AgendaTable from "@/components/AgendaTable";
-import AgendaFilters, {
-  type AgendaFiltersValue,
-} from "@/components/AgendaFilters";
+import AgendaTable, { type PlantaFiltro } from "@/components/AgendaTable";
+import RepositorioPanel from "@/components/RepositorioPanel";
+import type { AgendaFiltersValue } from "@/components/AgendaFilters";
 import type { Documento, PuntoSGC } from "@/types/models";
 
-const PLANTAS = ["Luján", "Campana"] as const;
-type Planta = (typeof PLANTAS)[number];
+type Planta = "Luján" | "Campana";
 
 function perteneceAPlanta(punto: PuntoSGC, planta: Planta): boolean {
   const plantas = punto.plantas ?? [];
@@ -36,7 +34,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filtros, setFiltros] = useState<AgendaFiltersValue>(initialFilters);
-  const [plantaActiva, setPlantaActiva] = useState<Planta>("Luján");
+  const [plantaActiva, setPlantaActiva] = useState<PlantaFiltro>("Luján");
 
   const cargarTodo = useCallback(async (): Promise<AgendaCargada> => {
     const [agendaRes, docsRes] = await Promise.all([
@@ -89,8 +87,8 @@ export default function Dashboard() {
   );
 
   const puntosPlanta = useMemo(
-    () => puntosDe(plantaActiva),
-    [puntosDe, plantaActiva],
+    () => (plantaActiva === "Todo" ? puntos : puntosDe(plantaActiva)),
+    [puntos, puntosDe, plantaActiva],
   );
 
   const filteredPuntos = useMemo(() => {
@@ -117,86 +115,21 @@ export default function Dashboard() {
   const avance = total > 0 ? Math.round((completados / total) * 100) : 0;
 
   return (
-    <main className="min-h-screen">
-      {/* ===== Hero ===== */}
-      <Hero />
+    <main className="min-h-screen bg-slate-950">
+      <div className="space-y-12 pb-20">
+        <section className="relative isolate overflow-hidden pb-12 pt-16 md:pb-16 md:pt-20">
+          <div
+            className="hero-glow pointer-events-none absolute inset-0"
+            aria-hidden="true"
+          />
+          <div
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.10),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(34,211,238,0.05),transparent_40%)]"
+            aria-hidden="true"
+          />
 
-      {/* ===== Dashboard ===== */}
-      <section
-        id="agenda"
-        className="relative mx-auto max-w-7xl scroll-mt-20 px-4 pt-10 pb-20 sm:px-6 lg:px-8"
-      >
-        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="font-display text-2xl font-bold tracking-tight text-slate-50 sm:text-3xl">
-              Torre de control
-            </h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Estado operativo de la certificación por planta
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-2 self-start rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1.5 text-[11px] font-medium text-slate-400">
-            <i
-              className="fa-solid fa-clock-rotate-left text-amber-400/80"
-              aria-hidden="true"
-            />
-            Actualizado al abrir
-          </span>
-        </div>
-
-        <div
-          className="mb-6 inline-flex w-full rounded-xl border border-slate-700 bg-slate-900/60 p-1 sm:w-auto"
-          role="group"
-          aria-label="Seleccionar planta"
-        >
-          {PLANTAS.map((planta) => {
-            const activa = plantaActiva === planta;
-            return (
-              <button
-                key={planta}
-                type="button"
-                onClick={() => setPlantaActiva(planta)}
-                aria-pressed={activa}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all sm:flex-none ${
-                  activa
-                    ? "bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-slate-950 shadow-[0_10px_30px_-10px_rgba(245,158,11,0.7)]"
-                    : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-100"
-                }`}
-              >
-                <i className="fa-solid fa-industry" aria-hidden="true" />
-                {planta}
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                    activa ? "bg-black/15" : "bg-slate-800 text-slate-300"
-                  }`}
-                >
-                  {puntosDe(planta).length}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {error && (
-          <div className="mb-6 flex items-center gap-2 rounded-xl border border-red-400/25 bg-red-400/10 px-4 py-3 text-sm text-red-300">
-            <i
-              className="fa-solid fa-triangle-exclamation"
-              aria-hidden="true"
-            />
-            Error cargando los datos: {error}
-          </div>
-        )}
-
-        <div className="mb-5">
-          <AgendaFilters onFilterChange={setFiltros} showPlanta={false} />
-        </div>
-
-        <div
-          id="agenda-tabla"
-          className="grid grid-cols-1 gap-5 lg:grid-cols-4"
-        >
-          <div className="space-y-5 lg:col-span-1">
-            <div className="glass rounded-2xl p-5">
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <Hero />
+            <div className="mt-8">
               <KPIs
                 total={total}
                 pendientes={pendientes}
@@ -207,9 +140,33 @@ export default function Dashboard() {
               />
             </div>
           </div>
-          <div className="lg:col-span-3">
+        </section>
+
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
+        </div>
+
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <RepositorioPanel />
+        </div>
+
+        <section
+          id="agenda"
+          className="relative mx-auto w-full max-w-7xl scroll-mt-20 px-4 sm:px-6 lg:px-8"
+        >
+          {error && (
+            <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-400/25 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+              <i
+                className="fa-solid fa-triangle-exclamation"
+                aria-hidden="true"
+              />
+              Error cargando los datos: {error}
+            </div>
+          )}
+
+          <div id="agenda-tabla">
             {loading ? (
-              <div className="glass flex items-center justify-center rounded-2xl p-12 text-sm text-slate-400">
+              <div className="flex items-center justify-center rounded-2xl border border-white/10 bg-slate-900/40 p-12 text-sm text-slate-400 backdrop-blur-md">
                 <i
                   className="fa-solid fa-spinner fa-spin mr-2 text-amber-400"
                   aria-hidden="true"
@@ -217,13 +174,19 @@ export default function Dashboard() {
                 Cargando agenda...
               </div>
             ) : (
-              <AgendaTable puntos={filteredPuntos} documentos={documentos} />
+              <AgendaTable
+                puntos={filteredPuntos}
+                documentos={documentos}
+                filtros={filtros}
+                onFilterChange={setFiltros}
+                planta={plantaActiva}
+                onPlantaChange={setPlantaActiva}
+              />
             )}
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      {/* ===== Footer ===== */}
       <footer className="border-t border-slate-800 py-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-xs text-slate-500 sm:flex-row sm:px-6 lg:px-8">
           <p>© 2026 Grupo Falpat SRL · Sistema de Gestión de la Calidad</p>
