@@ -233,18 +233,19 @@
       "id": "P010",
       "titulo": "Documentación del laboratorio (IT-SGC-010)",
       "descripcion": "Centraliza de manera definitiva todos los registros, planillas, y roturas de probetas, garantizando la disponibilidad en red en tiempo real y la trazabilidad cruzada entre ambas plantas operativas.",
-      "categoria": "Documentación del laboratorio",
+      "categoria": null,
       "plantas": [
-        "Campana",
-        "Luján"
+        "Campana"
       ],
       "responsable": "A definir",
       "prioridad": "media",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "2026-11-09T23:21:04.399Z",
+      "fechaActualizacion": "2026-11-09T23:22:09.158Z",
       "notas": "",
-      "documentosIds": [],
+      "documentosIds": [
+        "SGC-010"
+      ],
       "historial": [
         {
           "fecha": "2026-11-09T17:02:29.411Z",
