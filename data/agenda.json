@@ -68,10 +68,20 @@
       "prioridad": "alta",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T22:19:35.450Z",
       "notas": "",
-      "documentosIds": [],
-      "historial": []
+      "documentosIds": [
+        "Dmw9tq8g3f5be82"
+      ],
+      "historial": [
+        {
+          "fecha": "2026-11-09T22:19:35.450Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "",
+          "valorNuevo": "Dmw9tq8g3f5be82"
+        }
+      ]
     },
     {
       "id": "P004",
