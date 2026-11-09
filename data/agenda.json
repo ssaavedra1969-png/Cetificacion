@@ -4,19 +4,19 @@
       "id": "P001",
       "titulo": "Resguardo de información (IT-SGC-001)",
       "descripcion": "Dictamina formalmente la migración total de los datos de la PC local hacia la nube corporativa. Regula la matriz de accesos controlados para personal autorizado y fija la rutina automatizada de backups periódicos cada 4 horas para erradicar pérdidas físicas.",
-      "categoria": "Resguardo de información",
+      "categoria": null,
       "plantas": [
-        "Campana",
-        "Luján"
+        "Campana"
       ],
-      "responsable": "Juan Pérez",
-      "prioridad": "alta",
+      "responsable": "A definir",
+      "prioridad": "media",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "2026-11-09T21:25:54.063Z",
+      "fechaActualizacion": "2026-11-09T23:21:59.420Z",
       "notas": "",
       "documentosIds": [
-        "Dmw9h1p5l7693a7"
+        "Dmw9h1p5l7693a7",
+        "SGC-001"
       ],
       "historial": [
         {
