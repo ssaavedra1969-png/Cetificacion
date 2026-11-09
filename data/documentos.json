@@ -97,6 +97,20 @@
       "archivoUrl": "/api/files?id=Dmw9tqih9a655dd",
       "ruta": "documentos/Dmw9tqih9a655dd-it-sgc-007-plan-de-muestreo.pdf",
       "tipo": "pdf"
+    },
+    {
+      "id": "Dmw9tqlelfe5813",
+      "nombre": "IT-SGC-008 - Control de calidad de áridos de cantera propia",
+      "categoria": "SGC",
+      "puntoId": "P008",
+      "planta": "General",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-008 - Control de calidad de áridos de cantera propia. Informe técnico SGC, revisión v1.0, plantas Luján y Campana.",
+      "archivoUrl": "/api/files?id=Dmw9tqlelfe5813",
+      "ruta": "documentos/Dmw9tqlelfe5813-it-sgc-008-control-de-calidad-de-aridos-de-cantera-propia.pdf",
+      "tipo": "pdf"
     }
   ],
   "categorias": [
