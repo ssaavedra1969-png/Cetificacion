@@ -55,6 +55,20 @@
       "archivoUrl": "/api/files?id=Dmw9tqaym5c176e",
       "ruta": "documentos/Dmw9tqaym5c176e-it-sgc-004-layout-de-lujan.pdf",
       "tipo": "pdf"
+    },
+    {
+      "id": "Dmw9tqde2576479",
+      "nombre": "IT-SGC-005 - Seguridad vial interna",
+      "categoria": "SGC",
+      "puntoId": "P005",
+      "planta": "General",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-005 - Seguridad vial interna. Informe técnico SGC, revisión v1.0, plantas Luján y Campana.",
+      "archivoUrl": "/api/files?id=Dmw9tqde2576479",
+      "ruta": "documentos/Dmw9tqde2576479-it-sgc-005-seguridad-vial-interna.pdf",
+      "tipo": "pdf"
     }
   ],
   "categorias": [
