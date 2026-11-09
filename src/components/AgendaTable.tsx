@@ -80,6 +80,19 @@ function avanceDeEstado(estado?: string): number {
   }
 }
 
+function parseTitulo(titulo: string): { titulo: string; codigo?: string } {
+  const match = titulo.match(/^(.*?)\s*\((IT-SGC-\d+)\)\s*$/);
+  if (!match) return { titulo };
+  return { titulo: match[1], codigo: match[2] };
+}
+
+function resumenDescripcion(descripcion?: string): string {
+  const texto = (descripcion ?? "").trim();
+  if (!texto) return "Sin descripción";
+  if (texto.length <= 120) return texto;
+  return `${texto.slice(0, 117).trimEnd()}...`;
+}
+
 function EstadoBadge({ estado }: { estado?: string }) {
   const nombre = estado ?? "Pendiente";
   const visual = getEstadoVisual(nombre);
@@ -99,8 +112,7 @@ function EstadoBadge({ estado }: { estado?: string }) {
   );
 }
 
-const rowCell =
-  "px-3 py-4 align-middle transition-all duration-300 first:rounded-l-xl first:pl-4 last:rounded-r-xl last:pr-4 last:text-right group-hover:scale-[1.005] group-hover:bg-slate-900/50 will-change-transform";
+const rowCell = "px-4 py-4.5 align-middle last:text-right";
 
 export default function AgendaTable({
   puntos,
@@ -217,10 +229,10 @@ export default function AgendaTable({
           </p>
         </div>
       ) : (
-        <div className="relative overflow-x-auto px-2 py-2 sm:px-3">
-          <table className="w-full border-separate border-spacing-y-1 text-sm">
+        <div className="relative overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
             <thead>
-              <tr>
+              <tr className="bg-slate-950/60">
                 {[
                   "Título",
                   "Planta",
@@ -231,7 +243,7 @@ export default function AgendaTable({
                 ].map((label, index) => (
                   <th
                     key={`${label}-${index}`}
-                    className="border-b border-white/5 px-3 pb-2 pt-1 text-left text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-500 first:pl-4 last:pr-4 last:text-right"
+                    className="border-b border-slate-800/60 bg-slate-950/60 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 last:text-right"
                   >
                     {label}
                   </th>
@@ -242,31 +254,36 @@ export default function AgendaTable({
               {filteredPuntos.map((p) => {
                 const avance = avanceDeEstado(p.estado);
                 const plantas = p.plantas?.length ? p.plantas : ["General"];
-                const rowAccent =
-                  p.estado === "En curso"
-                    ? "bg-sky-400/[0.03]"
-                    : p.estado === "Completado"
-                      ? "bg-emerald-400/[0.03]"
-                      : "";
+                const { titulo, codigo } = parseTitulo(p.titulo);
 
                 return (
-                  <tr key={p.id} className={`group ${rowAccent}`}>
+                  <tr
+                    key={p.id}
+                    className="border-b border-slate-800/60 transition-colors duration-200 hover:bg-slate-900/40"
+                  >
                     <td className={rowCell}>
                       <div className="flex flex-col">
-                        <button
-                          type="button"
-                          onClick={() => setDetalleId(p.id)}
-                          className="text-left font-semibold text-slate-100 transition-colors group-hover:text-amber-200"
-                        >
-                          {p.titulo}
-                        </button>
-                        <span className="mt-0.5 text-[10px] text-slate-500">
-                          {p.categoria ?? "Sin categoría"}
+                        <div className="flex flex-wrap items-center">
+                          <button
+                            type="button"
+                            onClick={() => setDetalleId(p.id)}
+                            className="text-left text-sm font-medium text-white transition-colors hover:text-amber-300"
+                          >
+                            {titulo}
+                          </button>
+                          {codigo && (
+                            <span className="ml-2 rounded border border-amber-500/10 bg-amber-500/5 px-1.5 py-0.5 font-mono text-xs text-amber-500/80">
+                              {codigo}
+                            </span>
+                          )}
+                        </div>
+                        <span className="mt-0.5 text-xs text-slate-500">
+                          {resumenDescripcion(p.descripcion || p.categoria)}
                         </span>
                       </div>
                     </td>
                     <td className={rowCell}>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap items-center gap-1">
                         {plantas.map((nombrePlanta) => (
                           <span
                             key={nombrePlanta}
@@ -305,17 +322,19 @@ export default function AgendaTable({
                       </span>
                     </td>
                     <td className={rowCell}>
-                      <button
-                        type="button"
-                        onClick={() => setDetalleId(p.id)}
-                        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-transparent px-2 py-1 text-[10px] font-medium text-slate-500 transition-all duration-300 group-hover:border-amber-400/20 group-hover:bg-amber-400/10 group-hover:text-amber-200"
-                      >
-                        Ver detalle
-                        <i
-                          className="fa-solid fa-arrow-up-right-from-square text-[9px]"
-                          aria-hidden="true"
-                        />
-                      </button>
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setDetalleId(p.id)}
+                          className="flex items-center gap-1 text-xs font-medium text-slate-400 transition-colors hover:text-amber-400"
+                        >
+                          Ver detalle
+                          <i
+                            className="fa-solid fa-arrow-up-right-from-square text-[9px]"
+                            aria-hidden="true"
+                          />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -325,7 +344,7 @@ export default function AgendaTable({
         </div>
       )}
 
-      <div className="relative flex flex-wrap items-center justify-between gap-2 border-t border-white/5 px-4 py-3 text-[10px] text-slate-500">
+      <div className="relative flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-[10px] text-slate-500">
         <span className="inline-flex items-center gap-1.5">
           <span
             className="h-1.5 w-1.5 rounded-full bg-amber-400/80 shadow-[0_0_10px_rgba(245,158,11,0.65)]"

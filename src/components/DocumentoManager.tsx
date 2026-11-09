@@ -92,10 +92,7 @@ function iconFor(tipo: string): { icon: string; color: string; bg: string } {
 
 function sugerirNombreDesdeArchivo(fileName: string): string {
   const sinExt = fileName.replace(/\.[^.]+$/, "");
-  const limpio = sinExt
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  const limpio = sinExt.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
   if (!limpio) return "";
   return limpio.charAt(0).toUpperCase() + limpio.slice(1);
 }
@@ -139,7 +136,7 @@ export default function DocumentoManager({
 
   const puntoTitulo = useMemo(() => {
     const map = new Map(puntos.map((p) => [p.id, p.titulo]));
-    return (id: string) => (id ? map.get(id) ?? id : "Sin asociar");
+    return (id: string) => (id ? (map.get(id) ?? id) : "Sin asociar");
   }, [puntos]);
 
   // Si llega un tema preseleccionado desde arriba (ej. desde una tarjeta o modal de tema)
@@ -294,7 +291,10 @@ export default function DocumentoManager({
     setMensaje(null);
 
     if (!form.nombre.trim()) {
-      setMensaje({ type: "error", text: "Ingresá un nombre para el documento" });
+      setMensaje({
+        type: "error",
+        text: "Ingresá un nombre para el documento",
+      });
       return;
     }
 
@@ -392,7 +392,10 @@ export default function DocumentoManager({
         return;
       }
       if (form.id === doc.id) cerrarForm();
-      setMensaje({ type: "success", text: "Documento eliminado correctamente" });
+      setMensaje({
+        type: "success",
+        text: "Documento eliminado correctamente",
+      });
       await onChanged();
     } catch {
       setMensaje({ type: "error", text: "Error de conexión al eliminar" });
@@ -434,14 +437,18 @@ export default function DocumentoManager({
         <div>
           <div className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold/15 text-gold">
-              <i className="fa-solid fa-folder-open text-sm" aria-hidden="true" />
+              <i
+                className="fa-solid fa-folder-open text-sm"
+                aria-hidden="true"
+              />
             </span>
             <h2 className="font-display text-2xl font-bold tracking-tight text-white">
               Carga de documentos
             </h2>
           </div>
           <p className="mt-1 text-sm text-[#94a3b8]">
-            Subí el archivo y completá solo lo necesario. El resto de los datos es opcional.
+            Subí el archivo y completá solo lo necesario. El resto de los datos
+            es opcional.
           </p>
         </div>
 
@@ -450,7 +457,10 @@ export default function DocumentoManager({
           onClick={abrirNuevo}
           className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-4 py-2.5 text-sm font-bold text-[#0f172a] shadow-[0_10px_25px_-5px_rgba(212,175,55,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_15px_30px_-5px_rgba(212,175,55,0.7)]"
         >
-          <i className="fa-solid fa-cloud-arrow-up text-base" aria-hidden="true" />
+          <i
+            className="fa-solid fa-cloud-arrow-up text-base"
+            aria-hidden="true"
+          />
           Subir documento
         </button>
       </div>
@@ -505,379 +515,417 @@ export default function DocumentoManager({
               onClick={(e) => e.stopPropagation()}
               className="glass max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-gold/30 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.6)] sm:p-6"
             >
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gold/20 text-gold">
-                <i
-                  className={`fa-solid ${editando ? "fa-pen-to-square" : "fa-file-circle-plus"}`}
-                  aria-hidden="true"
-                />
-              </span>
-              <div>
-                <h3 className="font-display text-lg font-bold text-white">
-                  {editando
-                    ? `Editar: ${form.nombre}`
-                    : form.puntoId
-                      ? `${form.puntoId} - ${puntoTitulo(form.puntoId)}`
-                      : "Subir nuevo documento"}
-                </h3>
-                <p className="text-xs text-[#94a3b8]">
-                  {editando
-                    ? "Modificá los campos o reemplazá el archivo si es necesario."
-                    : "Elegí el archivo y, si querés, completá los datos opcionales."}
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={cerrarForm}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-[#c7d2e3] transition-colors hover:bg-white/10 hover:text-white"
-            >
-              <i className="fa-solid fa-xmark" aria-hidden="true" />
-              Cancelar
-            </button>
-          </div>
-
-          <form onSubmit={guardar} className="space-y-4">
-            {/* Archivo */}
-            <div>
-              <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
-                Archivo <span className="text-red-400">*</span>
-              </label>
-              <div
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setArrastrando(true);
-                }}
-                onDragLeave={() => setArrastrando(false)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setArrastrando(false);
-                  if (e.dataTransfer?.files?.length) {
-                    procesarArchivoSeleccionado(e.dataTransfer.files[0]);
-                  }
-                }}
-                data-drag={arrastrando}
-                className="omx-dropzone flex flex-col items-center justify-center gap-3 p-6 text-center cursor-pointer"
-                onClick={() => fileRef.current?.click()}
-              >
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.webp,.gif"
-                  onChange={(e) => {
-                    if (e.target.files?.[0]) {
-                      procesarArchivoSeleccionado(e.target.files[0]);
-                    }
-                  }}
-                  className="hidden"
-                />
-
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gold/10 text-gold shadow-inner">
-                  <i className="fa-solid fa-cloud-arrow-up text-xl" aria-hidden="true" />
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-white">
-                    Arrastrá y soltá el archivo acá, o{" "}
-                    <span className="text-gold underline underline-offset-2">explorá en tu equipo</span>
-                  </p>
-                  <p className="mt-1 text-xs text-[#64748b]">
-                    PDF, Word (.doc, .docx), Excel (.xls, .xlsx, .csv) o imágenes (.jpg, .png, .webp) · Máx. 10 MB
-                  </p>
-                </div>
-              </div>
-
-              {/* Chip / Card del archivo seleccionado */}
-              {archivoInfoVisual && (
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#0f172a] p-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${archivoInfoVisual.style.bg} ${archivoInfoVisual.style.color}`}
-                    >
-                      <i
-                        className={`fa-solid ${archivoInfoVisual.style.icon} text-lg`}
-                        aria-hidden="true"
-                      />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold text-white">
-                        {archivoInfoVisual.nombre}
-                      </p>
-                      <p className="text-[11px] font-mono text-[#64748b]">
-                        {archivoInfoVisual.tamano}
-                        {archivoInfoVisual.esLocal ? " · Listo para subir" : " · En repositorio"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {archivoInfoVisual.esLocal ? (
-                      <button
-                        type="button"
-                        onClick={previsualizarArchivoLocal}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold transition-colors hover:bg-gold/20"
-                        title="Ver el archivo seleccionado en una pestaña nueva"
-                      >
-                        <i className="fa-solid fa-eye" aria-hidden="true" />
-                        Previsualizar
-                      </button>
-                    ) : (
-                      docEditando && (
-                        <button
-                          type="button"
-                          onClick={() => setDocModal(docEditando)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold transition-colors hover:bg-gold/20"
-                        >
-                          <i className="fa-solid fa-eye" aria-hidden="true" />
-                          Ver actual
-                        </button>
-                      )
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={limpiarArchivo}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-[#94a3b8] hover:bg-red-400/10 hover:text-red-300"
-                      title="Cambiar archivo"
-                    >
-                      <i className="fa-solid fa-xmark" aria-hidden="true" />
-                      {editando ? "Cambiar" : "Quitar"}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Nombre (visible) */}
-            <div>
-              <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
-                Nombre del documento <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={form.nombre}
-                onChange={(e) => setField("nombre", e.target.value)}
-                required
-                placeholder="Ej: Certificado balanza de camiones Campana 2026"
-                className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
-              />
-            </div>
-
-            {form.puntoId && (
-              <div className="flex items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-[11px] text-emerald-300">
-                <i className="fa-solid fa-link" aria-hidden="true" />
-                <span>
-                  Se vinculará al tema{" "}
-                  <strong className="text-white">{form.puntoId}</strong>:{" "}
-                  {puntoTitulo(form.puntoId)}
-                </span>
-              </div>
-            )}
-
-            {/* Más datos en desplegable */}
-            <div className="rounded-xl border border-white/10 bg-white/[0.02]">
-              <button
-                type="button"
-                onClick={() => setMostrarDetalles((v) => !v)}
-                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-              >
-                <span className="flex items-center gap-2 text-xs font-semibold text-[#c7d2e3]">
-                  <i className="fa-solid fa-sliders text-gold" aria-hidden="true" />
-                  Más datos (opcional)
-                  <span className="hidden text-[11px] font-normal text-[#64748b] sm:inline">
-                    categoría, planta, tema, versión, responsable, fecha y descripción
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gold/20 text-gold">
+                    <i
+                      className={`fa-solid ${editando ? "fa-pen-to-square" : "fa-file-circle-plus"}`}
+                      aria-hidden="true"
+                    />
                   </span>
-                </span>
-                <i
-                  className={`fa-solid ${mostrarDetalles ? "fa-chevron-up" : "fa-chevron-down"} text-[11px] text-[#64748b]`}
-                  aria-hidden="true"
-                />
-              </button>
-
-              {mostrarDetalles && (
-                <div className="grid grid-cols-1 gap-3 border-t border-white/10 p-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
-                      Categoría
-                    </label>
-                    <input
-                      type="text"
-                      value={form.categoria}
-                      onChange={(e) => setField("categoria", e.target.value)}
-                      list="categorias-disponibles"
-                      placeholder="Ej: Certificados de calibración"
-                      className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
-                    />
-                    <datalist id="categorias-disponibles">
-                      {categorias.map((cat) => (
-                        <option key={cat} value={cat} />
-                      ))}
-                    </datalist>
-
-                    {/* Sugerencias rápidas de categorías */}
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      <span className="text-[10px] text-[#64748b] self-center mr-1">Rápidas:</span>
-                      {categorias.slice(0, 5).map((cat) => (
-                        <button
-                          key={cat}
-                          type="button"
-                          onClick={() => setField("categoria", cat)}
-                          className={`rounded-full border px-2 py-0.5 text-[10px] transition-colors ${
-                            form.categoria === cat
-                              ? "border-gold/40 bg-gold/15 text-gold font-semibold"
-                              : "border-white/10 bg-white/5 text-[#94a3b8] hover:bg-white/10"
-                          }`}
-                        >
-                          {cat}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="mb-1.5 block text-xs font-medium text-[#c7d2e3]">
-                      Planta de aplicación
-                    </label>
-                    <div className="grid grid-cols-3 gap-1.5 rounded-lg border border-white/10 bg-[#0f172a] p-1">
-                      {(["General", "Campana", "Luján"] as const).map((planta) => {
-                        const seleccionada = form.planta === planta;
-                        return (
-                          <button
-                            key={planta}
-                            type="button"
-                            onClick={() => setField("planta", planta)}
-                            className={`rounded-md py-1.5 text-xs font-semibold transition-all ${
-                              seleccionada
-                                ? "bg-gradient-to-r from-gold to-gold-dark text-[#0f172a] shadow"
-                                : "text-[#94a3b8] hover:text-white hover:bg-white/5"
-                            }`}
-                          >
-                            {planta}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
-                      Tema asociado de la Agenda SGC
-                    </label>
-                    <select
-                      value={form.puntoId}
-                      onChange={(e) => seleccionarPunto(e.target.value)}
-                      className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
-                    >
-                      <option value="">Sin asociar (documento general / independiente)</option>
-                      {puntos.map((punto) => (
-                        <option key={punto.id} value={punto.id}>
-                          [{punto.id}] {punto.titulo} ({punto.plantas?.length ? punto.plantas.join(", ") : "General"})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
-                      Fecha del documento
-                    </label>
-                    <input
-                      type="date"
-                      value={form.fecha}
-                      onChange={(e) => setField("fecha", e.target.value)}
-                      className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
-                      Versión
-                    </label>
-                    <input
-                      type="text"
-                      value={form.version}
-                      onChange={(e) => setField("version", e.target.value)}
-                      placeholder="1.0"
-                      className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
-                      Responsable
-                    </label>
-                    <input
-                      type="text"
-                      value={form.responsable}
-                      onChange={(e) => setField("responsable", e.target.value)}
-                      placeholder="Ej: Laboratorio Luján"
-                      className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
-                      Descripción / Observaciones
-                    </label>
-                    <textarea
-                      value={form.descripcion}
-                      onChange={(e) => setField("descripcion", e.target.value)}
-                      rows={2}
-                      placeholder="Resumen del documento, alcance del certificado o notas de calidad..."
-                      className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
-                    />
+                    <h3 className="font-display text-lg font-bold text-white">
+                      {editando
+                        ? `Editar: ${form.nombre}`
+                        : form.puntoId
+                          ? `${form.puntoId} - ${puntoTitulo(form.puntoId)}`
+                          : "Subir nuevo documento"}
+                    </h3>
+                    <p className="text-xs text-[#94a3b8]">
+                      {editando
+                        ? "Modificá los campos o reemplazá el archivo si es necesario."
+                        : "Elegí el archivo y, si querés, completá los datos opcionales."}
+                    </p>
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* Barra de Confirmación y Guardado */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
-              <div className="text-xs text-[#94a3b8]">
-                {file ? (
-                  <span className="text-emerald-400 font-medium">
-                    <i className="fa-solid fa-check-circle mr-1" aria-hidden="true" />
-                    Archivo listo para guardar: {file.name} ({formatBytes(file.size)})
-                  </span>
-                ) : editando ? (
-                  <span>Se conservará el archivo existente.</span>
-                ) : (
-                  <span className="text-amber-400 font-medium">
-                    <i className="fa-solid fa-circle-exclamation mr-1" aria-hidden="true" />
-                    Falta seleccionar el archivo.
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={cerrarForm}
-                  className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-[#c7d2e3] transition-colors hover:bg-white/10 hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-[#c7d2e3] transition-colors hover:bg-white/10 hover:text-white"
                 >
+                  <i className="fa-solid fa-xmark" aria-hidden="true" />
                   Cancelar
                 </button>
-
-                <button
-                  type="submit"
-                  disabled={saving || (!editando && !file)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-5 py-2 text-xs font-bold text-[#0f172a] shadow-[0_10px_25px_-5px_rgba(212,175,55,0.6)] transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <i
-                    className={`fa-solid ${saving ? "fa-spinner fa-spin" : "fa-check"}`}
-                    aria-hidden="true"
-                  />
-                  {saving
-                    ? "Guardando..."
-                    : editando
-                      ? "Guardar cambios"
-                      : "Confirmar y subir documento"}
-                </button>
               </div>
-            </div>
-          </form>
+
+              <form onSubmit={guardar} className="space-y-4">
+                {/* Archivo */}
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
+                    Archivo <span className="text-red-400">*</span>
+                  </label>
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setArrastrando(true);
+                    }}
+                    onDragLeave={() => setArrastrando(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setArrastrando(false);
+                      if (e.dataTransfer?.files?.length) {
+                        procesarArchivoSeleccionado(e.dataTransfer.files[0]);
+                      }
+                    }}
+                    data-drag={arrastrando}
+                    className="omx-dropzone flex flex-col items-center justify-center gap-3 p-6 text-center cursor-pointer"
+                    onClick={() => fileRef.current?.click()}
+                  >
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.webp,.gif"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          procesarArchivoSeleccionado(e.target.files[0]);
+                        }
+                      }}
+                      className="hidden"
+                    />
+
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gold/10 text-gold shadow-inner">
+                      <i
+                        className="fa-solid fa-cloud-arrow-up text-xl"
+                        aria-hidden="true"
+                      />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium text-white">
+                        Arrastrá y soltá el archivo acá, o{" "}
+                        <span className="text-gold underline underline-offset-2">
+                          explorá en tu equipo
+                        </span>
+                      </p>
+                      <p className="mt-1 text-xs text-[#64748b]">
+                        PDF, Word (.doc, .docx), Excel (.xls, .xlsx, .csv) o
+                        imágenes (.jpg, .png, .webp) · Máx. 10 MB
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Chip / Card del archivo seleccionado */}
+                  {archivoInfoVisual && (
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#0f172a] p-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${archivoInfoVisual.style.bg} ${archivoInfoVisual.style.color}`}
+                        >
+                          <i
+                            className={`fa-solid ${archivoInfoVisual.style.icon} text-lg`}
+                            aria-hidden="true"
+                          />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-semibold text-white">
+                            {archivoInfoVisual.nombre}
+                          </p>
+                          <p className="text-[11px] font-mono text-[#64748b]">
+                            {archivoInfoVisual.tamano}
+                            {archivoInfoVisual.esLocal
+                              ? " · Listo para subir"
+                              : " · En repositorio"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {archivoInfoVisual.esLocal ? (
+                          <button
+                            type="button"
+                            onClick={previsualizarArchivoLocal}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold transition-colors hover:bg-gold/20"
+                            title="Ver el archivo seleccionado en una pestaña nueva"
+                          >
+                            <i className="fa-solid fa-eye" aria-hidden="true" />
+                            Previsualizar
+                          </button>
+                        ) : (
+                          docEditando && (
+                            <button
+                              type="button"
+                              onClick={() => setDocModal(docEditando)}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold transition-colors hover:bg-gold/20"
+                            >
+                              <i
+                                className="fa-solid fa-eye"
+                                aria-hidden="true"
+                              />
+                              Ver actual
+                            </button>
+                          )
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={limpiarArchivo}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-[#94a3b8] hover:bg-red-400/10 hover:text-red-300"
+                          title="Cambiar archivo"
+                        >
+                          <i className="fa-solid fa-xmark" aria-hidden="true" />
+                          {editando ? "Cambiar" : "Quitar"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Nombre (visible) */}
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
+                    Nombre del documento <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.nombre}
+                    onChange={(e) => setField("nombre", e.target.value)}
+                    required
+                    placeholder="Ej: Certificado balanza de camiones Campana 2026"
+                    className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
+                  />
+                </div>
+
+                {form.puntoId && (
+                  <div className="flex items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-[11px] text-emerald-300">
+                    <i className="fa-solid fa-link" aria-hidden="true" />
+                    <span>
+                      Se vinculará al tema{" "}
+                      <strong className="text-white">{form.puntoId}</strong>:{" "}
+                      {puntoTitulo(form.puntoId)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Más datos en desplegable */}
+                <div className="rounded-xl border border-white/10 bg-white/[0.02]">
+                  <button
+                    type="button"
+                    onClick={() => setMostrarDetalles((v) => !v)}
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                  >
+                    <span className="flex items-center gap-2 text-xs font-semibold text-[#c7d2e3]">
+                      <i
+                        className="fa-solid fa-sliders text-gold"
+                        aria-hidden="true"
+                      />
+                      Más datos (opcional)
+                      <span className="hidden text-[11px] font-normal text-[#64748b] sm:inline">
+                        categoría, planta, tema, versión, responsable, fecha y
+                        descripción
+                      </span>
+                    </span>
+                    <i
+                      className={`fa-solid ${mostrarDetalles ? "fa-chevron-up" : "fa-chevron-down"} text-[11px] text-[#64748b]`}
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  {mostrarDetalles && (
+                    <div className="grid grid-cols-1 gap-3 border-t border-white/10 p-4 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
+                          Categoría
+                        </label>
+                        <input
+                          type="text"
+                          value={form.categoria}
+                          onChange={(e) =>
+                            setField("categoria", e.target.value)
+                          }
+                          list="categorias-disponibles"
+                          placeholder="Ej: Certificados de calibración"
+                          className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
+                        />
+                        <datalist id="categorias-disponibles">
+                          {categorias.map((cat) => (
+                            <option key={cat} value={cat} />
+                          ))}
+                        </datalist>
+
+                        {/* Sugerencias rápidas de categorías */}
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          <span className="text-[10px] text-[#64748b] self-center mr-1">
+                            Rápidas:
+                          </span>
+                          {categorias.slice(0, 5).map((cat) => (
+                            <button
+                              key={cat}
+                              type="button"
+                              onClick={() => setField("categoria", cat)}
+                              className={`rounded-full border px-2 py-0.5 text-[10px] transition-colors ${
+                                form.categoria === cat
+                                  ? "border-gold/40 bg-gold/15 text-gold font-semibold"
+                                  : "border-white/10 bg-white/5 text-[#94a3b8] hover:bg-white/10"
+                              }`}
+                            >
+                              {cat}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-xs font-medium text-[#c7d2e3]">
+                          Planta de aplicación
+                        </label>
+                        <div className="grid grid-cols-3 gap-1.5 rounded-lg border border-white/10 bg-[#0f172a] p-1">
+                          {(["General", "Campana", "Luján"] as const).map(
+                            (planta) => {
+                              const seleccionada = form.planta === planta;
+                              return (
+                                <button
+                                  key={planta}
+                                  type="button"
+                                  onClick={() => setField("planta", planta)}
+                                  className={`rounded-md py-1.5 text-xs font-semibold transition-all ${
+                                    seleccionada
+                                      ? "bg-gradient-to-r from-gold to-gold-dark text-[#0f172a] shadow"
+                                      : "text-[#94a3b8] hover:text-white hover:bg-white/5"
+                                  }`}
+                                >
+                                  {planta}
+                                </button>
+                              );
+                            },
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
+                          Tema asociado de la Agenda SGC
+                        </label>
+                        <select
+                          value={form.puntoId}
+                          onChange={(e) => seleccionarPunto(e.target.value)}
+                          className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
+                        >
+                          <option value="">
+                            Sin asociar (documento general / independiente)
+                          </option>
+                          {puntos.map((punto) => (
+                            <option key={punto.id} value={punto.id}>
+                              [{punto.id}] {punto.titulo} (
+                              {punto.plantas?.length
+                                ? punto.plantas.join(", ")
+                                : "General"}
+                              )
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
+                          Fecha del documento
+                        </label>
+                        <input
+                          type="date"
+                          value={form.fecha}
+                          onChange={(e) => setField("fecha", e.target.value)}
+                          className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
+                          Versión
+                        </label>
+                        <input
+                          type="text"
+                          value={form.version}
+                          onChange={(e) => setField("version", e.target.value)}
+                          placeholder="1.0"
+                          className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
+                          Responsable
+                        </label>
+                        <input
+                          type="text"
+                          value={form.responsable}
+                          onChange={(e) =>
+                            setField("responsable", e.target.value)
+                          }
+                          placeholder="Ej: Laboratorio Luján"
+                          className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
+                          Descripción / Observaciones
+                        </label>
+                        <textarea
+                          value={form.descripcion}
+                          onChange={(e) =>
+                            setField("descripcion", e.target.value)
+                          }
+                          rows={2}
+                          placeholder="Resumen del documento, alcance del certificado o notas de calidad..."
+                          className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Barra de Confirmación y Guardado */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+                  <div className="text-xs text-[#94a3b8]">
+                    {file ? (
+                      <span className="text-emerald-400 font-medium">
+                        <i
+                          className="fa-solid fa-check-circle mr-1"
+                          aria-hidden="true"
+                        />
+                        Archivo listo para guardar: {file.name} (
+                        {formatBytes(file.size)})
+                      </span>
+                    ) : editando ? (
+                      <span>Se conservará el archivo existente.</span>
+                    ) : (
+                      <span className="text-amber-400 font-medium">
+                        <i
+                          className="fa-solid fa-circle-exclamation mr-1"
+                          aria-hidden="true"
+                        />
+                        Falta seleccionar el archivo.
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={cerrarForm}
+                      className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-[#c7d2e3] transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                      Cancelar
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={saving || (!editando && !file)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-5 py-2 text-xs font-bold text-[#0f172a] shadow-[0_10px_25px_-5px_rgba(212,175,55,0.6)] transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <i
+                        className={`fa-solid ${saving ? "fa-spinner fa-spin" : "fa-check"}`}
+                        aria-hidden="true"
+                      />
+                      {saving
+                        ? "Guardando..."
+                        : editando
+                          ? "Guardar cambios"
+                          : "Confirmar y subir documento"}
+                    </button>
+                  </div>
+                </div>
+              </form>
             </div>
           </div>,
           document.body,
@@ -887,7 +935,10 @@ export default function DocumentoManager({
       <details className="group mt-2">
         <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white transition-colors hover:border-gold/30 [&::-webkit-details-marker]:hidden">
           <span className="flex items-center gap-2">
-            <i className="fa-solid fa-folder-tree text-gold" aria-hidden="true" />
+            <i
+              className="fa-solid fa-folder-tree text-gold"
+              aria-hidden="true"
+            />
             Documentos cargados
             <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-[#94a3b8]">
               {documentos.length}
@@ -903,250 +954,283 @@ export default function DocumentoManager({
         </summary>
 
         <div className="mt-4">
-      {/* Controles de Búsqueda y Filtros de la Documentoteca */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-1 flex-wrap items-center gap-2">
-          {/* Input de Búsqueda */}
-          <div className="relative min-w-[240px] flex-1 max-w-md">
-            <i
-              className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#64748b]"
-              aria-hidden="true"
-            />
-            <input
-              type="text"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar por título, categoría, responsable o tema..."
-              className="w-full rounded-lg border border-white/10 bg-[#0f172a] py-2 pl-9 pr-8 text-xs text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
-            />
-            {busqueda && (
-              <button
-                type="button"
-                onClick={() => setBusqueda("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-[#64748b] hover:text-white"
+          {/* Controles de Búsqueda y Filtros de la Documentoteca */}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-1 flex-wrap items-center gap-2">
+              {/* Input de Búsqueda */}
+              <div className="relative min-w-[240px] flex-1 max-w-md">
+                <i
+                  className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#64748b]"
+                  aria-hidden="true"
+                />
+                <input
+                  type="text"
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  placeholder="Buscar por título, categoría, responsable o tema..."
+                  className="w-full rounded-lg border border-white/10 bg-[#0f172a] py-2 pl-9 pr-8 text-xs text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
+                />
+                {busqueda && (
+                  <button
+                    type="button"
+                    onClick={() => setBusqueda("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-[#64748b] hover:text-white"
+                  >
+                    <i className="fa-solid fa-xmark" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+
+              {/* Filtro Planta */}
+              <select
+                value={filtroPlanta}
+                onChange={(e) => setFiltroPlanta(e.target.value)}
+                className="rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white outline-none transition focus:border-gold/60"
               >
-                <i className="fa-solid fa-xmark" aria-hidden="true" />
-              </button>
-            )}
+                <option value="Todas">Planta: Todas</option>
+                <option value="Campana">Campana</option>
+                <option value="Luján">Luján</option>
+                <option value="General">General</option>
+              </select>
+
+              {/* Filtro Tipo de Archivo */}
+              <select
+                value={filtroTipo}
+                onChange={(e) => setFiltroTipo(e.target.value)}
+                className="rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white outline-none transition focus:border-gold/60"
+              >
+                <option value="Todos">Tipo: Todos</option>
+                <option value="pdf">Solo PDF</option>
+                <option value="office">Word / Excel (Office)</option>
+                <option value="imagen">Imágenes</option>
+              </select>
+            </div>
+
+            <p className="text-xs text-[#64748b]">
+              Mostrando{" "}
+              <span className="font-mono text-white font-semibold">
+                {documentosFiltrados.length}
+              </span>{" "}
+              de{" "}
+              <span className="font-mono text-white">{documentos.length}</span>{" "}
+              documentos
+            </p>
           </div>
 
-          {/* Filtro Planta */}
-          <select
-            value={filtroPlanta}
-            onChange={(e) => setFiltroPlanta(e.target.value)}
-            className="rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white outline-none transition focus:border-gold/60"
-          >
-            <option value="Todas">Planta: Todas</option>
-            <option value="Campana">Campana</option>
-            <option value="Luján">Luján</option>
-            <option value="General">General</option>
-          </select>
-
-          {/* Filtro Tipo de Archivo */}
-          <select
-            value={filtroTipo}
-            onChange={(e) => setFiltroTipo(e.target.value)}
-            className="rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white outline-none transition focus:border-gold/60"
-          >
-            <option value="Todos">Tipo: Todos</option>
-            <option value="pdf">Solo PDF</option>
-            <option value="office">Word / Excel (Office)</option>
-            <option value="imagen">Imágenes</option>
-          </select>
-        </div>
-
-        <p className="text-xs text-[#64748b]">
-          Mostrando <span className="font-mono text-white font-semibold">{documentosFiltrados.length}</span> de{" "}
-          <span className="font-mono text-white">{documentos.length}</span> documentos
-        </p>
-      </div>
-
-      {/* Tabla / Listado de Documentos con Visualización Rápida en Modal */}
-      {documentosFiltrados.length === 0 ? (
-        <div className="glass rounded-2xl p-10 text-center">
-          <i className="fa-solid fa-inbox mb-3 text-3xl text-gold/60" aria-hidden="true" />
-          <p className="text-sm text-[#94a3b8]">
-            {busqueda || filtroPlanta !== "Todas" || filtroTipo !== "Todos"
-              ? "No se encontraron documentos con los filtros seleccionados."
-              : "Todavía no hay documentos cargados en el sistema."}
-          </p>
-          {(busqueda || filtroPlanta !== "Todas" || filtroTipo !== "Todos") && (
-            <button
-              type="button"
-              onClick={() => {
-                setBusqueda("");
-                setFiltroPlanta("Todas");
-                setFiltroTipo("Todos");
-              }}
-              className="mt-3 text-xs text-gold underline underline-offset-2 hover:text-amber-200"
-            >
-              Restablecer filtros
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="glass overflow-x-auto rounded-2xl">
-          <table className="w-full border-collapse text-left text-xs">
-            <thead>
-              <tr className="border-b border-white/10 bg-[#0f172a]/60 text-[10px] uppercase tracking-wider text-[#64748b]">
-                <th className="px-4 py-3 font-semibold">Documento</th>
-                <th className="px-3 py-3 font-semibold">Categoría</th>
-                <th className="px-3 py-3 font-semibold">Tema SGC</th>
-                <th className="px-3 py-3 font-semibold">Planta</th>
-                <th className="px-2 py-3 font-semibold">Versión</th>
-                <th className="px-4 py-3 font-semibold text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/[0.05]">
-              {documentosFiltrados.map((doc) => {
-                const style = iconFor(doc.tipo);
-                return (
-                  <tr
-                    key={doc.id}
-                    className="group transition-colors hover:bg-white/[0.04]"
-                  >
-                    {/* Documento y Tipo */}
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setDocModal(doc)}
-                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-transform group-hover:scale-105 ${style.bg} ${style.color}`}
-                          title="Clic para previsualizar documento"
-                        >
-                          <i className={`fa-solid ${style.icon} text-sm`} aria-hidden="true" />
-                        </button>
-                        <div className="min-w-0">
-                          <button
-                            type="button"
-                            onClick={() => setDocModal(doc)}
-                            className="block truncate text-left text-xs font-semibold text-white transition-colors hover:text-gold"
-                            title={doc.nombre}
-                          >
-                            {doc.nombre}
-                          </button>
-                          <div className="flex items-center gap-2 text-[11px] text-[#64748b]">
-                            <span>{doc.fecha}</span>
-                            {doc.responsable && (
-                              <>
-                                <span>·</span>
-                                <span className="truncate max-w-[150px]">{doc.responsable}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Categoría */}
-                    <td className="px-3 py-3 text-[#94a3b8]">
-                      <span className="inline-block rounded-md border border-white/5 bg-white/[0.03] px-2 py-0.5 text-[11px]">
-                        {doc.categoria}
-                      </span>
-                    </td>
-
-                    {/* Tema SGC */}
-                    <td className="px-3 py-3 text-[#94a3b8]">
-                      {doc.puntoId ? (
-                        <span
-                          className="inline-flex items-center gap-1 text-[11px] text-gold/90 font-mono"
-                          title={puntoTitulo(doc.puntoId)}
-                        >
-                          <i className="fa-solid fa-link text-[9px]" aria-hidden="true" />
-                          {doc.puntoId}
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-[#64748b]">—</span>
-                      )}
-                    </td>
-
-                    {/* Planta */}
-                    <td className="px-3 py-3">
-                      <span
-                        className={`inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
-                          doc.planta === "Campana"
-                            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-                            : doc.planta === "Luján"
-                              ? "border-blue-400/30 bg-blue-400/10 text-blue-300"
-                              : "border-slate-400/30 bg-slate-400/10 text-slate-300"
-                        }`}
-                      >
-                        {doc.planta}
-                      </span>
-                    </td>
-
-                    {/* Versión */}
-                    <td className="px-2 py-3 font-mono text-[#94a3b8]">
-                      v{doc.version}
-                    </td>
-
-                    {/* Acciones */}
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {/* Botón Ver rápido en Modal */}
-                        <button
-                          type="button"
-                          onClick={() => setDocModal(doc)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold text-emerald-300 transition-colors hover:bg-emerald-400/20"
-                          title="Visualizar documento al instante en visor integrado"
-                        >
-                          <i className="fa-solid fa-eye text-[11px]" aria-hidden="true" />
-                          Ver
-                        </button>
-
-                        {/* Botón Descargar */}
-                        <a
-                          href={downloadUrl(doc.archivoUrl)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 p-1 text-xs text-[#94a3b8] transition-colors hover:bg-white/10 hover:text-white"
-                          title="Descargar archivo directamente"
-                        >
-                          <i className="fa-solid fa-download text-[11px]" aria-hidden="true" />
-                        </a>
-
-                        {/* Botón Editar */}
-                        <button
-                          type="button"
-                          onClick={() => editar(doc)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-gold/30 bg-gold/10 px-2.5 py-1 text-xs font-semibold text-gold transition-colors hover:bg-gold/20"
-                          title="Editar metadatos o cambiar archivo"
-                        >
-                          <i className="fa-solid fa-pen text-[10px]" aria-hidden="true" />
-                          Editar
-                        </button>
-
-                        {/* Botón Eliminar */}
-                        <button
-                          type="button"
-                          onClick={() => eliminar(doc)}
-                          disabled={deletingId === doc.id}
-                          className="inline-flex items-center gap-1 rounded-lg border border-red-400/25 bg-red-400/10 p-1 text-xs text-red-300 transition-colors hover:bg-red-400/20 disabled:opacity-50"
-                          title="Eliminar documento y archivo"
-                        >
-                          <i
-                            className={`fa-solid ${
-                              deletingId === doc.id ? "fa-spinner fa-spin" : "fa-trash"
-                            } text-[11px]`}
-                            aria-hidden="true"
-                          />
-                        </button>
-                      </div>
-                    </td>
+          {/* Tabla / Listado de Documentos con Visualización Rápida en Modal */}
+          {documentosFiltrados.length === 0 ? (
+            <div className="glass rounded-2xl p-10 text-center">
+              <i
+                className="fa-solid fa-inbox mb-3 text-3xl text-gold/60"
+                aria-hidden="true"
+              />
+              <p className="text-sm text-[#94a3b8]">
+                {busqueda || filtroPlanta !== "Todas" || filtroTipo !== "Todos"
+                  ? "No se encontraron documentos con los filtros seleccionados."
+                  : "Todavía no hay documentos cargados en el sistema."}
+              </p>
+              {(busqueda ||
+                filtroPlanta !== "Todas" ||
+                filtroTipo !== "Todos") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBusqueda("");
+                    setFiltroPlanta("Todas");
+                    setFiltroTipo("Todos");
+                  }}
+                  className="mt-3 text-xs text-gold underline underline-offset-2 hover:text-amber-200"
+                >
+                  Restablecer filtros
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="glass overflow-x-auto rounded-2xl">
+              <table className="w-full border-collapse text-left text-xs">
+                <thead>
+                  <tr className="border-b border-white/10 bg-[#0f172a]/60 text-[10px] uppercase tracking-wider text-[#64748b]">
+                    <th className="px-4 py-3 font-semibold">Documento</th>
+                    <th className="px-3 py-3 font-semibold">Categoría</th>
+                    <th className="px-3 py-3 font-semibold">Tema SGC</th>
+                    <th className="px-3 py-3 font-semibold">Planta</th>
+                    <th className="px-2 py-3 font-semibold">Versión</th>
+                    <th className="px-4 py-3 font-semibold text-right">
+                      Acciones
+                    </th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+                </thead>
+                <tbody className="divide-y divide-white/[0.05]">
+                  {documentosFiltrados.map((doc) => {
+                    const style = iconFor(doc.tipo);
+                    return (
+                      <tr
+                        key={doc.id}
+                        className="group transition-colors hover:bg-white/[0.04]"
+                      >
+                        {/* Documento y Tipo */}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setDocModal(doc)}
+                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-transform group-hover:scale-105 ${style.bg} ${style.color}`}
+                              title="Clic para previsualizar documento"
+                            >
+                              <i
+                                className={`fa-solid ${style.icon} text-sm`}
+                                aria-hidden="true"
+                              />
+                            </button>
+                            <div className="min-w-0">
+                              <button
+                                type="button"
+                                onClick={() => setDocModal(doc)}
+                                className="block truncate text-left text-xs font-semibold text-white transition-colors hover:text-gold"
+                                title={doc.nombre}
+                              >
+                                {doc.nombre}
+                              </button>
+                              <div className="flex items-center gap-2 text-[11px] text-[#64748b]">
+                                <span>{doc.fecha}</span>
+                                {doc.responsable && (
+                                  <>
+                                    <span>·</span>
+                                    <span className="truncate max-w-[150px]">
+                                      {doc.responsable}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
 
+                        {/* Categoría */}
+                        <td className="px-3 py-3 text-[#94a3b8]">
+                          <span className="inline-block rounded-md border border-white/5 bg-white/[0.03] px-2 py-0.5 text-[11px]">
+                            {doc.categoria}
+                          </span>
+                        </td>
+
+                        {/* Tema SGC */}
+                        <td className="px-3 py-3 text-[#94a3b8]">
+                          {doc.puntoId ? (
+                            <span
+                              className="inline-flex items-center gap-1 text-[11px] text-gold/90 font-mono"
+                              title={puntoTitulo(doc.puntoId)}
+                            >
+                              <i
+                                className="fa-solid fa-link text-[9px]"
+                                aria-hidden="true"
+                              />
+                              {doc.puntoId}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-[#64748b]">
+                              —
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Planta */}
+                        <td className="px-3 py-3">
+                          <span
+                            className={`inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+                              doc.planta === "Campana"
+                                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                                : doc.planta === "Luján"
+                                  ? "border-blue-400/30 bg-blue-400/10 text-blue-300"
+                                  : "border-slate-400/30 bg-slate-400/10 text-slate-300"
+                            }`}
+                          >
+                            {doc.planta}
+                          </span>
+                        </td>
+
+                        {/* Versión */}
+                        <td className="px-2 py-3 font-mono text-[#94a3b8]">
+                          v{doc.version}
+                        </td>
+
+                        {/* Acciones */}
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => setDocModal(doc)}
+                              className="inline-flex items-center justify-center rounded-lg border border-cyan-500/15 bg-cyan-500/5 p-2 text-cyan-400 transition-all duration-200 ease-out hover:border-cyan-500/40 hover:bg-cyan-500/20 hover:shadow-[0_0_15px_rgba(34,211,238,0.3)]"
+                              title="Vista previa del documento"
+                              aria-label={`Ver vista previa de ${doc.nombre}`}
+                            >
+                              <i
+                                className="fa-solid fa-eye text-sm"
+                                aria-hidden="true"
+                              />
+                            </button>
+
+                            <a
+                              href={downloadUrl(doc.archivoUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center rounded-lg border border-emerald-500/15 bg-emerald-500/5 p-2 text-emerald-400 transition-all duration-200 ease-out hover:border-emerald-500/40 hover:bg-emerald-500/20 hover:shadow-[0_0_15px_rgba(52,211,153,0.3)]"
+                              title="Descargar archivo"
+                              aria-label={`Descargar ${doc.nombre}`}
+                            >
+                              <i
+                                className="fa-solid fa-download text-sm"
+                                aria-hidden="true"
+                              />
+                            </a>
+
+                            <button
+                              type="button"
+                              onClick={() => editar(doc)}
+                              className="inline-flex items-center justify-center rounded-lg border border-amber-500/15 bg-amber-500/5 p-2 text-amber-400 transition-all duration-200 ease-out hover:border-amber-500/40 hover:bg-amber-500/20 hover:shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                              title="Editar metadatos o cambiar archivo"
+                              aria-label={`Editar ${doc.nombre}`}
+                            >
+                              <i
+                                className="fa-solid fa-pen-to-square text-sm"
+                                aria-hidden="true"
+                              />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => eliminar(doc)}
+                              disabled={deletingId === doc.id}
+                              className="inline-flex items-center justify-center rounded-lg border border-rose-500/15 bg-rose-500/5 p-2 text-rose-400 transition-all duration-200 ease-out hover:border-rose-500/40 hover:bg-rose-500/20 hover:shadow-[0_0_15px_rgba(251,113,133,0.3)] disabled:cursor-not-allowed disabled:opacity-50"
+                              title="Eliminar definitivamente el documento y su archivo. Acción irreversible."
+                              aria-label={`Eliminar definitivamente ${doc.nombre}`}
+                            >
+                              <i
+                                className={`fa-solid ${
+                                  deletingId === doc.id
+                                    ? "fa-spinner fa-spin"
+                                    : "fa-trash-can"
+                                } text-sm`}
+                                aria-hidden="true"
+                              />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </details>
 
       {/* Visor Modal integrado para ver documentos al instante sin recargar la página */}
       {docModal && (
-        <DocumentoModal documento={docModal} onClose={() => setDocModal(null)} />
+        <DocumentoModal
+          documento={docModal}
+          onClose={() => setDocModal(null)}
+        />
       )}
     </section>
   );

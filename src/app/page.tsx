@@ -34,7 +34,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filtros, setFiltros] = useState<AgendaFiltersValue>(initialFilters);
-  const [plantaActiva, setPlantaActiva] = useState<PlantaFiltro>("Luján");
+  const [plantaActiva, setPlantaActiva] = useState<PlantaFiltro>("Todo");
 
   const cargarTodo = useCallback(async (): Promise<AgendaCargada> => {
     const [agendaRes, docsRes] = await Promise.all([
