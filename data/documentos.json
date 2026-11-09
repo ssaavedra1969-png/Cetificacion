@@ -27,6 +27,20 @@
       "archivoUrl": "/api/files?id=Dmw9tq5pfe67314",
       "ruta": "documentos/Dmw9tq5pfe67314-it-sgc-002-muestras-de-campana.pdf",
       "tipo": "pdf"
+    },
+    {
+      "id": "Dmw9tq8g3f5be82",
+      "nombre": "IT-SGC-003 - Certificados de calibración",
+      "categoria": "SGC",
+      "puntoId": "P003",
+      "planta": "General",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-003 - Certificados de calibración. Informe técnico SGC, revisión v1.0, plantas Luján y Campana.",
+      "archivoUrl": "/api/files?id=Dmw9tq8g3f5be82",
+      "ruta": "documentos/Dmw9tq8g3f5be82-it-sgc-003-certificados-de-calibracion.pdf",
+      "tipo": "pdf"
     }
   ],
   "categorias": [
