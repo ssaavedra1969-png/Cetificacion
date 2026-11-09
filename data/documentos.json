@@ -125,6 +125,20 @@
       "archivoUrl": "/api/files?id=Dmw9tqo2l217e71",
       "ruta": "documentos/Dmw9tqo2l217e71-it-sgc-009-control-de-calidad-del-agua.pdf",
       "tipo": "pdf"
+    },
+    {
+      "id": "Dmw9tqr058712dc",
+      "nombre": "IT-SGC-010 - Documentación del laboratorio",
+      "categoria": "SGC",
+      "puntoId": "P010",
+      "planta": "General",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-010 - Documentación del laboratorio. Informe técnico SGC, revisión v1.0, plantas Luján y Campana.",
+      "archivoUrl": "/api/files?id=Dmw9tqr058712dc",
+      "ruta": "documentos/Dmw9tqr058712dc-it-sgc-010-documentacion-del-laboratorio.pdf",
+      "tipo": "pdf"
     }
   ],
   "categorias": [
