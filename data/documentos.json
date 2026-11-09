@@ -83,22 +83,128 @@
       "archivoUrl": "/api/files?id=Dmw9iegr8610c7f",
       "ruta": "documentos/Dmw9iegr8610c7f-et.pdf",
       "tipo": "pdf"
+    },
+    {
+      "id": "SGC-001",
+      "nombre": "IT-SGC-001 - Resguardo de información",
+      "puntoId": "P001",
+      "ruta": "documentos/Resguardo de información/resguardo_de_informacion.pdf",
+      "version": "1.0",
+      "categoria": "Resguardo de información",
+      "fecha": "2026-11-09",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-001 - Resguardo de información. Informe técnico SGC, revisión v1.0, plantas Luján y Campana."
+    },
+    {
+      "id": "SGC-002",
+      "nombre": "IT-SGC-002 - Muestras de Campana",
+      "puntoId": "P002",
+      "ruta": "documentos/Muestras de Campana/muestras_de_campana.pdf",
+      "version": "1.0",
+      "categoria": "Muestras de Campana",
+      "fecha": "2026-11-09",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-002 - Muestras de Campana. Informe técnico SGC, revisión v1.0, plantas Luján y Campana."
+    },
+    {
+      "id": "SGC-003",
+      "nombre": "IT-SGC-003 - Certificados de calibración",
+      "puntoId": "P003",
+      "ruta": "documentos/Certificados de calibración/certificados_de_calibracion.pdf",
+      "version": "1.0",
+      "categoria": "Certificados de calibración",
+      "fecha": "2026-11-09",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-003 - Certificados de calibración. Informe técnico SGC, revisión v1.0, plantas Luján y Campana."
+    },
+    {
+      "id": "SGC-004",
+      "nombre": "IT-SGC-004 - Layout de Luján",
+      "puntoId": "P004",
+      "ruta": "documentos/Layout/layout_de_lujan.pdf",
+      "version": "1.0",
+      "categoria": "Layout",
+      "fecha": "2026-11-09",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-004 - Layout de Luján. Informe técnico SGC, revisión v1.0, plantas Luján y Campana."
+    },
+    {
+      "id": "SGC-005",
+      "nombre": "IT-SGC-005 - Seguridad vial interna",
+      "puntoId": "P005",
+      "ruta": "documentos/Seguridad vial/seguridad_vial_interna.pdf",
+      "version": "1.0",
+      "categoria": "Seguridad vial",
+      "fecha": "2026-11-09",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-005 - Seguridad vial interna. Informe técnico SGC, revisión v1.0, plantas Luján y Campana."
+    },
+    {
+      "id": "SGC-006",
+      "nombre": "IT-SGC-006 - Teléfono del laboratorio",
+      "puntoId": "P006",
+      "ruta": "documentos/Administración/telefono_del_laboratorio.pdf",
+      "version": "1.0",
+      "categoria": "Administración",
+      "fecha": "2026-11-09",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-006 - Teléfono del laboratorio. Informe técnico SGC, revisión v1.0, plantas Luján y Campana."
+    },
+    {
+      "id": "SGC-007",
+      "nombre": "IT-SGC-007 - Plan de muestreo",
+      "puntoId": "P007",
+      "ruta": "documentos/Muestreo/plan_de_muestreo.pdf",
+      "version": "1.0",
+      "categoria": "Muestreo",
+      "fecha": "2026-11-09",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-007 - Plan de muestreo. Informe técnico SGC, revisión v1.0, plantas Luján y Campana."
+    },
+    {
+      "id": "SGC-008",
+      "nombre": "IT-SGC-008 - Control de calidad de áridos de cantera propia",
+      "puntoId": "P008",
+      "ruta": "documentos/Control de calidad/control_de_calidad_de_aridos_de_cantera_propia.pdf",
+      "version": "1.0",
+      "categoria": "Control de calidad",
+      "fecha": "2026-11-09",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-008 - Control de calidad de áridos de cantera propia. Informe técnico SGC, revisión v1.0, plantas Luján y Campana."
+    },
+    {
+      "id": "SGC-009",
+      "nombre": "IT-SGC-009 - Control de calidad del agua",
+      "puntoId": "P009",
+      "ruta": "documentos/Control de calidad/control_de_calidad_del_agua.pdf",
+      "version": "1.0",
+      "categoria": "Control de calidad",
+      "fecha": "2026-11-09",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-009 - Control de calidad del agua. Informe técnico SGC, revisión v1.0, plantas Luján y Campana."
+    },
+    {
+      "id": "SGC-010",
+      "nombre": "IT-SGC-010 - Documentación del laboratorio",
+      "puntoId": "P010",
+      "ruta": "documentos/Documentación del laboratorio/documentacion_del_laboratorio.pdf",
+      "version": "1.0",
+      "categoria": "Documentación del laboratorio",
+      "fecha": "2026-11-09",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-010 - Documentación del laboratorio. Informe técnico SGC, revisión v1.0, plantas Luján y Campana."
     }
   ],
   "categorias": [
     "Resguardo de información",
     "Muestras de Campana",
     "Certificados de calibración",
-    "Layout de Luján",
-    "Seguridad vial interna",
-    "Teléfono del laboratorio",
-    "Plan de muestreo",
-    "Control de calidad de áridos de cantera propia",
-    "Control de calidad del agua",
+    "Control de calidad",
     "Documentación del laboratorio",
-    "SGC general",
+    "Layout",
+    "Seguridad vial",
     "Administración",
-    "Control de calidad"
+    "Muestreo"
   ],
   "metadata": {
     "generadoEl": "2026-11-05",
