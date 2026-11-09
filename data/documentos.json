@@ -83,6 +83,20 @@
       "archivoUrl": "/api/files?id=Dmw9tqfzifabd16",
       "ruta": "documentos/Dmw9tqfzifabd16-it-sgc-006-telefono-del-laboratorio.pdf",
       "tipo": "pdf"
+    },
+    {
+      "id": "Dmw9tqih9a655dd",
+      "nombre": "IT-SGC-007 - Plan de muestreo",
+      "categoria": "SGC",
+      "puntoId": "P007",
+      "planta": "General",
+      "fecha": "2026-11-09",
+      "version": "1.0",
+      "responsable": "Administrador SGC",
+      "descripcion": "IT-SGC-007 - Plan de muestreo. Informe técnico SGC, revisión v1.0, plantas Luján y Campana.",
+      "archivoUrl": "/api/files?id=Dmw9tqih9a655dd",
+      "ruta": "documentos/Dmw9tqih9a655dd-it-sgc-007-plan-de-muestreo.pdf",
+      "tipo": "pdf"
     }
   ],
   "categorias": [
