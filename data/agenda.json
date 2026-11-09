@@ -182,18 +182,19 @@
       "id": "P008",
       "titulo": "Control de calidad de áridos de cantera propia (IT-SGC-008)",
       "descripcion": "Mandata la solicitud centralizada y periódica de los informes granulométricos y sus respectivas curvas de tamizado al responsable de cantera, estableciendo parámetros obligatorios de uniformidad para la mezcla del hormigón.",
-      "categoria": "Control de calidad",
+      "categoria": null,
       "plantas": [
-        "Campana",
-        "Luján"
+        "Campana"
       ],
       "responsable": "A definir",
-      "prioridad": "alta",
+      "prioridad": "media",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "2026-11-09T23:20:51.044Z",
+      "fechaActualizacion": "2026-11-09T23:23:07.726Z",
       "notas": "",
-      "documentosIds": [],
+      "documentosIds": [
+        "SGC-008"
+      ],
       "historial": [
         {
           "fecha": "2026-11-09T17:02:20.399Z",
