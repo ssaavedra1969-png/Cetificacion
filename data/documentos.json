@@ -1,20 +1,6 @@
 {
   "documentos": [
     {
-      "id": "Dmw9iegr8610c7f",
-      "nombre": "ET",
-      "categoria": "Documentación del laboratorio",
-      "puntoId": "",
-      "planta": "Campana",
-      "fecha": "2026-11-09",
-      "version": "1.0",
-      "responsable": "Administrador",
-      "descripcion": "",
-      "archivoUrl": "/api/files?id=Dmw9iegr8610c7f",
-      "ruta": "documentos/Dmw9iegr8610c7f-et.pdf",
-      "tipo": "pdf"
-    },
-    {
       "id": "SGC-001",
       "nombre": "IT-SGC-001 - Resguardo de información",
       "puntoId": "P001",
