@@ -242,11 +242,9 @@
       "prioridad": "media",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "2026-11-09T20:26:36.536Z",
+      "fechaActualizacion": "2026-11-09T23:21:04.399Z",
       "notas": "",
-      "documentosIds": [
-        "Dmw9iegr8610c7f"
-      ],
+      "documentosIds": [],
       "historial": [
         {
           "fecha": "2026-11-09T17:02:29.411Z",
@@ -254,6 +252,13 @@
           "campo": "documentos",
           "valorAnterior": "",
           "valorNuevo": "Dmw9iegr8610c7f"
+        },
+        {
+          "fecha": "2026-11-09T23:21:04.399Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "Dmw9iegr8610c7f",
+          "valorNuevo": ""
         }
       ]
     }
