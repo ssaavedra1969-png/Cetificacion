@@ -179,10 +179,20 @@
       "prioridad": "alta",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T22:19:48.769Z",
       "notas": "",
-      "documentosIds": [],
-      "historial": []
+      "documentosIds": [
+        "Dmw9tqih9a655dd"
+      ],
+      "historial": [
+        {
+          "fecha": "2026-11-09T22:19:48.769Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "",
+          "valorNuevo": "Dmw9tqih9a655dd"
+        }
+      ]
     },
     {
       "id": "P008",
