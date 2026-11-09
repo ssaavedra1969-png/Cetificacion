@@ -45,12 +45,17 @@ function iconFor(tipo: string): { icon: string; color: string; bg: string } {
 }
 
 export default function Documentoteca() {
-  const { canEdit } = useSession();
+  const { user, canEdit } = useSession();
+  const canDelete = user?.rol === "admin";
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalDoc, setModalDoc] = useState<Documento | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [docParaEliminar, setDocParaEliminar] = useState<Documento | null>(
+    null,
+  );
 
   // Filtros
   const [busqueda, setBusqueda] = useState("");
@@ -102,6 +107,27 @@ export default function Documentoteca() {
       return true;
     });
   }, [documentos, filtroCategoria, filtroPlanta, filtroTipo, busqueda]);
+
+  async function eliminarDocumento(id: string) {
+    if (deletingId) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/documentos?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "No se pudo eliminar el documento");
+      }
+      setDocumentos((prev) => prev.filter((d) => d.id !== id));
+      setDocParaEliminar(null);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al eliminar");
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <main className="min-h-screen">
@@ -471,6 +497,49 @@ export default function Documentoteca() {
                                 aria-hidden="true"
                               />
                             </a>
+
+                            {/* Eliminar (solo admin) */}
+                            {canDelete && (
+                              <>
+                                {docParaEliminar?.id === d.id ? (
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => eliminarDocumento(d.id)}
+                                      disabled={deletingId === d.id}
+                                      className="inline-flex items-center gap-1 rounded-lg border border-rose-400/30 bg-rose-400/10 px-2 py-1 text-[11px] font-semibold text-rose-400 hover:bg-rose-400/20 disabled:opacity-60"
+                                      title="Eliminar documento"
+                                    >
+                                      {deletingId === d.id ? (
+                                        <i className="fa-solid fa-spinner fa-spin text-[10px]" />
+                                      ) : (
+                                        <i className="fa-solid fa-trash-can text-[10px]" />
+                                      )}
+                                      Sí
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setDocParaEliminar(null)}
+                                      className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-semibold text-slate-400 hover:bg-white/10 hover:text-white"
+                                      title="Cancelar"
+                                    >
+                                      <i className="fa-solid fa-xmark text-[10px]" />
+                                      No
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setDocParaEliminar(d)}
+                                    className="inline-flex items-center gap-1 rounded-lg border border-rose-400/30 bg-rose-400/10 px-2 py-1 text-[11px] font-semibold text-rose-400 hover:bg-rose-400/20"
+                                    title="Eliminar documento"
+                                  >
+                                    <i className="fa-solid fa-trash-can text-[10px]" />
+                                    Eliminar
+                                  </button>
+                                )}
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
