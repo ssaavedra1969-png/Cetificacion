@@ -1,4 +1,4 @@
-export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 export type TipoArchivo = "pdf" | "word" | "excel" | "imagen" | "otro";
 
@@ -22,8 +22,7 @@ const EXT_MIME: Record<string, string> = {
   ".docx":
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ".xls": "application/vnd.ms-excel",
-  ".xlsx":
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   ".csv": "text/csv",
   ".png": "image/png",
   ".jpg": "image/jpeg",
@@ -59,6 +58,12 @@ export function isImageExt(ext: string): boolean {
 
 export function isOfficeTipo(tipo: string): boolean {
   return tipo === "word" || tipo === "excel";
+}
+
+const NATIVE_OFFICE_EXT = new Set([".xlsx", ".xls", ".csv", ".docx"]);
+
+export function canPreviewNativeOffice(ext: string): boolean {
+  return NATIVE_OFFICE_EXT.has(ext.toLowerCase());
 }
 
 export function slugify(value: string): string {

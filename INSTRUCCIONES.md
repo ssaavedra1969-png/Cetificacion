@@ -86,7 +86,7 @@ Los usuarios se administran en `data/usuarios.json`. Las contraseñas se guardan
 
 Límites y formatos:
 
-- Tamaño máximo: **4 MB** por archivo (límite de Vercel Hobby).
+- Tamaño máximo: **10 MB** por archivo (`MAX_UPLOAD_BYTES`). En Vercel el cuerpo de la función está limitado a ~4,5 MB.
 - Extensiones: `pdf`, `doc`, `docx`, `xls`, `xlsx`, `csv`, `png`, `jpg`, `jpeg`, `webp`, `gif`.
 - SVG no está permitido por seguridad.
 - Word/Excel se abren con el visor de Office; en `localhost` o si el visor falla, se ofrece descarga.

@@ -47,7 +47,7 @@ export default function LoginPage() {
         <div className="mb-8 text-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:text-white"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[#94a3b8] transition-colors hover:text-white"
           >
             <i
               className="fa-solid fa-arrow-left text-gold"
@@ -58,7 +58,7 @@ export default function LoginPage() {
           <h1 className="font-display mt-5 text-3xl font-bold tracking-tight text-white">
             Iniciar sesión
           </h1>
-          <p className="mt-2 text-sm text-[#9fb0c9]">
+          <p className="mt-2 text-sm text-[#94a3b8]">
             Acceso para responsables del Sistema de Gestión de la Calidad.
           </p>
         </div>
@@ -76,12 +76,12 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+              <label className="mb-1.5 block text-xs font-medium text-[#94a3b8]">
                 Email
               </label>
               <div className="relative">
                 <i
-                  className="fa-solid fa-envelope pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#6f7f99]"
+                  className="fa-solid fa-envelope pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#64748b]"
                   aria-hidden="true"
                 />
                 <input
@@ -91,18 +91,18 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="username"
                   required
-                  className="w-full rounded-lg border border-white/10 bg-[#0a0e17] py-2.5 pl-9 pr-3 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+                  className="w-full rounded-lg border border-white/10 bg-[#0f172a] py-2.5 pl-9 pr-3 text-sm text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
                 />
               </div>
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-[#9fb0c9]">
+              <label className="mb-1.5 block text-xs font-medium text-[#94a3b8]">
                 Contraseña
               </label>
               <div className="relative">
                 <i
-                  className="fa-solid fa-lock pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#6f7f99]"
+                  className="fa-solid fa-lock pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#64748b]"
                   aria-hidden="true"
                 />
                 <input
@@ -112,7 +112,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
                   required
-                  className="w-full rounded-lg border border-white/10 bg-[#0a0e17] py-2.5 pl-9 pr-3 text-sm text-white placeholder-[#5a6a82] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
+                  className="w-full rounded-lg border border-white/10 bg-[#0f172a] py-2.5 pl-9 pr-3 text-sm text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/20"
                 />
               </div>
             </div>
@@ -120,7 +120,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-4 py-2.5 text-sm font-bold text-[#1a1405] shadow-[0_10px_30px_-8px_rgba(212,175,55,0.6)] transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-4 py-2.5 text-sm font-bold text-[#0f172a] shadow-[0_10px_30px_-8px_rgba(212,175,55,0.6)] transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {loading ? (
                 <i className="fa-solid fa-spinner fa-spin" aria-hidden="true" />
@@ -134,7 +134,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-4 text-center text-[11px] text-[#6f7f99]">
+          <p className="mt-4 text-center text-[11px] text-[#64748b]">
             Si no tenés credenciales, solicitá acceso al administrador del
             sistema.
           </p>

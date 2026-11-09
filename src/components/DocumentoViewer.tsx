@@ -5,7 +5,9 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import type { Documento } from "@/types/models";
 import { downloadUrl } from "@/lib/urls";
+import { canPreviewNativeOffice } from "@/lib/files";
 import { useDocumentoEmbed } from "@/components/useDocumentoEmbed";
+import OfficePreview from "@/components/OfficePreview";
 
 export default function DocumentoViewer() {
   const params = useParams<{ id: string }>();
@@ -33,17 +35,17 @@ export default function DocumentoViewer() {
     [documentos, id],
   );
 
-  const { url, kind, officeSrc, signing, signError } =
+  const { url, ext, kind, officeSrc, signing, signError } =
     useDocumentoEmbed(doc);
   const descargaUrl = downloadUrl(url);
   const volver = doc?.puntoId ? `/temas/${doc.puntoId}` : "/documentoteca";
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#02040a]">
-      <header className="flex items-center justify-between gap-3 border-b border-white/10 bg-[#02040a]/90 px-4 py-3 backdrop-blur-xl">
+    <main className="flex min-h-screen flex-col bg-[#020617]">
+      <header className="flex items-center justify-between gap-3 border-b border-white/10 bg-[#020617]/90 px-4 py-3 backdrop-blur-xl">
         <Link
           href={volver}
-          className="inline-flex items-center gap-2 text-sm font-medium text-[#9fb0c9] transition-colors hover:text-white"
+          className="inline-flex items-center gap-2 text-sm font-medium text-[#94a3b8] transition-colors hover:text-white"
         >
           <i className="fa-solid fa-arrow-left text-gold" aria-hidden="true" />
           Volver
@@ -54,7 +56,7 @@ export default function DocumentoViewer() {
             {doc?.nombre ?? "Documento"}
           </p>
           {doc && (
-            <p className="truncate text-[11px] text-[#6f7f99]">
+            <p className="truncate text-[11px] text-[#64748b]">
               {doc.categoria} · v{doc.version} · {doc.fecha}
             </p>
           )}
@@ -78,7 +80,7 @@ export default function DocumentoViewer() {
       <div className="flex-1">
         {loading ? (
           <div className="flex h-[calc(100vh-64px)] items-center justify-center">
-            <span className="inline-flex items-center gap-2 text-sm text-[#9fb0c9]">
+            <span className="inline-flex items-center gap-2 text-sm text-[#94a3b8]">
               <i
                 className="fa-solid fa-spinner fa-spin text-gold"
                 aria-hidden="true"
@@ -118,7 +120,11 @@ export default function DocumentoViewer() {
             className="h-[calc(100vh-64px)] w-full border-0 bg-white"
           />
         ) : kind === "office" ? (
-          officeSrc ? (
+          canPreviewNativeOffice(ext) ? (
+            <div className="h-[calc(100vh-64px)]">
+              <OfficePreview key={doc.id} documento={doc} url={url} />
+            </div>
+          ) : officeSrc ? (
             <iframe
               src={officeSrc}
               title={doc.nombre}
@@ -127,7 +133,7 @@ export default function DocumentoViewer() {
           ) : (
             <div className="flex h-[calc(100vh-64px)] flex-col items-center justify-center gap-3 px-6 text-center">
               {signing ? (
-                <span className="inline-flex items-center gap-2 text-sm text-[#9fb0c9]">
+                <span className="inline-flex items-center gap-2 text-sm text-[#94a3b8]">
                   <i
                     className="fa-solid fa-spinner fa-spin text-gold"
                     aria-hidden="true"
@@ -140,7 +146,7 @@ export default function DocumentoViewer() {
                     className="fa-solid fa-file-word text-3xl text-gold"
                     aria-hidden="true"
                   />
-                  <p className="max-w-md text-sm text-[#9fb0c9]">
+                  <p className="max-w-md text-sm text-[#94a3b8]">
                     {signError ??
                       "El visor de Office no está disponible. Descargá el archivo para abrirlo."}
                   </p>
@@ -160,7 +166,7 @@ export default function DocumentoViewer() {
               className="fa-solid fa-file text-3xl text-gold"
               aria-hidden="true"
             />
-            <p className="text-sm text-[#9fb0c9]">
+            <p className="text-sm text-[#94a3b8]">
               Este tipo de archivo no se puede previsualizar.
             </p>
             <a

@@ -70,7 +70,7 @@ export default function Sidebar() {
         <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-gold">
           Gestión de la Calidad
         </span>
-        <span className="block text-[9px] text-[#6f7f99]">Certificación</span>
+        <span className="block text-[9px] text-[#64748b]">Certificación</span>
       </span>
     </Link>
   );
@@ -87,7 +87,7 @@ export default function Sidebar() {
             className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
               active
                 ? "bg-gold/15 text-gold"
-                : "text-[#9fb0c9] hover:bg-white/5 hover:text-white"
+                : "text-[#94a3b8] hover:bg-white/5 hover:text-white"
             }`}
           >
             <i
@@ -114,7 +114,7 @@ export default function Sidebar() {
               <p className="truncate text-xs font-semibold text-white">
                 {session.nombre}
               </p>
-              <p className="text-[10px] uppercase tracking-[0.12em] text-[#6f7f99]">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-[#64748b]">
                 {session.rol}
               </p>
             </div>
@@ -122,7 +122,7 @@ export default function Sidebar() {
           <button
             type="button"
             onClick={logout}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[#9fb0c9] transition-colors hover:bg-white/5 hover:text-white"
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[#94a3b8] transition-colors hover:bg-white/5 hover:text-white"
           >
             <i
               className="fa-solid fa-right-from-bracket w-4 text-center text-[13px]"
@@ -154,7 +154,7 @@ export default function Sidebar() {
       </aside>
 
       {/* Barra superior móvil */}
-      <div className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-white/10 bg-[#02040a]/95 px-4 py-2.5 backdrop-blur-xl md:hidden">
+      <div className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-white/10 bg-[#020617]/95 px-4 py-2.5 backdrop-blur-xl md:hidden">
         <Link href="/" className="flex items-center gap-2">
           <Image
             src="/images/logo-falpat.png"

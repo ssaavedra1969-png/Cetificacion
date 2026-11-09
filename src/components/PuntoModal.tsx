@@ -90,7 +90,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f7f99]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#64748b]">
                 Categoría
               </p>
               <p className="mt-1 text-sm text-[#e2e8f2]">
@@ -98,7 +98,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
               </p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f7f99]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#64748b]">
                 Plantas
               </p>
               <p className="mt-1 text-sm text-[#e2e8f2]">
@@ -106,7 +106,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
               </p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f7f99]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#64748b]">
                 Responsable
               </p>
               <p className="mt-1 text-sm text-[#e2e8f2]">
@@ -114,7 +114,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
               </p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f7f99]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#64748b]">
                 Fecha compromiso
               </p>
               <p className="mt-1 text-sm text-[#e2e8f2]">
@@ -122,7 +122,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
               </p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f7f99]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#64748b]">
                 Última actualización
               </p>
               <p className="mt-1 text-sm text-[#e2e8f2]">
@@ -132,7 +132,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
               </p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f7f99]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#64748b]">
                 Documentos
               </p>
               <button
@@ -151,7 +151,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
 
           {punto.notas && (
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f7f99]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#64748b]">
                 Notas
               </p>
               <p className="mt-1 whitespace-pre-line text-sm text-[#c7d2e3]">
@@ -170,11 +170,11 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
                 className="fa-solid fa-folder-open mb-3 text-2xl text-gold/60"
                 aria-hidden="true"
               />
-              <p className="text-sm text-[#9fb0c9]">
+              <p className="text-sm text-[#94a3b8]">
                 Sin documentos adjuntos aún.
               </p>
               <Link
-                href="/administracion#documentos"
+                href={`/administracion?tema=${punto.id}#documentos`}
                 className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-amber-200"
               >
                 <i className="fa-solid fa-paperclip" aria-hidden="true" />
@@ -200,7 +200,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
                     <span className="block truncate text-sm font-medium text-white">
                       {d.nombre}
                     </span>
-                    <span className="block truncate text-[11px] text-[#6f7f99]">
+                    <span className="block truncate text-[11px] text-[#64748b]">
                       {d.categoria} · v{d.version} · {d.fecha}
                     </span>
                   </span>
@@ -215,11 +215,11 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
               ))}
 
               <Link
-                href="/administracion#documentos"
+                href={`/administracion?tema=${punto.id}#documentos`}
                 className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-amber-200"
               >
                 <i className="fa-solid fa-paperclip" aria-hidden="true" />
-                Gestionar documentos
+                Subir o vincular documento a este tema
               </Link>
             </div>
           )}
@@ -236,7 +236,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
                     {["Fecha", "Usuario", "Campo", "Nuevo"].map((label) => (
                       <th
                         key={label}
-                        className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f7f99]"
+                        className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-[#64748b]"
                       >
                         {label}
                       </th>
@@ -246,13 +246,13 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
                 <tbody>
                   {punto.historial.map((h, i) => (
                     <tr key={i} className="border-b border-white/[0.06]">
-                      <td className="px-3 py-2 text-xs text-[#9fb0c9]">
+                      <td className="px-3 py-2 text-xs text-[#94a3b8]">
                         {new Date(h.fecha).toLocaleString("es-AR")}
                       </td>
-                      <td className="px-3 py-2 text-xs text-[#9fb0c9]">
+                      <td className="px-3 py-2 text-xs text-[#94a3b8]">
                         {h.usuario}
                       </td>
-                      <td className="px-3 py-2 text-xs text-[#9fb0c9]">
+                      <td className="px-3 py-2 text-xs text-[#94a3b8]">
                         {h.campo}
                       </td>
                       <td className="px-3 py-2 text-xs text-[#c7d2e3]">
@@ -264,7 +264,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
               </table>
             </div>
           ) : (
-            <p className="rounded-xl border border-dashed border-white/10 px-4 py-10 text-center text-sm text-[#6f7f99]">
+            <p className="rounded-xl border border-dashed border-white/10 px-4 py-10 text-center text-sm text-[#64748b]">
               Sin historial de cambios aún.
             </p>
           )}
@@ -284,7 +284,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
         aria-label={punto.titulo}
       >
         <div
-          className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-[#0a0e17] shadow-2xl sm:rounded-2xl"
+          className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-[#0f172a] shadow-2xl sm:rounded-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           <header className="border-b border-white/10 px-4 py-4 sm:px-5">
@@ -307,7 +307,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
                   >
                     {punto.prioridad}
                   </span>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-[#9fb0c9]">
+                  <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-[#94a3b8]">
                     {punto.plantas?.length
                       ? punto.plantas.join(" · ")
                       : "General"}
@@ -318,7 +318,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
                 type="button"
                 onClick={onClose}
                 aria-label="Cerrar"
-                className="shrink-0 rounded-lg p-2 text-[#9fb0c9] transition-colors hover:bg-white/10 hover:text-white"
+                className="shrink-0 rounded-lg p-2 text-[#94a3b8] transition-colors hover:bg-white/10 hover:text-white"
               >
                 <i className="fa-solid fa-xmark text-lg" aria-hidden="true" />
               </button>
@@ -336,7 +336,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
                   className={`inline-flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-3 text-xs font-semibold transition-colors ${
                     activo
                       ? "border-gold text-gold"
-                      : "border-transparent text-[#9fb0c9] hover:text-white"
+                      : "border-transparent text-[#94a3b8] hover:text-white"
                   }`}
                 >
                   <i className={`fa-solid ${t.icon}`} aria-hidden="true" />
@@ -346,7 +346,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
                       className={`rounded-full px-1.5 py-0.5 text-[10px] ${
                         activo
                           ? "bg-gold/15 text-gold"
-                          : "bg-white/10 text-[#9fb0c9]"
+                          : "bg-white/10 text-[#94a3b8]"
                       }`}
                     >
                       {t.count}
@@ -371,7 +371,7 @@ export default function PuntoModal({ punto, documentos, onClose }: Props) {
             </Link>
             <Link
               href="/administracion"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#9fb0c9] transition-colors hover:text-white"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#94a3b8] transition-colors hover:text-white"
             >
               <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
               Editar en administración

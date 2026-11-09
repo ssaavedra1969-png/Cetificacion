@@ -39,7 +39,7 @@ En desarrollo, si GitHub no está configurado, los cambios se guardan en el file
 
 Los binarios se guardan en `documentos/` en la raíz del repositorio (no en `public/`, para evitar exposición estática). Se sirven mediante `/api/files`.
 
-- Límite por archivo: **4 MB** (Vercel Hobby).
+- Límite por archivo: **10 MB** (`MAX_UPLOAD_BYTES`). En Vercel el cuerpo de la función está limitado a ~4,5 MB.
 - Formatos: PDF, Word, Excel, CSV e imágenes. SVG no permitido.
 - Word/Excel usan el visor de Office con URL firmada temporal; si el visor no está disponible se ofrece descarga.
 

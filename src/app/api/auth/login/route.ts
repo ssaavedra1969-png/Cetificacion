@@ -47,7 +47,18 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, user: toPublicUser(user) });
-  } catch {
-    return NextResponse.json({ error: "Error interno" }, { status: 500 });
+  } catch (error) {
+    console.error("[auth/login]", error);
+    return NextResponse.json(
+      {
+        error:
+          process.env.NODE_ENV === "production"
+            ? "Error interno"
+            : error instanceof Error
+              ? error.message
+              : "Error interno",
+      },
+      { status: 500 },
+    );
   }
 }

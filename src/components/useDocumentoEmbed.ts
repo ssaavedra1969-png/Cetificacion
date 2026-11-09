@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Documento } from "@/types/models";
 import {
+  canPreviewNativeOffice,
   extFromName,
   isOfficeTipo,
   officeEmbedUrl,
@@ -14,6 +15,7 @@ export type EmbedKind = "pdf" | "imagen" | "office" | "otro";
 
 export interface DocumentoEmbed {
   url: string;
+  ext: string;
   kind: EmbedKind;
   officeSrc: string | null;
   signing: boolean;
@@ -48,9 +50,10 @@ export function useDocumentoEmbed(doc: Documento | null): DocumentoEmbed {
     typeof window !== "undefined" &&
     /^(localhost|127\.0\.0\.1|\[::1\])$/i.test(window.location.hostname);
   const docId = doc?.id ?? "";
+  const nativo = canPreviewNativeOffice(ext);
 
   useEffect(() => {
-    if (!docId || kind !== "office" || esExterno || esLocal) return;
+    if (!docId || kind !== "office" || nativo || esExterno || esLocal) return;
 
     let activo = true;
 
@@ -92,19 +95,23 @@ export function useDocumentoEmbed(doc: Documento | null): DocumentoEmbed {
     return () => {
       activo = false;
     };
-  }, [docId, kind, esExterno, esLocal, url]);
+  }, [docId, kind, nativo, esExterno, esLocal, url]);
 
   const delDoc = firmado && firmado.id === docId ? firmado : null;
-  const officeSrc = esExterno
-    ? officeEmbedUrl(url)
+  const officeSrc = nativo
+    ? null
+    : esExterno
+      ? officeEmbedUrl(url)
+      : esLocal
+        ? null
+        : (delDoc?.src ?? null);
+  const signError = nativo
+    ? null
     : esLocal
-      ? null
-      : (delDoc?.src ?? null);
-  const signError = esLocal
-    ? LOCAL_MSG
-    : (delDoc?.error ?? null);
+      ? LOCAL_MSG
+      : (delDoc?.error ?? null);
   const signing =
-    kind === "office" && !esExterno && !esLocal && !delDoc;
+    kind === "office" && !nativo && !esExterno && !esLocal && !delDoc;
 
-  return { url, kind, officeSrc, signing, signError };
+  return { url, ext, kind, officeSrc, signing, signError };
 }

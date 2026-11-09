@@ -34,7 +34,7 @@ export default function RootLayout({
       className={`${inter.variable} ${sora.variable} h-full antialiased`}
     >
       <body className="min-h-full font-sans">
-        <Suspense fallback={<div className="min-h-screen bg-[#02040a]" />}>
+        <Suspense fallback={<div className="min-h-screen bg-[#020617]" />}>
           <RootShell>{children}</RootShell>
         </Suspense>
       </body>

@@ -51,7 +51,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 - **Metadatos:** `data/agenda.json`, `data/documentos.json`, `data/usuarios.json`.
 - **Archivos:** `documentos/` en la raíz del repositorio.
 - **Escritura:** API de GitHub (`Contents`), tanto para JSON como para binarios.
-- **Límite:** 4 MB por archivo (Vercel Hobby).
+- **Límite:** 10 MB por archivo (`MAX_UPLOAD_BYTES`); en Vercel el cuerpo de la función está limitado a ~4,5 MB.
 
 En desarrollo, sin `GITHUB_TOKEN`, los datos se guardan localmente en el filesystem.
 
