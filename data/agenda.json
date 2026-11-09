@@ -263,10 +263,20 @@
       "prioridad": "media",
       "estado": "Pendiente",
       "fechaCompromiso": "",
-      "fechaActualizacion": "",
+      "fechaActualizacion": "2026-11-09T22:19:59.584Z",
       "notas": "",
-      "documentosIds": [],
-      "historial": []
+      "documentosIds": [
+        "Dmw9tqr058712dc"
+      ],
+      "historial": [
+        {
+          "fecha": "2026-11-09T22:19:59.584Z",
+          "usuario": "Administrador",
+          "campo": "documentos",
+          "valorAnterior": "",
+          "valorNuevo": "Dmw9tqr058712dc"
+        }
+      ]
     }
   ],
   "metadata": {
