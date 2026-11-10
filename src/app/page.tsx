@@ -115,7 +115,7 @@ export default function Dashboard() {
   const avance = total > 0 ? Math.round((completados / total) * 100) : 0;
 
   return (
-    <main className="min-h-screen bg-slate-950 mt-0">
+    <>
       <div className="space-y-0 pb-10 mt-0 w-full text-left">
         <section className="relative isolate overflow-hidden pt-2 md:pt-4 pb-10 w-full text-left">
           <div
@@ -199,6 +199,6 @@ export default function Dashboard() {
           </p>
         </div>
       </footer>
-    </main>
+    </>
   );
 }
