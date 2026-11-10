@@ -21,14 +21,6 @@ const ORDEN_CATEGORIAS: string[] = [
   "Documentación del laboratorio",
   "Control de calidad",
 ];
-
-function ordenarCategorias(lista: string[]): string[] {
-  return [...lista].sort(
-    (a, b) =>
-      (ORDEN_CATEGORIAS.indexOf(a) ?? 99) - (ORDEN_CATEGORIAS.indexOf(b) ?? 99),
-  );
-}
-
 function iconFor(tipo: string): { icon: string; color: string; bg: string } {
   if (tipo === "pdf") {
     return {
@@ -69,7 +61,6 @@ export default function Documentoteca() {
   const { user, canEdit } = useSession();
   const canDelete = user?.rol === "admin";
   const [documentos, setDocumentos] = useState<Documento[]>([]);
-  const [categorias, setCategorias] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalDoc, setModalDoc] = useState<Documento | null>(null);
@@ -92,7 +83,6 @@ export default function Documentoteca() {
       })
       .then((data) => {
         setDocumentos(data.documentos || []);
-        setCategorias(data.categorias || []);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -208,7 +198,7 @@ export default function Documentoteca() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {ordenarCategorias(categorias).map((categoria, i) => {
+            {ORDEN_CATEGORIAS.map((categoria, i) => {
               const count = documentos.filter(
                 (d) => d.categoria === categoria,
               ).length;
