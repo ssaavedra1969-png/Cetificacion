@@ -115,7 +115,7 @@ export default function Dashboard() {
   const avance = total > 0 ? Math.round((completados / total) * 100) : 0;
 
   return (
-    <>
+    <main className="min-h-screen bg-slate-950 mt-0">
       <div className="space-y-0 pb-10 mt-0 w-full text-left">
         <section className="relative isolate overflow-hidden pt-2 md:pt-4 pb-10 w-full text-left">
           <div
@@ -127,7 +127,7 @@ export default function Dashboard() {
             aria-hidden="true"
           />
 
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="relative w-full px-4 sm:px-6 lg:px-8">
             <Hero />
             <div className="mt-8">
               <KPIs
@@ -142,17 +142,17 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
         </div>
 
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <RepositorioPanel documentos={documentos} />
         </div>
 
         <section
           id="agenda"
-          className="relative mx-auto w-full max-w-7xl scroll-mt-20 px-4 sm:px-6 lg:px-8"
+          className="relative w-full scroll-mt-20 px-4 sm:px-6 lg:px-8"
         >
           {error && (
             <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-400/25 bg-red-400/10 px-4 py-3 text-sm text-red-300">
@@ -188,7 +188,7 @@ export default function Dashboard() {
       </div>
 
       <footer className="border-t border-slate-800 py-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-xs text-slate-500 sm:flex-row sm:px-6 lg:px-8">
+        <div className="flex w-full flex-col items-center justify-between gap-3 px-4 text-xs text-slate-500 sm:flex-row sm:px-6 lg:px-8">
           <p>© 2026 Grupo Falpat SRL · Sistema de Gestión de la Calidad</p>
           <p className="flex items-center gap-1.5">
             <i
@@ -199,6 +199,6 @@ export default function Dashboard() {
           </p>
         </div>
       </footer>
-    </>
+    </main>
   );
 }
