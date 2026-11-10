@@ -8,7 +8,7 @@ export default function Hero() {
         REPOSITORIO CENTRAL DE CERTIFICACIONES
       </span>
 
-      <h1 className="font-display mt-6 max-w-5xl text-4xl font-extrabold leading-[1.04] tracking-tight sm:text-5xl lg:text-[3.6rem]">
+      <h1 className="font-display mt-6 w-full text-4xl font-extrabold leading-[1.04] tracking-tight sm:text-5xl lg:text-[3.6rem]">
         <span className="text-metal">Respaldo técnico y</span>{" "}
         <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
           validez normativa
@@ -16,7 +16,7 @@ export default function Hero() {
         <span className="text-metal">en un solo lugar.</span>
       </h1>
 
-      <p className="mt-6 max-w-3xl text-base leading-relaxed text-slate-400 sm:text-lg">
+      <p className="mt-6 w-full text-base leading-relaxed text-slate-400 sm:text-lg">
         {
           "Accedé, gestioná y validá de forma centralizada toda la documentación oficial, normas IRAM y sistemas de gestión integrados de Grupo Falpat SRL. Menos burocracia, más transparencia técnica y control operativo inmediato para las plantas de Luján y Campana."
         }
