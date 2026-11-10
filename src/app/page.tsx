@@ -115,9 +115,9 @@ export default function Dashboard() {
   const avance = total > 0 ? Math.round((completados / total) * 100) : 0;
 
   return (
-    <main className="min-h-screen bg-slate-950">
-      <div className="space-y-12 pb-20">
-        <section className="relative isolate overflow-hidden pb-12 pt-16 md:pb-16 md:pt-20">
+    <main className="min-h-screen bg-slate-950 mt-0">
+      <div className="space-y-0 pb-10 mt-0 w-full text-left">
+        <section className="relative isolate overflow-hidden pt-2 md:pt-4 pb-10 w-full text-left">
           <div
             className="hero-glow pointer-events-none absolute inset-0"
             aria-hidden="true"
