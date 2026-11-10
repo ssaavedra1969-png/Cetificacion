@@ -8,6 +8,27 @@ import { useSession } from "@/components/useSession";
 import { downloadUrl } from "@/lib/urls";
 import { isOfficeTipo } from "@/lib/files";
 
+const ORDEN_CATEGORIAS: string[] = [
+  "Resguardo de información",
+  "Muestras de Campana",
+  "Certificados de calibración",
+  "Layout",
+  "Seguridad vial",
+  "Administración",
+  "Muestreo",
+  "Control de calidad de áridos de cantera propia",
+  "Control de calidad del agua",
+  "Documentación del laboratorio",
+  "Control de calidad",
+];
+
+function ordenarCategorias(lista: string[]): string[] {
+  return [...lista].sort(
+    (a, b) =>
+      (ORDEN_CATEGORIAS.indexOf(a) ?? 99) - (ORDEN_CATEGORIAS.indexOf(b) ?? 99),
+  );
+}
+
 function iconFor(tipo: string): { icon: string; color: string; bg: string } {
   if (tipo === "pdf") {
     return {
@@ -187,11 +208,12 @@ export default function Documentoteca() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {categorias.map((categoria) => {
+            {ordenarCategorias(categorias).map((categoria, i) => {
               const count = documentos.filter(
                 (d) => d.categoria === categoria,
               ).length;
               const seleccionada = filtroCategoria === categoria;
+              const numero = i + 1;
 
               return (
                 <button
@@ -206,22 +228,21 @@ export default function Documentoteca() {
                       : ""
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                        seleccionada
-                          ? "bg-gold text-[#0f172a]"
-                          : "bg-gold/10 text-gold"
-                      }`}
-                    >
-                      <i
-                        className="fa-solid fa-folder text-xs"
-                        aria-hidden="true"
-                      />
-                    </span>
-                    <span className="truncate text-xs font-medium text-white">
-                      {categoria}
-                    </span>
+                  <div className="flex flex-col items-start gap-1 min-w-0">
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                          seleccionada
+                            ? "bg-gold text-[#0f172a]"
+                            : "bg-gold/10 text-gold"
+                        }`}
+                      >
+                        <span className="text-xs font-bold">{numero}</span>
+                      </span>
+                      <span className="truncate text-xs font-medium text-white">
+                        {categoria}
+                      </span>
+                    </div>
                   </div>
                   <span className="ml-2 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[11px] text-[#94a3b8]">
                     {count}

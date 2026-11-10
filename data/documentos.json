@@ -125,7 +125,7 @@
       "puntoId": "P008",
       "ruta": "documentos/Control de calidad/control_de_calidad_de_aridos_de_cantera_propia.pdf",
       "version": "1.0",
-      "categoria": "Control de calidad",
+      "categoria": "Control de calidad de áridos de cantera propia",
       "fecha": "2026-11-09",
       "responsable": "Administrador SGC",
       "descripcion": "IT-SGC-008 - Control de calidad de áridos de cantera propia. Informe técnico SGC, revisión v1.0, plantas Luján y Campana."
@@ -136,7 +136,7 @@
       "puntoId": "P009",
       "ruta": "documentos/Control de calidad/control_de_calidad_del_agua.pdf",
       "version": "1.0",
-      "categoria": "Control de calidad",
+      "categoria": "Control de calidad del agua",
       "fecha": "2026-11-09",
       "responsable": "Administrador SGC",
       "descripcion": "IT-SGC-009 - Control de calidad del agua. Informe técnico SGC, revisión v1.0, plantas Luján y Campana."
@@ -162,7 +162,9 @@
     "Layout",
     "Seguridad vial",
     "Administración",
-    "Muestreo"
+    "Muestreo",
+    "Control de calidad de áridos de cantera propia",
+    "Control de calidad del agua"
   ],
   "metadata": {
     "generadoEl": "2026-11-05",
