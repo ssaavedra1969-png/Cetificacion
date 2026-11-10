@@ -32,3 +32,15 @@ next-env.d.ts
 
 # Plantilla de variables de entorno (sí se versiona)
 !.env.local.example
+
+# Instrucciones de agentes (regenerado por next dev)
+/AGENTS.md
+
+# Archivos de carga/documentos locales sueltos en la raíz de documentos/
+# (no versionar: pueden contener datos sensibles). Los PDFs SGC viven en subcarpetas.
+/documentos/*.xlsx
+/documentos/*.xls
+/documentos/*.pdf
+/documentos/*.html
+/documentos/*.txt
+/documentos/*.docx
