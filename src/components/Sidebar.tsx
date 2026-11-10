@@ -11,7 +11,7 @@ export default function Sidebar({
 }) {
   return (
     <aside
-      className={`w-${isOpen ? 64 : 20} h-screen bg-[#090d1f] border-r border-slate-900 transition-all duration-300 ease-in-out flex flex-col justify-between p-4 shrink-0`}
+      className={`w-${isOpen ? 64 : 20} h-screen sticky top-0 bg-[#090d1f] border-r border-slate-900 transition-all duration-300 ease-in-out flex flex-col justify-between p-4 shrink-0`}
     >
       {/* Cabecera con logo y botón de toggle */}
       <div className="flex items-center justify-between gap-3 mb-6">
@@ -19,12 +19,8 @@ export default function Sidebar({
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gold/10 text-gold font-bold text-lg">
             <i className="fa-solid fa-shield-halved" aria-hidden="true" />
           </span>
-          {!isOpen ? (
-            <span className="text-xs font-bold text-white tracking-tight">
-              SG
-            </span>
-          ) : (
-            <span className="text-sm font-bold text-white tracking-tight">
+          {isOpen && (
+            <span className="text-xs font-bold text-white transition-opacity duration-200">
               Gestión de la Calidad
             </span>
           )}
