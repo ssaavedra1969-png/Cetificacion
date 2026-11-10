@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function Sidebar() {
   return (
-    <aside className="w-64 h-screen sticky top-0 bg-[#090d1f] border-r border-slate-900/80 p-5 flex flex-col justify-between shrink-0 overflow-y-auto">
+    <aside className="w-64 h-screen sticky top-0 bg-[#090d1f] border-r border-slate-900/60 p-5 flex flex-col justify-between shrink-0 overflow-y-auto">
       {/* Cabecera con logo */}
       <div className="flex items-center justify-between gap-3 mb-6">
         <Link href="/" className="flex items-center gap-3">
