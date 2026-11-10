@@ -5,16 +5,24 @@ import Link from "next/link";
 export default function Sidebar() {
   return (
     <aside className="w-64 h-screen sticky top-0 bg-[#090d1f] border-r border-slate-900/60 p-5 flex flex-col justify-between shrink-0 overflow-y-auto">
-      {/* Cabecera con logo */}
-      <div className="flex items-center justify-between gap-3 mb-6">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gold/10 text-gold font-bold text-lg">
-            <i className="fa-solid fa-shield-halved" aria-hidden="true" />
-          </span>
-          <span className="text-sm font-bold text-white tracking-tight">
-            Gestión de la Calidad
-          </span>
+      {/* Cabecera del menú izquierdo - Distribución horizontal fluida */}
+      <div className="flex items-center gap-3 w-full border-b border-slate-900/60 pb-5 mb-4 shrink-0">
+        <Link href="/" className="shrink-0">
+          <img
+            src="https://grupofalpat.com.ar"
+            alt="Grupo Falpat"
+            className="h-9 w-auto object-contain shrink-0"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "https://grupofalpat.com.ar";
+            }}
+          />
         </Link>
+        <div className="flex flex-col justify-center shrink-0">
+          <span className="text-[11px] font-bold tracking-wide text-orange-500 uppercase">
+            GESTIÓN DE LA CALIDAD
+          </span>
+          <span className="text-[11px] text-slate-400">Certificación</span>
+        </div>
       </div>
 
       {/* Navegación principal */}
