@@ -1,48 +1,6 @@
 {
   "documentos": [
     {
-      "id": "Dmw9ie2hga4d186",
-      "nombre": "Informe Viajes por chofer 2026 11 08",
-      "categoria": "Certificados de calibración",
-      "puntoId": "",
-      "planta": "Campana",
-      "fecha": "2026-11-09",
-      "version": "1.0",
-      "responsable": "Administrador",
-      "descripcion": "",
-      "archivoUrl": "/api/files?id=Dmw9ie2hga4d186",
-      "ruta": "documentos/Dmw9ie2hga4d186-informe-viajes-por-chofer-2026-11-08.xlsx",
-      "tipo": "excel"
-    },
-    {
-      "id": "Dmw9ieahy16d748",
-      "nombre": "Listado de personal",
-      "categoria": "Control de calidad",
-      "puntoId": "",
-      "planta": "Campana",
-      "fecha": "2026-11-09",
-      "version": "1.0",
-      "responsable": "Administrador",
-      "descripcion": "",
-      "archivoUrl": "/api/files?id=Dmw9ieahy16d748",
-      "ruta": "documentos/Dmw9ieahy16d748-listado-de-personal.xlsx",
-      "tipo": "excel"
-    },
-    {
-      "id": "Dmw9iegr8610c7f",
-      "nombre": "ET",
-      "categoria": "Documentación del laboratorio",
-      "puntoId": "",
-      "planta": "Campana",
-      "fecha": "2026-11-09",
-      "version": "1.0",
-      "responsable": "Administrador",
-      "descripcion": "",
-      "archivoUrl": "/api/files?id=Dmw9iegr8610c7f",
-      "ruta": "documentos/Dmw9iegr8610c7f-et.pdf",
-      "tipo": "pdf"
-    },
-    {
       "id": "SGC-001",
       "nombre": "IT-SGC-001 - Resguardo de información",
       "puntoId": "P001",
