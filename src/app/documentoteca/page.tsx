@@ -19,7 +19,6 @@ const ORDEN_CATEGORIAS: string[] = [
   "Control de calidad de áridos de cantera propia",
   "Control de calidad del agua",
   "Documentación del laboratorio",
-  "Control de calidad",
 ];
 function iconFor(tipo: string): { icon: string; color: string; bg: string } {
   if (tipo === "pdf") {
