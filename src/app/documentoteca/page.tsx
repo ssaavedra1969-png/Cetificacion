@@ -196,7 +196,7 @@ export default function Documentoteca() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {ORDEN_CATEGORIAS.map((categoria, i) => {
               const count = documentos.filter(
                 (d) => d.categoria === categoria,
@@ -211,29 +211,15 @@ export default function Documentoteca() {
                   onClick={() =>
                     setFiltroCategoria(seleccionada ? "Todas" : categoria)
                   }
-                  className={`glass glass-hover flex items-center justify-between rounded-xl p-3 text-left transition-all ${
-                    seleccionada
-                      ? "border-gold/60 bg-gold/10 shadow-[0_0_20px_rgba(212,175,55,0.15)]"
-                      : ""
-                  }`}
+                  className={`flex items-center justify-between gap-3 w-full h-12 p-3 bg-[#0e1329] border border-slate-800 rounded-xl overflow-hidden ${seleccionada ? "border-gold/60 bg-gold/10 shadow-[0_0_20px_rgba(212,175,55,0.15)]" : ""}`}
                 >
-                  <div className="flex flex-col items-start gap-1 min-w-0">
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                          seleccionada
-                            ? "bg-gold text-[#0f172a]"
-                            : "bg-gold/10 text-gold"
-                        }`}
-                      >
-                        <span className="text-xs font-bold">{numero}</span>
-                      </span>
-                      <span className="truncate text-xs font-medium text-white">
-                        {categoria}
-                      </span>
-                    </div>
-                  </div>
-                  <span className="ml-2 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[11px] text-[#94a3b8]">
+                  <span className="flex items-center justify-center w-6 h-6 bg-amber-500/10 text-amber-500 font-bold text-xs rounded shrink-0">
+                    {numero}
+                  </span>
+                  <span className="text-xs font-semibold text-white truncate min-w-0 flex-1">
+                    {categoria}
+                  </span>
+                  <span className="flex items-center justify-center w-5 h-5 bg-slate-900 border border-slate-800 text-[10px] text-slate-500 rounded-full shrink-0">
                     {count}
                   </span>
                 </button>
