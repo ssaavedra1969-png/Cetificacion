@@ -592,6 +592,53 @@ export default function DocumentoManager({
               </div>
 
               <form onSubmit={guardar} className="space-y-4">
+                {/* Vista previa del archivo actual (solo en edición) */}
+                {editando && docEditando && (
+                  <div className="rounded-xl border border-white/10 bg-[#0f172a] p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-xs font-semibold text-[#c7d2e3]">
+                        <i className="fa-solid fa-eye mr-1.5 text-gold" aria-hidden="true" />
+                        Vista previa del archivo actual
+                      </span>
+                      <a
+                        href={docEditando.archivoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] text-gold underline underline-offset-2 hover:text-amber-200"
+                      >
+                        Abrir en pestaña
+                      </a>
+                    </div>
+                    {docEditando.tipo === "pdf" && (
+                      <iframe
+                        src={docEditando.archivoUrl}
+                        className="h-64 w-full rounded-lg border border-white/10"
+                        title={docEditando.nombre}
+                      />
+                    )}
+                    {docEditando.tipo === "imagen" && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={docEditando.archivoUrl}
+                        alt={docEditando.nombre}
+                        className="max-h-64 w-full rounded-lg border border-white/10 object-contain"
+                      />
+                    )}
+                    {(docEditando.tipo === "word" || docEditando.tipo === "excel") && (
+                      <iframe
+                        src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(docEditando.archivoUrl.startsWith("http") ? docEditando.archivoUrl : (typeof window !== "undefined" ? window.location.origin + docEditando.archivoUrl : docEditando.archivoUrl))}`}
+                        className="h-64 w-full rounded-lg border border-white/10"
+                        title={docEditando.nombre}
+                      />
+                    )}
+                    {docEditando.tipo === "otro" && (
+                      <p className="py-6 text-center text-xs text-[#64748b]">
+                        Vista previa no disponible para este tipo de archivo.
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Archivo */}
                 <div>
                   <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
