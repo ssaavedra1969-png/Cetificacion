@@ -395,17 +395,26 @@ export default function Documentoteca() {
               </div>
             </div>
           ) : (
-            <div className="glass overflow-x-auto rounded-2xl">
+            <div
+              className="glass max-h-[calc(100vh-240px)] overflow-auto rounded-2xl"
+              onWheel={(e) => {
+                const el = e.currentTarget;
+                if (e.shiftKey) {
+                  e.preventDefault();
+                  el.scrollLeft += e.deltaY;
+                }
+              }}
+            >
               <table className="w-full min-w-[1080px] border-collapse text-left text-xs">
                 <thead>
-                  <tr className="border-b border-white/10 bg-[#0f172a]/60 text-[10px] uppercase tracking-wider text-[#64748b]">
-                    <th className="px-4 py-3 font-semibold">Documento</th>
-                    <th className="px-3 py-3 font-semibold">Categoría</th>
-                    <th className="px-3 py-3 font-semibold">Tema SGC</th>
-                    <th className="px-3 py-3 font-semibold">Planta</th>
-                    <th className="px-3 py-3 font-semibold">Fecha</th>
-                    <th className="px-2 py-3 font-semibold">Versión</th>
-                    <th className="px-4 py-3 font-semibold text-right">
+                  <tr className="border-b border-white/10 bg-[#0f172a] text-[10px] uppercase tracking-wider text-[#64748b]">
+                    <th className="sticky left-0 top-0 z-20 bg-[#0f172a] px-4 py-3 font-semibold shadow-[2px_0_4px_rgba(0,0,0,0.3)]">Documento</th>
+                    <th className="sticky top-0 z-10 bg-[#0f172a] px-3 py-3 font-semibold">Categoría</th>
+                    <th className="sticky top-0 z-10 bg-[#0f172a] px-3 py-3 font-semibold">Tema SGC</th>
+                    <th className="sticky top-0 z-10 bg-[#0f172a] px-3 py-3 font-semibold">Planta</th>
+                    <th className="sticky top-0 z-10 bg-[#0f172a] px-3 py-3 font-semibold">Fecha</th>
+                    <th className="sticky top-0 z-10 bg-[#0f172a] px-2 py-3 font-semibold">Versión</th>
+                    <th className="sticky right-0 top-0 z-20 bg-[#0f172a] px-4 py-3 font-semibold text-right shadow-[-2px_0_4px_rgba(0,0,0,0.3)]">
                       Visualización
                     </th>
                   </tr>
@@ -425,7 +434,7 @@ export default function Documentoteca() {
                          className="group cursor-pointer transition-colors hover:bg-white/[0.04]"
                        >
                          {/* Nombre e icono */}
-                        <td className="max-w-[340px] px-4 py-3 pr-4">
+                        <td className="sticky left-0 z-10 max-w-[340px] bg-[#0f172a]/95 px-4 py-3 pr-4 shadow-[2px_0_4px_rgba(0,0,0,0.3)] backdrop-blur-sm">
                           <div className="flex items-center gap-3">
                             <button
                               type="button"
@@ -508,7 +517,7 @@ export default function Documentoteca() {
                         </td>
 
                         {/* Acciones */}
-                        <td className="px-4 py-3 text-right">
+                        <td className="sticky right-0 z-10 bg-[#0f172a]/95 px-4 py-3 text-right shadow-[-2px_0_4px_rgba(0,0,0,0.3)] backdrop-blur-sm">
                           <div className="flex items-center justify-end gap-2">
                             <button
                               type="button"
