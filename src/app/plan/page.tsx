@@ -491,18 +491,10 @@ export default function PlanPage() {
         })}
       </div>
 
-      {/* Gantt opcional */}
-      <section className="glass rounded-xl">
-        <button
-          type="button"
-          onClick={() => setGanttAbierto((v) => !v)}
-          className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-semibold text-gold"
-        >
-          <i className={`fa-solid ${ganttAbierto ? "fa-chevron-down" : "fa-chevron-right"} text-xs`} aria-hidden="true" />
-          Línea de tiempo (Gantt)
-        </button>
-        {ganttAbierto && (
-          <div className="max-h-[60vh] overflow-auto border-t border-white/10 bg-[#070b16] p-2">
+      {/* Gantt (formato original) */}
+      <section className="glass rounded-xl p-4">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-gold">Línea de tiempo (Gantt)</h2>
+        <div className="max-h-[70vh] overflow-auto border-t border-white/10 bg-[#070b16] p-2">
             <div className="min-w-[900px]">
               <div className="sticky top-0 z-20 flex border-b border-white/10 bg-[#0a0f1e]">
                 <div className="sticky left-0 z-30 w-[260px] shrink-0 border-r border-white/10 bg-[#0a0f1e] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#64748b]">
@@ -570,7 +562,6 @@ export default function PlanPage() {
               })}
             </div>
           </div>
-        )}
       </section>
 
       {/* Editor de estructura */}

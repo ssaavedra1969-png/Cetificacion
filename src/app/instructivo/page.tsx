@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Markdown from "@/components/Markdown";
 
 export default function InstructivoPage() {
   const [md, setMd] = useState<string>("");
@@ -45,9 +46,7 @@ export default function InstructivoPage() {
         )}
         {!loading && !error && (
           <article className="glass rounded-xl p-6">
-            <pre className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-slate-200">
-              {md}
-            </pre>
+            <Markdown source={md} />
           </article>
         )}
       </div>
