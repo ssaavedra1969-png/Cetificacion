@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { INSTRUCTIVO_INDEX } from "@/lib/instructivo-index";
+import { norm, tokenizar, coincide } from "@/lib/search";
 
 interface Doc { id: string; nombre: string; categoria: string; }
 interface PlanTask { id: string; codigo: string; tarea: string; esGrupo: boolean; }
@@ -63,28 +65,45 @@ export default function CommandPalette() {
   }, [open]);
 
   const results = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    const out: { type: string; label: string; sub?: string; href: string }[] = [];
-    if (!term) {
+    const tokens = tokenizar(q);
+    const out: { type: string; label: string; sub?: string; href: string; snippet?: string; sectionId?: string }[] = [];
+    if (tokens.length === 0) {
       SECTIONS.forEach((s) => out.push({ type: "Sección", label: s.label, href: s.href }));
       return out.slice(0, 12);
     }
-    SECTIONS.filter((s) => s.label.toLowerCase().includes(term)).forEach((s) =>
+    SECTIONS.filter((s) => coincide(s.label, tokens)).forEach((s) =>
       out.push({ type: "Sección", label: s.label, href: s.href }),
     );
     docs
-      .filter((d) => `${d.nombre} ${d.categoria}`.toLowerCase().includes(term))
+      .filter((d) => coincide(`${d.nombre} ${d.categoria}`, tokens))
       .slice(0, 8)
       .forEach((d) =>
         out.push({ type: "Documento", label: d.nombre, sub: d.categoria, href: `/documentoteca` }),
       );
     tasks
-      .filter((t) => `${t.codigo} ${t.tarea}`.toLowerCase().includes(term))
+      .filter((t) => coincide(`${t.codigo} ${t.tarea}`, tokens))
       .slice(0, 8)
       .forEach((t) =>
         out.push({ type: t.esGrupo ? "Bloque" : "Tarea", label: `${t.codigo} ${t.tarea}`.trim(), href: "/plan" }),
       );
-    return out.slice(0, 20);
+    // Instructivo
+    INSTRUCTIVO_INDEX.filter((it) => coincide(`${it.titulo} ${it.texto}`, tokens))
+      .slice(0, 8)
+      .forEach((it) => {
+        // snippet: find first matching token context
+        const ntext = norm(it.texto);
+        let snippet = it.texto.slice(0, 90);
+        for (const t of tokens) {
+          const i = ntext.indexOf(norm(t));
+          if (i >= 0) {
+            const start = Math.max(0, i - 40);
+            snippet = (start > 0 ? "…" : "") + it.texto.slice(start, start + 100) + "…";
+            break;
+          }
+        }
+        out.push({ type: "Instructivo", label: it.titulo, sub: snippet, href: `/instructivo?section=${it.id}&q=${encodeURIComponent(q.trim())}`, sectionId: it.id });
+      });
+    return out.slice(0, 24);
   }, [q, docs, tasks]);
 
   useEffect(() => {
@@ -134,7 +153,21 @@ export default function CommandPalette() {
         </div>
         <div className="max-h-[60vh] overflow-y-auto p-2">
           {results.length === 0 ? (
-            <p className="p-4 text-center text-sm text-[#64748b]">Sin resultados.</p>
+            <div className="p-4">
+              <p className="mb-3 text-center text-sm text-[#64748b]">Sin resultados.</p>
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[#64748b]">Accesos rápidos</p>
+              <div className="flex flex-col gap-1">
+                <button type="button" onClick={() => { setOpen(false); router.push("/documentoteca"); }} className="rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-white/5 hover:text-gold">
+                  Ir a Documentoteca
+                </button>
+                <button type="button" onClick={() => { setOpen(false); router.push("/instructivo"); }} className="rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-white/5 hover:text-gold">
+                  Ver Manual de Usuario
+                </button>
+                <button type="button" onClick={() => { setOpen(false); router.push("/plan"); }} className="rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-white/5 hover:text-gold">
+                  Ver Plan de Trabajo
+                </button>
+              </div>
+            </div>
           ) : (
             results.map((r, i) => (
               <button
@@ -146,11 +179,15 @@ export default function CommandPalette() {
                   i === idx ? "bg-gold/15 text-white" : "text-slate-300 hover:bg-white/5"
                 }`}
               >
-                <span className="w-20 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-[#64748b]">
+                <span
+                  className={`w-20 shrink-0 text-[10px] font-semibold uppercase tracking-wide ${
+                    r.type === "Instructivo" ? "text-gold" : "text-[#64748b]"
+                  }`}
+                >
                   {r.type}
                 </span>
                 <span className="min-w-0 flex-1 truncate text-sm">{r.label}</span>
-                {r.sub && <span className="shrink-0 text-[11px] text-[#64748b]">{r.sub}</span>}
+                {r.sub && <span className="hidden max-w-[45%] truncate text-[11px] text-[#64748b] sm:block">{r.sub}</span>}
               </button>
             ))
           )}

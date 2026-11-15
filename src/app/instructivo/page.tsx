@@ -1,7 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Markdown from "@/components/Markdown";
+import { coincide, tokenizar } from "@/lib/search";
+
+const SearchCtx = createContext<string[]>([]);
+
+function Hideable({ keywords, children, className = "" }: { keywords: string; children: React.ReactNode; className?: string }) {
+  const tokens = useContext(SearchCtx);
+  const visible = tokens.length === 0 || coincide(keywords, tokens);
+  return <div className={`${className} ${visible ? "" : "hidden"}`}>{children}</div>;
+}
 
 const META = [
   { label: "Sitio", value: "certificacion.vercel.app", icon: "fa-globe" },
@@ -15,6 +25,50 @@ const ROLES = [
   { rol: "Editor", ver: true, subir: true, temas: true, plan: true, eliminar: false },
   { rol: "Administrador", ver: true, subir: true, temas: true, plan: true, eliminar: true },
 ];
+
+function normTxt(s: string): string {
+  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function resaltar(root: HTMLElement, query: string) {
+  const tokens = normTxt(query).split(/\s+/).filter((t) => t.length > 2);
+  if (tokens.length === 0) return;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  const nodes: Text[] = [];
+  let n: Node | null;
+  while ((n = walker.nextNode())) {
+    const t = n as Text;
+    if (t.parentElement && t.parentElement.tagName !== "MARK" && t.nodeValue && t.nodeValue.trim()) {
+      nodes.push(t);
+    }
+  }
+  for (const node of nodes) {
+    const original = node.nodeValue || "";
+    const lower = normTxt(original);
+    let best = -1;
+    let len = 0;
+    for (const tok of tokens) {
+      const i = lower.indexOf(tok);
+      if (i >= 0 && (best === -1 || i < best)) {
+        best = i;
+        len = tok.length;
+      }
+    }
+    if (best === -1) continue;
+    const end = Math.min(original.length, best + len);
+    const before = original.slice(0, best);
+    const mid = original.slice(best, end);
+    const after = original.slice(end);
+    const mark = document.createElement("mark");
+    mark.className = "bg-gold/40 text-white rounded px-0.5";
+    mark.textContent = mid;
+    const frag = document.createDocumentFragment();
+    if (before) frag.appendChild(document.createTextNode(before));
+    frag.appendChild(mark);
+    if (after) frag.appendChild(document.createTextNode(after));
+    node.parentNode?.replaceChild(frag, node);
+  }
+}
 
 function Check({ ok }: { ok: boolean }) {
   return (
@@ -36,20 +90,27 @@ const NAV = [
   { id: "sec-problemas", label: "8. Problemas" },
 ];
 
-function Card({ id, n, icon, title, children, span = false }: { id: string; n: string; icon: string; title: string; children: React.ReactNode; span?: boolean }) {
+function Card({ id, n, icon, title, keywords = "", children, span = false }: { id: string; n: string; icon: string; title: string; keywords?: string; children: React.ReactNode; span?: boolean }) {
   const [open, setOpen] = useState(false);
+  const tokens = useContext(SearchCtx);
+  const visible = tokens.length === 0 || coincide(`${title} ${keywords}`, tokens);
   useEffect(() => {
     const onExpand = () => setOpen(true);
     const onCollapse = () => setOpen(false);
+    const onOpen = (e: Event) => {
+      if ((e as CustomEvent).detail === id) setOpen(true);
+    };
     window.addEventListener("instructivo:expand", onExpand);
     window.addEventListener("instructivo:collapse", onCollapse);
+    window.addEventListener("instructivo:open", onOpen);
     return () => {
       window.removeEventListener("instructivo:expand", onExpand);
       window.removeEventListener("instructivo:collapse", onCollapse);
+      window.removeEventListener("instructivo:open", onOpen);
     };
-  }, []);
+  }, [id]);
   return (
-    <section id={id} className={`glass rounded-2xl p-6 scroll-mt-20 card-hover ${span ? "lg:col-span-2" : ""}`}>
+    <section id={id} className={`glass rounded-2xl p-6 scroll-mt-20 card-hover ${span ? "lg:col-span-2" : ""} ${visible ? "" : "hidden"}`}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -68,9 +129,28 @@ function Card({ id, n, icon, title, children, span = false }: { id: string; n: s
 }
 
 export default function InstructivoPage() {
+  const searchParams = useSearchParams();
   const [md, setMd] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [q, setQ] = useState("");
+  const tokens = useMemo(() => tokenizar(q), [q]);
+
+  useEffect(() => {
+    const section = searchParams.get("section");
+    if (!section) return;
+    const q = searchParams.get("q") || "";
+    const t = setTimeout(() => {
+      window.dispatchEvent(new Event("instructivo:collapse"));
+      window.dispatchEvent(new CustomEvent("instructivo:open", { detail: section }));
+      const el = document.getElementById(section);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (q) resaltar(el, q);
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchParams]);
 
   useEffect(() => {
     fetch("/manual.md", { cache: "no-store" })
@@ -84,6 +164,7 @@ export default function InstructivoPage() {
   }, []);
 
   return (
+    <SearchCtx.Provider value={tokens}>
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-[1600px] space-y-6">
         {/* Header */}
@@ -101,6 +182,22 @@ export default function InstructivoPage() {
             </p>
           </div>
         </header>
+
+        {/* Buscador del instructivo (sinónimos) */}
+        <div className="glass flex items-center gap-3 rounded-xl border border-white/10 px-4 py-3">
+          <i className="fa-solid fa-magnifying-glass text-gold" aria-hidden="true" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscá en el manual: ej. 'modificar documentos', 'subir archivo', 'sin permisos'…"
+            className="flex-1 bg-transparent text-sm text-white placeholder:text-[#64748b] focus:outline-none"
+          />
+          {q && (
+            <button type="button" onClick={() => setQ("")} className="text-[#64748b] hover:text-white" title="Limpiar">
+              <i className="fa-solid fa-xmark" aria-hidden="true" />
+            </button>
+          )}
+        </div>
 
         {/* Metadata bar */}
         <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -146,7 +243,7 @@ export default function InstructivoPage() {
         {/* Grid */}
         <div className="grid gap-5 lg:grid-cols-2">
           {/* 01 Acceso */}
-          <Card id="sec-acceso" n="01" icon="fa-right-to-bracket" title="Acceso al sistema">
+          <Card id="sec-acceso" n="01" icon="fa-right-to-bracket" title="Acceso al sistema" keywords="acceso ingresar login contraseña usuario sesion entrar">
             <ol className="space-y-2 text-[13px] text-slate-200">
               <li className="flex gap-2"><span className="font-bold text-gold">1.</span> Ingresá a <code className="rounded bg-white/10 px-1 font-mono-code text-gold">certificacion.vercel.app</code></li>
               <li className="flex gap-2"><span className="font-bold text-gold">2.</span> Hacé clic en <strong>Ingresar</strong> (esquina superior derecha).</li>
@@ -156,7 +253,7 @@ export default function InstructivoPage() {
           </Card>
 
           {/* 02 Navegación */}
-          <Card id="sec-navegacion" n="02" icon="fa-compass" title="Navegación">
+          <Card id="sec-navegacion" n="02" icon="fa-compass" title="Navegación" keywords="navegacion menu secciones inicio documentoteca mapa plan administracion instructivo">
             <ul className="space-y-1.5 text-[13px] text-slate-200">
               <li><strong className="text-white">Inicio</strong> — panel principal con accesos rápidos.</li>
               <li><strong className="text-white">Documentoteca SGC</strong> — repositorio central de documentos.</li>
@@ -168,7 +265,8 @@ export default function InstructivoPage() {
           </Card>
 
           {/* Roles y permisos — full width */}
-          <section id="sec-roles" className="glass rounded-2xl p-6 scroll-mt-20 card-hover lg:col-span-2">
+          <Hideable keywords="roles permisos lector editor administrador plantas campana lujan general eliminar acceso" className="lg:col-span-2">
+          <section id="sec-roles" className="glass rounded-2xl p-6 scroll-mt-20 card-hover">
             <div className="mb-4 flex items-center gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gold/30 bg-gold/10 font-mono-code text-sm font-bold text-gold">R</span>
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gold/20 bg-gold/10 text-gold">
@@ -217,9 +315,10 @@ export default function InstructivoPage() {
               </div>
             </div>
           </section>
+          </Hideable>
 
           {/* 03 Documentoteca — full width */}
-          <Card id="sec-documentoteca" n="03" icon="fa-folder-open" title="Documentoteca SGC" span>
+          <Card id="sec-documentoteca" n="03" icon="fa-folder-open" title="Documentoteca SGC" span keywords="documentoteca consultar acciones editar modificar ver descargar obsoletos eliminar categorias filtros buscar documento archivo">
             <p className="mb-3 text-[12px] text-[#64748b]">URL: /documentoteca</p>
             <div className="grid gap-4 md:grid-cols-3 text-[13px] text-slate-200">
               <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
@@ -235,7 +334,7 @@ export default function InstructivoPage() {
           </Card>
 
           {/* 04 Administración */}
-          <Card id="sec-administracion" n="04" icon="fa-sliders" title="Administración SGC">
+          <Card id="sec-administracion" n="04" icon="fa-sliders" title="Administración SGC" keywords="administracion temas documentos subir cargar crear nuevo agregar enlace externo drive">
             <p className="mb-3 text-[12px] text-[#64748b]">URL: /administracion (requiere editor o admin)</p>
             <div className="space-y-2 text-[13px] text-slate-200">
               <div><strong className="text-white">Temas:</strong> grilla de tarjetas (P001..P028). Clic para editar. + Adjuntar doc sube un documento vinculado. + Nuevo tema crea uno nuevo.</div>
@@ -245,7 +344,7 @@ export default function InstructivoPage() {
           </Card>
 
           {/* 05 Plan de Trabajo */}
-          <Card id="sec-plan" n="05" icon="fa-chart-gantt" title="Plan de Trabajo">
+          <Card id="sec-plan" n="05" icon="fa-chart-gantt" title="Plan de Trabajo" keywords="plan trabajo gantt tareas kpis avance editar estado terminada bloques">
             <p className="mb-3 text-[12px] text-[#64748b]">URL: /plan</p>
             <div className="space-y-2 text-[13px] text-slate-200">
               <div><strong className="text-white">Lectura:</strong> KPIs (avance, terminadas, en curso, pendientes, bloqueadas, atrasadas). Sección "Atención" (atrasadas + esta semana). Bloques colapsables con tareas. Gantt arriba con barras, hoy, leyenda.</div>
@@ -255,7 +354,7 @@ export default function InstructivoPage() {
           </Card>
 
           {/* 06 Mapa SGC */}
-          <Card id="sec-mapa" n="06" icon="fa-sitemap" title="Mapa SGC">
+          <Card id="sec-mapa" n="06" icon="fa-sitemap" title="Mapa SGC" keywords="mapa procesos arbol filtros chips limpiar buscar codigo carpeta">
             <p className="mb-3 text-[12px] text-[#64748b]">URL: /mapa</p>
             <div className="space-y-2 text-[13px] text-slate-200">
               <div><strong className="text-white">Mapa de procesos:</strong> tarjetas de procesos estratégicos, realización y apoyo. Clic para filtrar el árbol por código.</div>
@@ -265,7 +364,7 @@ export default function InstructivoPage() {
           </Card>
 
           {/* 07 Límites */}
-          <Card id="sec-limites" n="07" icon="fa-triangle-exclamation" title="Carga de documentos — límites y buenas prácticas">
+          <Card id="sec-limites" n="07" icon="fa-triangle-exclamation" title="Carga de documentos — límites y buenas prácticas" keywords="limites tamaño peso pesado 4 mb subida tipos buenas practicas archivos grandes drive comprimir">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-[13px] text-slate-200">
               <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
                 <strong className="text-white">Tamaño máx.:</strong> 4 MB por subida (límite de Vercel).
@@ -283,7 +382,7 @@ export default function InstructivoPage() {
           </Card>
 
           {/* 08 Solución de problemas — full width */}
-          <Card id="sec-problemas" n="08" icon="fa-wrench" title="Solución de problemas" span>
+          <Card id="sec-problemas" n="08" icon="fa-wrench" title="Solución de problemas" span keywords="problemas error no funciona permisos editor plan no guarda sin resultados archivo supera">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-[13px]">
                 <thead>
@@ -307,7 +406,7 @@ export default function InstructivoPage() {
         </div>
 
         {/* 9. Respaldos */}
-        <Card id="sec-respaldos" n="09" icon="fa-database" title="Respaldos y versionado" span>
+        <Card id="sec-respaldos" n="09" icon="fa-database" title="Respaldos y versionado" span keywords="respaldos versionado github ramas main desarrollo backup copia seguridad">
           <div className="space-y-2 text-[13px] text-slate-200">
             <p>Código y documentos versionados en GitHub: <code className="rounded bg-white/10 px-1 font-mono-code text-gold">github.com/ssaavedra1969-png/Cetificacion</code></p>
             <p>Ramas: <strong className="text-white">main</strong> (producción), <strong className="text-white">desarrollo</strong> (preview).</p>
@@ -329,5 +428,6 @@ export default function InstructivoPage() {
         </details>
       </div>
     </main>
+    </SearchCtx.Provider>
   );
 }
