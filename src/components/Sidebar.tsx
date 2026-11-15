@@ -14,6 +14,7 @@ interface SessionInfo {
 const NAV = [
   { href: "/", label: "Inicio", icon: "fa-house" },
   { href: "/mapa", label: "Mapa SGC", icon: "fa-sitemap" },
+  { href: "/plan", label: "Plan de Trabajo", icon: "fa-chart-gantt" },
   { href: "/documentoteca", label: "Documentoteca", icon: "fa-folder-open" },
 ];
 
