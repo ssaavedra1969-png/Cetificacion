@@ -215,16 +215,17 @@ export default function MapaPage() {
     [documentos],
   );
 
-  const filtered = useMemo(() => {
-    const term = norm(q.trim());
-    return enriched.filter(({ d, cat: c }) => {
-      if (cat !== "ALL" && c !== cat) return false;
-      if (!term) return true;
-      return norm(`${d.ruta ?? ""} ${d.nombre} ${codeOf(d.nombre)}`).includes(
-        term,
-      );
-    });
-  }, [enriched, cat, q]);
+  const term = norm(q.trim());
+
+  const matchIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const { d, cat: c } of enriched) {
+      if (cat !== "ALL" && c !== cat) continue;
+      if (term && !norm(`${d.ruta ?? ""} ${d.nombre} ${codeOf(d.nombre)}`).includes(term)) continue;
+      set.add(d.id);
+    }
+    return set;
+  }, [enriched, cat, term]);
 
   const counts = useMemo(() => {
     const m: Partial<Record<CatKey, number>> = {};
@@ -232,10 +233,8 @@ export default function MapaPage() {
     return m;
   }, [enriched]);
 
-  const tree = useMemo(
-    () => buildTree(filtered.map((x) => x.d)),
-    [filtered],
-  );
+  // El arbol siempre muestra TODOS los documentos; los filtros marcan (color) y atenúan el resto.
+  const tree = useMemo(() => buildTree(documentos), [documentos]);
 
   const infoMap = useMemo(() => {
     const m = new Map<string, Info>();
@@ -243,37 +242,54 @@ export default function MapaPage() {
     return m;
   }, [enriched]);
 
+  function hasMatchIn(node: TreeNode): boolean {
+    if (node.files.some((d) => matchIds.has(d.id))) return true;
+    return Object.values(node.dirs).some((n) => hasMatchIn(n));
+  }
+
   function renderTree(node: TreeNode, depth: number) {
     const keys = Object.keys(node.dirs).sort((a, b) =>
       a.localeCompare(b, "es"),
     );
     return (
       <>
-        {keys.map((k) => (
-          <details
-            key={k}
-            className="ml-1 border-l border-white/10 pl-2"
-            open={depth < 1}
-          >
-            <summary className="cursor-pointer list-none py-1 text-[13px] font-semibold text-gold/90">
-              <span className="mr-1 text-gold">▸</span>
-              {k}
-              <span className="ml-1.5 text-[11px] font-normal text-slate-500">
-                ({countAll(node.dirs[k])})
-              </span>
-            </summary>
-            {renderTree(node.dirs[k], depth + 1)}
-          </details>
-        ))}
+        {keys.map((k) => {
+          const childHasMatch = hasMatchIn(node.dirs[k]);
+          return (
+            <details
+              key={k}
+              className="ml-1 border-l border-white/10 pl-2"
+              open={depth < 1 || childHasMatch}
+            >
+              <summary
+                className={`cursor-pointer list-none py-1 text-[13px] font-semibold ${
+                  childHasMatch ? "text-gold" : "text-gold/50"
+                }`}
+              >
+                <span className="mr-1 text-gold">▸</span>
+                {k}
+                <span className="ml-1.5 text-[11px] font-normal text-slate-500">
+                  ({countAll(node.dirs[k])})
+                </span>
+              </summary>
+              {renderTree(node.dirs[k], depth + 1)}
+            </details>
+          );
+        })}
         {node.files
           .slice()
           .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))
           .map((d) => {
             const info = infoMap.get(d.id) ?? infoOf(d);
+            const isMatch = matchIds.has(d.id);
             return (
               <div
                 key={d.id}
-                className="ml-4 flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-white/5"
+                className={`ml-4 flex items-center gap-2 rounded-lg px-2 py-1.5 transition ${
+                  isMatch
+                    ? "bg-gold/10 ring-1 ring-gold/40"
+                    : "opacity-40 hover:opacity-100 hover:bg-white/5"
+                }`}
               >
                 <span
                   className={`min-w-[46px] rounded px-1.5 py-0.5 text-center text-[10.5px] font-bold text-white ${info.cls}`}
@@ -491,10 +507,18 @@ export default function MapaPage() {
                 <button
                   key={key}
                   type="button"
-                  onClick={() => setCat(key)}
+                  onClick={() => {
+                    setCat(key);
+                    requestAnimationFrame(() =>
+                      treeRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      }),
+                    );
+                  }}
                   className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12.5px] transition ${
                     active
-                      ? "border-gold bg-gold/15 text-gold"
+                      ? "border-cyan-400 bg-cyan-400/15 text-cyan-300"
                       : "border-white/10 bg-white/[0.03] text-slate-300 hover:border-gold/40"
                   }`}
                 >
@@ -505,8 +529,20 @@ export default function MapaPage() {
                 </button>
               );
             })}
+            <button
+              type="button"
+              onClick={() => {
+                setCat("ALL");
+                setQ("");
+              }}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[12.5px] text-slate-300 transition hover:border-rose-400/40 hover:text-rose-300"
+              title="Limpiar filtro y búsqueda"
+            >
+              <i className="fa-solid fa-xmark" aria-hidden="true" />
+              Limpiar
+            </button>
             <span className="ml-auto self-center text-xs text-slate-500">
-              {filtered.length} de {documentos.length} archivos
+              {matchIds.size} de {documentos.length} archivos
             </span>
           </div>
         </section>
@@ -518,9 +554,9 @@ export default function MapaPage() {
               <i className="fa-solid fa-spinner fa-spin mr-2 text-gold" />
               Cargando mapa...
             </div>
-          ) : filtered.length === 0 ? (
+          ) : documentos.length === 0 ? (
             <div className="p-8 text-center text-sm text-slate-400">
-              Sin resultados.
+              Sin documentos.
             </div>
           ) : (
             <div>{renderTree(tree, 0)}</div>
