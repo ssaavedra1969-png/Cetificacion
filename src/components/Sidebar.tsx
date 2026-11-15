@@ -16,6 +16,7 @@ const NAV = [
   { href: "/mapa", label: "Mapa SGC", icon: "fa-sitemap" },
   { href: "/plan", label: "Plan de Trabajo", icon: "fa-chart-gantt" },
   { href: "/documentoteca", label: "Documentoteca", icon: "fa-folder-open" },
+  { href: "/instructivo", label: "Instructivo", icon: "fa-book" },
 ];
 
 const DRIVE_URL =
