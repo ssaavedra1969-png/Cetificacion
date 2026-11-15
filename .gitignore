@@ -44,3 +44,13 @@ next-env.d.ts
 /documentos/*.html
 /documentos/*.txt
 /documentos/*.docx
+
+# Base DuckDB regenerable desde los Parquet + scripts (evita ~30 MB y no diffea)
+analisis_registros/registros.duckdb
+analisis_registros/**/*.duckdb
+
+# Basura de Office / sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+~$*
