@@ -1,22 +1,25 @@
 # Portal SGC – Grupo Falpat SRL
 
-Portal interno de certificación y seguimiento del Sistema de Gestión de la Calidad (SGC), con agenda por planta (Campana / Luján) y documentoteca de PDF, Word, Excel e imágenes.
+Portal interno de certificación y seguimiento del Sistema de Gestión de la Calidad (SGC), con agenda por planta (Campana / Luján), mapa de procesos, plan de trabajo (Gantt) y documentoteca de PDF, Word, Excel e imágenes.
 
 - **Producción:** https://cetificacion.vercel.app/
 - **Repositorio:** https://github.com/ssaavedra1969-png/Cetificacion (privado, rama `main`)
+- **Documentación completa:** ver [`DOCUMENTACION.md`](./DOCUMENTACION.md)
 - **Continuidad y estado actual:** ver [`INSTRUCCIONES.md`](./INSTRUCCIONES.md)
 
 ## Funcionalidades
 
 - **Inicio**: hero compacto, KPIs, filtros y agenda por planta.
+- **Mapa SGC**: mapa de procesos, árbol documental y chips clicables por proceso.
+- **Plan de Trabajo**: Gantt **dinámico y editable** (fechas y avance derivados; edición por admin/editor).
 - **Agenda**: temas con estado, prioridad, responsable, fechas, notas e historial.
-- **Documentoteca**: buscador, filtros y visor de documentos.
+- **Documentoteca**: buscador, filtros por categoría, visor y acciones por documento.
 - **Administración**:
   - edición de temas,
   - CRUD de documentos (alta, edición, reemplazo de archivo, baja),
   - asociación de documentos a temas con sincronización del historial.
 - **Login por usuario** con roles `admin`, `editor` y `lector`.
-- **Sidebar** responsive con acceso a Inicio, Documentoteca y Administración.
+- **Sidebar** responsive con acceso a Inicio, Mapa SGC, Plan de Trabajo, Documentoteca y Administración.
 
 ## Stack
 
@@ -30,7 +33,8 @@ Portal interno de certificación y seguimiento del Sistema de Gestión de la Cal
 ### Datos
 
 - `data/agenda.json`: temas SGC.
-- `data/documentos.json`: catálogo de documentos.
+- `data/documentos.json`: catálogo de documentos (450 en 10 categorías).
+- `data/plan.json`: plan de trabajo (Gantt editable).
 - `data/usuarios.json`: usuarios, roles y hashes de contraseña.
 
 En desarrollo, si GitHub no está configurado, los cambios se guardan en el filesystem local. En producción (`NODE_ENV=production`) se commitean al repositorio mediante la API de GitHub.
@@ -69,6 +73,7 @@ Copiar `.env.local.example` a `.env.local` y completar los valores. **Nunca** co
 | `/api/documentos` | GET, POST, PATCH, DELETE | Lista y CRUD multipart de documentos. |
 | `/api/files` | GET | Sirve un documento por `id` o `p`, con `Range` y `download=1`. |
 | `/api/files/sign` | POST | URL firmada temporal para el visor Office. |
+| `/api/plan` | GET, PUT | Plan de Trabajo (Gantt): lectura cruda y guardado (editor/admin). |
 | `/api/auth/login` | POST | Login. |
 | `/api/auth/logout` | POST | Logout. |
 | `/api/auth/session` | GET | Usuario de la sesión. |
@@ -105,13 +110,14 @@ npm run build
 ## Estructura
 
 ```
-data/                  # agenda.json, documentos.json, usuarios.json
+data/                  # documentos.json, agenda.json, plan.json, usuarios.json
 documentos/            # archivos subidos (repo, servidos por /api/files)
 src/
-  app/                 # páginas y API routes
-  components/          # UI (Sidebar, AgendaTable, DocumentoManager, etc.)
-  lib/                 # documentos, doc-files, github, files, session, users
+  app/                 # páginas (mapa, plan, documentoteca, …) y API routes
+  components/          # UI (Sidebar, AgendaTable, DocumentoManager, AccionesDocumento, …)
+  lib/                 # documentos, doc-files, plan, plan-service, github, files, session, users
   proxy.ts             # protección de rutas
+importar_sgc.py        # importador del SGC
 ```
 
 ---

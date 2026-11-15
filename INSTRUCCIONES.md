@@ -1,18 +1,26 @@
 # Instrucciones de continuidad — Portal SGC FALPAT
 
-**Actualizado:** 8 de noviembre de 2026  
+**Actualizado:** 15 de noviembre de 2026  
 **Repositorio:** https://github.com/ssaavedra1969-png/Cetificacion (rama `main`)  
 **Sitio:** https://cetificacion.vercel.app/  
-**Carpeta local:** `C:\AI\Antigravity\FALPAT srl\Certificacion`
+**Carpeta local:** `C:\AI\Antigravity\FALPAT srl\Certificacion`  
+**Documentación completa:** [`DOCUMENTACION.md`](./DOCUMENTACION.md)
 
 ---
 
 ## 1. Estado actual
 
-- **Layout con sidebar** (Inicio / Documentoteca / Administración). En móvil se abre como drawer.
+- **Layout con sidebar** (Inicio / Mapa SGC / Plan de Trabajo / Documentoteca / Administración). En móvil se abre como drawer.
 - **Portada simplificada**: hero compacto, KPIs + filtros a la izquierda y agenda a la derecha.
+- **Mapa SGC** (`/mapa`): mapa de procesos, árbol documental por categoría, chips clicables y buscador.
+- **Plan de Trabajo** (`/plan`): Gantt **dinámico y editable**. Fechas de fin, rango de semanas,
+  avance por bloque y avance general se **derivan** de las tareas; línea de "hoy", semana actual y
+  tareas atrasadas. Edición por `admin`/`editor` con guardado en `data/plan.json`
+  (detalle en [`DOCUMENTACION.md`](./DOCUMENTACION.md) §5).
 - **Temas por planta** (Luján / Campana) con contadores, filtros, tabla/tarjetas y modal de detalle.
-- **Documentoteca** con tipos PDF, Word, Excel e imagen.
+- **Documentoteca** con tipos PDF, Word, Excel e imagen y **450 documentos** en **10 categorías**
+  (incluye `Manual del SGC`).
+- **Acciones por documento**: Ver · vista PDF · Editar · Eliminar (admin) · pasar a **Obsoletos**.
 - **CRUD completo de documentos** desde `/administracion#documentos`:
   - alta con archivo,
   - edición de metadatos y reemplazo opcional del archivo,
@@ -104,6 +112,8 @@ Límites y formatos:
 | `/api/documentos` | DELETE | Baja por `?id=` (borra archivo y vínculos). |
 | `/api/files` | GET | Sirve `?id=` o `?p=`, soporta `Range` y `download=1`. Token opcional. |
 | `/api/files/sign` | POST | Devuelve URL absoluta firmada (10 min) para el visor Office. Requiere sesión. |
+| `/api/plan` | GET | Devuelve el plan de trabajo crudo (`data/plan.json`). |
+| `/api/plan` | PUT | Guarda el plan (valida y sanitiza). Requiere rol editor/admin. |
 | `/api/auth/login` | POST | Login por email/contraseña. |
 | `/api/auth/logout` | POST | Cierra sesión. |
 | `/api/auth/session` | GET | Devuelve el usuario de la sesión. |
@@ -116,6 +126,8 @@ Límites y formatos:
 src/
   app/
     page.tsx                     # Dashboard
+    mapa/page.tsx                # Mapa SGC
+    plan/page.tsx                # Plan de Trabajo (Gantt)
     documentoteca/page.tsx
     administracion/page.tsx      # Temas + DocumentoManager
     login/page.tsx
@@ -126,17 +138,21 @@ src/
       documentos/route.ts        # CRUD multipart
       files/route.ts             # stream local/GitHub + Range
       files/sign/route.ts        # URL firmada para Office
+      plan/route.ts              # GET (crudo) / PUT (guardar)
       auth/{login,logout,session}/route.ts
   components/
     Sidebar.tsx / RootShell.tsx
     AgendaTable.tsx / PuntoModal.tsx
     DocumentoManager.tsx         # UI CRUD de documentos
-    DocumentoModal.tsx / DocumentoViewer.tsx
-    useDocumentoEmbed.ts         # PDF/imagen/Office + firma
+    AccionesDocumento.tsx        # acciones por documento
+    RepositorioPanel.tsx         # panel de inicio
+    DocumentoModal.tsx / DocumentoViewer.tsx / OfficePreview.tsx
     Hero.tsx / KPIs.tsx
   lib/
     documentos.ts                # servicio CRUD + roles + sync agenda
-    doc-files.ts                 # almacenamiento local/GitHub
+    doc-files.ts                 # almacenamiento local/GitHub + safeRelative
+    plan.ts                      # tipos + derive (semanas/meses/fin/avance)
+    plan-service.ts              # validación + permiso editor
     github.ts                    # API GitHub (JSON y binarios)
     files.ts                     # extensiones, MIME, tipo, tamaño
     signing.ts                   # tokens HMAC de archivos
@@ -145,8 +161,10 @@ src/
 data/
   agenda.json
   documentos.json
+  plan.json
   usuarios.json
 documentos/                      # archivos subidos (repo, no public/)
+importar_sgc.py                  # importador del SGC
 ```
 
 ---

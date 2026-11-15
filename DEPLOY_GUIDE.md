@@ -102,8 +102,8 @@ O bien, en **Settings → Git → Production Branch**, cambiar de `main` a `desa
 ### Verificar que quedó bien
 
 ```powershell
-# Debe coincidir con la cantidad de documentos importados (hoy: 451)
-$j = Get-Content -Raw "data\documentos.json" | ConvertFrom-Json; $j.Count
+# Debe coincidir con la cantidad de documentos importados (hoy: 450)
+$j = Get-Content -Raw "data\documentos.json" | ConvertFrom-Json; $j.documentos.Count
 ```
 
 Luego abrir https://cetificacion.vercel.app/ y confirmar que aparece el catálogo nuevo.
@@ -118,7 +118,7 @@ Luego abrir https://cetificacion.vercel.app/ y confirmar que aparece el catálog
 
 ## Persistencia
 
-- **Metadatos:** `data/agenda.json`, `data/documentos.json`, `data/usuarios.json`.
+- **Metadatos:** `data/agenda.json`, `data/documentos.json`, `data/plan.json`, `data/usuarios.json`.
 - **Archivos:** `documentos/` en la raíz del repositorio.
 - **Escritura:** API de GitHub (`Contents`), tanto para JSON como para binarios.
 - **Límite:** 10 MB por archivo (`MAX_UPLOAD_BYTES`); en Vercel el cuerpo de la función está limitado a ~4,5 MB.
