@@ -10,10 +10,15 @@ import {
 export const DOCS_DIR = "documentos";
 
 function safeRelative(ruta: string): string {
-  const normalized = (ruta || "")
+  let normalized = (ruta || "")
     .replace(/\\/g, "/")
     .replace(/^\/+/, "")
     .replace(/\/{2,}/g, "/");
+
+  // Las rutas importadas del SGC no incluyen el prefijo "documentos/".
+  if (normalized && !normalized.startsWith(`${DOCS_DIR}/`)) {
+    normalized = `${DOCS_DIR}/${normalized}`;
+  }
 
   if (
     !normalized.startsWith(`${DOCS_DIR}/`) ||
