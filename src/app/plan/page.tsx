@@ -1,34 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-
-interface Tarea {
-  id: string;
-  codigo: string;
-  tarea: string;
-  responsable: string;
-  inicio: string;
-  semanas: number | null;
-  fin: string;
-  estado: string;
-  avance: number;
-  observaciones: string;
-  esGrupo: boolean;
-  hito: boolean;
-}
-
-interface Plan {
-  titulo: string;
-  nota: string;
-  avanceGeneral: number;
-  semanas: string[];
-  meses: { col: number; label: string }[];
-  tareas: Tarea[];
-  referencias: string[];
-  fuente: string;
-}
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ESTADOS,
+  derivePlan,
+  type PlanDerivado,
+  type PlanEstado,
+  type PlanRaw,
+  type PlanTarea,
+} from "@/lib/plan";
 
 const MS_DIA = 86400000;
+const toUTC = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
+const hoyISO = () => new Date().toISOString().slice(0, 10);
 
 const ESTADO_UI: Record<
   string,
@@ -72,12 +56,13 @@ const GRUPO_UI = {
   chip: "border-gold/30 bg-gold/10 text-gold",
 };
 
-const uiDe = (t: Tarea) => (t.esGrupo ? GRUPO_UI : ESTADO_UI[t.estado] ?? ESTADO_UI.Pendiente);
+const uiDe = (t: PlanTarea) =>
+  t.esGrupo ? GRUPO_UI : ESTADO_UI[t.estado] ?? ESTADO_UI.Pendiente;
 
 function posicion(inicio: string, fin: string, first: string, totalSemanas: number) {
   const totalDias = totalSemanas * 7;
-  const desde = (new Date(inicio).getTime() - new Date(first).getTime()) / MS_DIA;
-  const hasta = (new Date(fin).getTime() - new Date(first).getTime()) / MS_DIA + 1;
+  const desde = (toUTC(inicio) - toUTC(first)) / MS_DIA;
+  const hasta = (toUTC(fin) - toUTC(first)) / MS_DIA + 1;
   const left = Math.max(0, (desde / totalDias) * 100);
   const right = Math.min(100, (hasta / totalDias) * 100);
   return { left: `${left}%`, width: `${Math.max(0.8, right - left)}%` };
@@ -88,36 +73,63 @@ const fmtFecha = (iso: string) => {
   return `${d}/${m}/${y.slice(2)}`;
 };
 
+const INP =
+  "w-full rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white focus:border-gold/50 focus:outline-none";
+
 export default function PlanPage() {
-  const [plan, setPlan] = useState<Plan | null>(null);
+  const [raw, setRaw] = useState<PlanRaw | null>(null);
+  const [draft, setDraft] = useState<PlanRaw | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [canEdit, setCanEdit] = useState(false);
+  const [editando, setEditando] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [mensaje, setMensaje] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<string>("Todas");
   const [busqueda, setBusqueda] = useState("");
 
-  useEffect(() => {
+  const cargar = useCallback(() => {
+    setLoading(true);
     fetch("/api/plan")
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then((data) => setPlan(data))
-      .catch((e) => setError(e.message));
+      .then((data: PlanRaw) => {
+        setRaw(data);
+        setError(null);
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   }, []);
 
-  const tareas = plan?.tareas ?? [];
+  useEffect(() => {
+    cargar();
+    fetch("/api/auth/session")
+      .then((res) => res.json())
+      .then((d) => setCanEdit(Boolean(d.authenticated) && d.user?.rol !== "lector"))
+      .catch(() => setCanEdit(false));
+  }, [cargar]);
+
+  const base = editando && draft ? draft : raw;
+
+  const plan: PlanDerivado | null = useMemo(
+    () => (base ? derivePlan(base) : null),
+    [base],
+  );
 
   const conteo = useMemo(() => {
     const acc: Record<string, number> = {};
-    for (const t of tareas) {
+    for (const t of plan?.tareas ?? []) {
       if (t.esGrupo) continue;
       acc[t.estado || "Pendiente"] = (acc[t.estado || "Pendiente"] ?? 0) + 1;
     }
     return acc;
-  }, [tareas]);
+  }, [plan]);
 
   const visibles = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
-    return tareas.filter((t) => {
+    return (plan?.tareas ?? []).filter((t) => {
       if (filtro !== "Todas" && !t.esGrupo && t.estado !== filtro) return false;
       if (q) {
         const texto = `${t.codigo} ${t.tarea} ${t.responsable} ${t.observaciones}`.toLowerCase();
@@ -125,21 +137,105 @@ export default function PlanPage() {
       }
       return true;
     });
-  }, [tareas, filtro, busqueda]);
+  }, [plan, filtro, busqueda]);
 
   const estados = ["Todas", "En curso", "Pendiente", "Terminado", "Bloqueado"].filter(
     (e) => e === "Todas" || conteo[e],
   );
 
-  if (error) {
-    return (
-      <div className="glass rounded-xl border border-rose-400/30 p-6 text-rose-300">
-        No se pudo cargar el plan: {error}
-      </div>
-    );
-  }
+  const iniciarEdicion = () => {
+    if (!raw) return;
+    setDraft(JSON.parse(JSON.stringify(raw)) as PlanRaw);
+    setMensaje(null);
+    setEditando(true);
+  };
 
-  if (!plan) {
+  const cancelar = () => {
+    setDraft(null);
+    setEditando(false);
+    setMensaje(null);
+  };
+
+  const setTarea = (id: string, patch: Partial<PlanTarea>) =>
+    setDraft((d) =>
+      d ? { ...d, tareas: d.tareas.map((t) => (t.id === id ? { ...t, ...patch } : t)) } : d,
+    );
+
+  const quitarTarea = (id: string) =>
+    setDraft((d) => (d ? { ...d, tareas: d.tareas.filter((t) => t.id !== id) } : d));
+
+  const agregarTarea = (grupoId: string) =>
+    setDraft((d) => {
+      if (!d) return d;
+      const hijos = d.tareas.filter((t) => t.id.startsWith(`${grupoId}.`));
+      const mayor = hijos.reduce((max, t) => {
+        const n = Number(t.id.split(".").pop());
+        return Number.isFinite(n) && n > max ? n : max;
+      }, 0);
+      const nueva: PlanTarea = {
+        id: `${grupoId}.${mayor + 1}`,
+        codigo: "",
+        tarea: "Nueva tarea",
+        responsable: "",
+        inicio: hoyISO(),
+        semanas: 1,
+        estado: "Pendiente",
+        avance: 0,
+        observaciones: "",
+        esGrupo: false,
+        hito: false,
+      };
+      return { ...d, tareas: [...d.tareas, nueva] };
+    });
+
+  const agregarGrupo = () =>
+    setDraft((d) => {
+      if (!d) return d;
+      const mayor = d.tareas.reduce((max, t) => {
+        if (!t.esGrupo) return max;
+        const n = Number(t.id);
+        return Number.isFinite(n) && n > max ? n : max;
+      }, -1);
+      const nuevo: PlanTarea = {
+        id: String(mayor + 1),
+        codigo: "",
+        tarea: "NUEVO BLOQUE",
+        responsable: "",
+        inicio: hoyISO(),
+        semanas: null,
+        estado: "",
+        avance: 0,
+        observaciones: "",
+        esGrupo: true,
+        hito: false,
+      };
+      return { ...d, tareas: [...d.tareas, nuevo] };
+    });
+
+  const guardar = async () => {
+    if (!draft) return;
+    setSaving(true);
+    setMensaje(null);
+    try {
+      const res = await fetch("/api/plan", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(draft),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      setRaw(draft);
+      setDraft(null);
+      setEditando(false);
+      setMensaje("Plan guardado. Los cambios ya están publicados.");
+    } catch (e) {
+      setMensaje(`No se pudo guardar: ${e instanceof Error ? e.message : e}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
     return (
       <div className="glass animate-pulse rounded-xl p-10 text-center text-[#94a3b8]">
         Cargando plan de trabajo…
@@ -147,15 +243,22 @@ export default function PlanPage() {
     );
   }
 
+  if (error || !plan) {
+    return (
+      <div className="glass rounded-xl border border-rose-400/30 p-6 text-rose-300">
+        No se pudo cargar el plan: {error}
+      </div>
+    );
+  }
+
   const totalSemanas = plan.semanas.length;
   const first = plan.semanas[0];
-  const hoy = new Date();
-  let semanaActual = -1;
-  plan.semanas.forEach((s, i) => {
-    if (new Date(s).getTime() <= hoy.getTime()) semanaActual = i;
-  });
-
+  const finPlan = plan.tareas.reduce((max, t) => (t.fin > max ? t.fin : max), first);
   const avancePct = Math.round(plan.avanceGeneral * 1000) / 10;
+  const todayPct =
+    ((toUTC(plan.hoy) - toUTC(first)) / MS_DIA) / (totalSemanas * 7) * 100;
+  const mostrarHoy = todayPct >= 0 && todayPct <= 100;
+  const atrasadas = plan.tareas.filter((t) => t.atrasada).length;
 
   return (
     <div className="space-y-6">
@@ -177,12 +280,12 @@ export default function PlanPage() {
             </div>
             <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-white/10">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-gold-dark to-gold"
+                className="h-full rounded-full bg-gradient-to-r from-gold-dark to-gold transition-all"
                 style={{ width: `${avancePct}%` }}
               />
             </div>
             <p className="mt-2 text-right text-[11px] text-[#64748b]">
-              {totalSemanas} semanas · {fmtFecha(first)} → {fmtFecha(plan.semanas[totalSemanas - 1])}
+              {totalSemanas} semanas · {fmtFecha(first)} → {fmtFecha(finPlan)}
             </p>
           </div>
         </div>
@@ -191,48 +294,109 @@ export default function PlanPage() {
           {["En curso", "Pendiente", "Terminado", "Bloqueado"].map((e) => (
             <span
               key={e}
-              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${
-                ESTADO_UI[e].chip
-              }`}
+              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${ESTADO_UI[e].chip}`}
             >
               <span className={`h-2 w-2 rounded-full ${ESTADO_UI[e].dot}`} />
               {e}
               <span className="font-bold">{conteo[e] ?? 0}</span>
             </span>
           ))}
+          {atrasadas > 0 && (
+            <span className="inline-flex items-center gap-2 rounded-full border border-rose-400/40 bg-rose-500/15 px-3 py-1 text-xs font-medium text-rose-200">
+              <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+              {atrasadas} atrasada{atrasadas > 1 ? "s" : ""}
+            </span>
+          )}
+          <div className="ml-auto flex items-center gap-2">
+            {canEdit && !editando && (
+              <button
+                type="button"
+                onClick={iniciarEdicion}
+                className="inline-flex items-center gap-2 rounded-lg border border-gold/40 bg-gold/15 px-3 py-1.5 text-xs font-semibold text-gold transition-colors hover:bg-gold/25"
+              >
+                <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
+                Editar plan
+              </button>
+            )}
+            {editando && (
+              <>
+                <button
+                  type="button"
+                  onClick={cancelar}
+                  disabled={saving}
+                  className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-[#94a3b8] transition-colors hover:text-white disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={guardar}
+                  disabled={saving}
+                  className="inline-flex items-center gap-2 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition-colors hover:bg-emerald-500/25 disabled:opacity-50"
+                >
+                  <i
+                    className={`fa-solid ${saving ? "fa-spinner fa-spin" : "fa-floppy-disk"}`}
+                    aria-hidden="true"
+                  />
+                  {saving ? "Guardando…" : "Guardar cambios"}
+                </button>
+              </>
+            )}
+          </div>
         </div>
+
+        {mensaje && (
+          <p
+            className={`mt-4 rounded-lg border px-3 py-2 text-xs ${
+              mensaje.startsWith("No se pudo")
+                ? "border-rose-400/30 bg-rose-500/10 text-rose-300"
+                : "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
+            }`}
+          >
+            {mensaje}
+          </p>
+        )}
+        {editando && (
+          <p className="mt-4 rounded-lg border border-sky-400/30 bg-sky-500/10 px-3 py-2 text-xs text-sky-200">
+            <i className="fa-solid fa-circle-info mr-1" aria-hidden="true" />
+            El avance de cada bloque y el avance general se recalculan solos a partir de las
+            tareas. Las fechas de fin y el rango del Gantt se ajustan automáticamente.
+          </p>
+        )}
       </header>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap gap-2">
-          {estados.map((e) => (
-            <button
-              key={e}
-              type="button"
-              onClick={() => setFiltro(e)}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                filtro === e
-                  ? "border-gold/50 bg-gold/15 text-gold"
-                  : "border-white/10 bg-white/5 text-[#94a3b8] hover:text-white"
-              }`}
-            >
-              {e}
-            </button>
-          ))}
+      {!editando && (
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap gap-2">
+            {estados.map((e) => (
+              <button
+                key={e}
+                type="button"
+                onClick={() => setFiltro(e)}
+                className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  filtro === e
+                    ? "border-gold/50 bg-gold/15 text-gold"
+                    : "border-white/10 bg-white/5 text-[#94a3b8] hover:text-white"
+                }`}
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+          <div className="relative ml-auto">
+            <i
+              className="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#64748b]"
+              aria-hidden="true"
+            />
+            <input
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar tarea o responsable…"
+              className="w-64 rounded-lg border border-white/10 bg-white/5 py-1.5 pl-9 pr-3 text-sm text-white placeholder:text-[#64748b] focus:border-gold/50 focus:outline-none"
+            />
+          </div>
         </div>
-        <div className="relative ml-auto">
-          <i
-            className="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#64748b]"
-            aria-hidden="true"
-          />
-          <input
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar tarea o responsable…"
-            className="w-64 rounded-lg border border-white/10 bg-white/5 py-1.5 pl-9 pr-3 text-sm text-white placeholder:text-[#64748b] focus:border-gold/50 focus:outline-none"
-          />
-        </div>
-      </div>
+      )}
 
       <div className="max-h-[72vh] overflow-auto rounded-xl border border-white/10 bg-[#070b16]">
         <div className="min-w-[1080px]">
@@ -266,7 +430,7 @@ export default function PlanPage() {
                   <div
                     key={s}
                     className={`flex items-center justify-center border-l border-white/[0.06] text-[9px] ${
-                      i === semanaActual ? "bg-gold/15 text-gold" : "text-[#475569]"
+                      i === plan.semanaActual ? "bg-gold/15 text-gold" : "text-[#475569]"
                     }`}
                   >
                     {s.split("-")[2]}
@@ -307,6 +471,13 @@ export default function PlanPage() {
                   >
                     {t.tarea}
                   </span>
+                  {t.atrasada && (
+                    <i
+                      className="fa-solid fa-triangle-exclamation shrink-0 text-[10px] text-rose-400"
+                      title="Tarea atrasada"
+                      aria-hidden="true"
+                    />
+                  )}
                   {!t.esGrupo && (
                     <span className="shrink-0 text-[10px] text-[#64748b]">{t.responsable}</span>
                   )}
@@ -324,11 +495,18 @@ export default function PlanPage() {
                       <div
                         key={s}
                         className={`border-l border-white/[0.06] ${
-                          i === semanaActual ? "bg-gold/[0.06]" : ""
+                          i === plan.semanaActual ? "bg-gold/[0.06]" : ""
                         }`}
                       />
                     ))}
                   </div>
+
+                  {mostrarHoy && (
+                    <div
+                      className="absolute inset-y-0 z-[3] w-px bg-gold/60"
+                      style={{ left: `${todayPct}%` }}
+                    />
+                  )}
 
                   {t.hito ? (
                     <div
@@ -340,7 +518,9 @@ export default function PlanPage() {
                     <div
                       className={`absolute top-1/2 z-[5] flex -translate-y-1/2 items-center overflow-hidden rounded-full ${
                         ui.track
-                      } ${t.esGrupo ? "h-3.5" : "h-5"}`}
+                      } ${t.esGrupo ? "h-3.5" : "h-5"} ${
+                        t.atrasada ? "ring-1 ring-rose-400/70" : ""
+                      }`}
                       style={{ left: pos.left, width: pos.width }}
                       title={`${t.tarea} · ${fmtFecha(t.inicio)} → ${fmtFecha(t.fin)}${
                         t.esGrupo ? "" : ` · ${t.estado} ${avance}%`
@@ -359,6 +539,214 @@ export default function PlanPage() {
         </div>
       </div>
 
+      {editando && draft && (
+        <section className="glass rounded-xl p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gold">
+              Editar tareas
+            </h2>
+            <button
+              type="button"
+              onClick={agregarGrupo}
+              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-[#c7d2e3] transition-colors hover:border-gold/40 hover:text-gold"
+            >
+              <i className="fa-solid fa-plus" aria-hidden="true" />
+              Agregar bloque
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[980px] border-collapse text-xs">
+              <thead>
+                <tr className="text-left text-[10px] uppercase tracking-wide text-[#64748b]">
+                  <th className="px-2 py-2">Código</th>
+                  <th className="px-2 py-2">Tarea</th>
+                  <th className="px-2 py-2">Responsable</th>
+                  <th className="px-2 py-2">Estado</th>
+                  <th className="px-2 py-2">Avance %</th>
+                  <th className="px-2 py-2">Inicio</th>
+                  <th className="px-2 py-2">Semanas</th>
+                  <th className="px-2 py-2">Hito</th>
+                  <th className="px-2 py-2">Observaciones</th>
+                  <th className="px-2 py-2" />
+                </tr>
+              </thead>
+              <tbody>
+                {draft.tareas.map((t) => (
+                  <tr
+                    key={t.id}
+                    className={`border-t border-white/[0.06] align-middle ${
+                      t.esGrupo ? "bg-white/[0.03]" : ""
+                    }`}
+                  >
+                    {t.esGrupo ? (
+                      <>
+                        <td className="px-2 py-2 text-[10px] font-bold text-gold">#{t.id}</td>
+                        <td className="px-2 py-2" colSpan={8}>
+                          <input
+                            className={`${INP} font-semibold uppercase text-gold`}
+                            value={t.tarea}
+                            onChange={(e) => setTarea(t.id, { tarea: e.target.value })}
+                          />
+                        </td>
+                        <td className="px-2 py-2">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={() => agregarTarea(t.id)}
+                              title="Agregar tarea al bloque"
+                              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-emerald-300 hover:bg-emerald-500/15"
+                            >
+                              <i className="fa-solid fa-plus" aria-hidden="true" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => quitarTarea(t.id)}
+                              title="Eliminar bloque"
+                              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-rose-300 hover:bg-rose-500/15"
+                            >
+                              <i className="fa-solid fa-trash" aria-hidden="true" />
+                            </button>
+                          </div>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-2 py-2 w-20">
+                          <input
+                            className={INP}
+                            value={t.codigo}
+                            placeholder="—"
+                            onChange={(e) => setTarea(t.id, { codigo: e.target.value })}
+                          />
+                        </td>
+                        <td className="px-2 py-2 min-w-[220px]">
+                          <input
+                            className={INP}
+                            value={t.tarea}
+                            onChange={(e) => setTarea(t.id, { tarea: e.target.value })}
+                          />
+                        </td>
+                        <td className="px-2 py-2 w-32">
+                          <input
+                            className={INP}
+                            value={t.responsable}
+                            placeholder="—"
+                            onChange={(e) => setTarea(t.id, { responsable: e.target.value })}
+                          />
+                        </td>
+                        <td className="px-2 py-2 w-28">
+                          <select
+                            className={INP}
+                            value={t.estado || "Pendiente"}
+                            onChange={(e) =>
+                              setTarea(t.id, { estado: e.target.value as PlanEstado })
+                            }
+                          >
+                            {ESTADOS.map((e) => (
+                              <option key={e} value={e} className="bg-[#0a0f1e]">
+                                {e}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="px-2 py-2 w-20">
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            className={INP}
+                            value={Math.round(t.avance * 100)}
+                            onChange={(e) =>
+                              setTarea(t.id, {
+                                avance: Math.min(1, Math.max(0, Number(e.target.value) / 100 || 0)),
+                              })
+                            }
+                          />
+                        </td>
+                        <td className="px-2 py-2 w-36">
+                          <input
+                            type="date"
+                            className={INP}
+                            value={t.inicio}
+                            onChange={(e) => setTarea(t.id, { inicio: e.target.value })}
+                          />
+                        </td>
+                        <td className="px-2 py-2 w-20">
+                          <input
+                            type="number"
+                            min={1}
+                            className={INP}
+                            disabled={t.hito}
+                            value={t.hito ? 0 : t.semanas ?? 1}
+                            onChange={(e) =>
+                              setTarea(t.id, { semanas: Math.max(1, Number(e.target.value) || 1) })
+                            }
+                          />
+                        </td>
+                        <td className="px-2 py-2 w-14 text-center">
+                          <input
+                            type="checkbox"
+                            checked={t.hito}
+                            onChange={(e) =>
+                              setTarea(t.id, {
+                                hito: e.target.checked,
+                                semanas: e.target.checked ? 0 : 1,
+                              })
+                            }
+                          />
+                        </td>
+                        <td className="px-2 py-2 min-w-[200px]">
+                          <input
+                            className={INP}
+                            value={t.observaciones}
+                            placeholder="—"
+                            onChange={(e) => setTarea(t.id, { observaciones: e.target.value })}
+                          />
+                        </td>
+                        <td className="px-2 py-2">
+                          <button
+                            type="button"
+                            onClick={() => quitarTarea(t.id)}
+                            title="Eliminar tarea"
+                            className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-rose-300 hover:bg-rose-500/15"
+                          >
+                            <i className="fa-solid fa-trash" aria-hidden="true" />
+                          </button>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={cancelar}
+              disabled={saving}
+              className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-[#94a3b8] transition-colors hover:text-white disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={guardar}
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-300 transition-colors hover:bg-emerald-500/25 disabled:opacity-50"
+            >
+              <i
+                className={`fa-solid ${saving ? "fa-spinner fa-spin" : "fa-floppy-disk"}`}
+                aria-hidden="true"
+              />
+              {saving ? "Guardando…" : "Guardar cambios"}
+            </button>
+          </div>
+        </section>
+      )}
+
       <div className="glass rounded-xl p-5">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#64748b]">
           Referencias
@@ -374,7 +762,7 @@ export default function PlanPage() {
             <span className="h-2.5 w-2.5 rounded-full bg-slate-400" /> Pendiente
           </span>
           <span className="inline-flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-rose-400" /> Bloqueado
+            <span className="h-2.5 w-2.5 rounded-full bg-rose-400" /> Bloqueado / atrasado
           </span>
           <span className="inline-flex items-center gap-2">
             <span className="h-3 w-3 rotate-45 rounded-[2px] bg-gold" /> Hito
@@ -383,15 +771,22 @@ export default function PlanPage() {
             <span className="h-3 w-6 rounded-full bg-gold/60" /> Bloque (resumen)
           </span>
           <span className="inline-flex items-center gap-2">
+            <span className="h-4 w-0.5 bg-gold/60" /> Hoy
+          </span>
+          <span className="inline-flex items-center gap-2">
             <span className="h-4 w-3 rounded-sm bg-gold/20" /> Semana actual
           </span>
         </div>
-        <p className="mt-4 border-t border-white/10 pt-3 text-[11px] text-[#64748b]">
-          {plan.referencias[plan.referencias.length - 1]}
-        </p>
-        <p className="mt-2 text-[11px] text-[#64748b]">
-          Fuente: <span className="text-[#94a3b8]">{plan.fuente}</span>
-        </p>
+        {plan.referencias.length > 0 && (
+          <p className="mt-4 border-t border-white/10 pt-3 text-[11px] text-[#64748b]">
+            {plan.referencias[plan.referencias.length - 1]}
+          </p>
+        )}
+        {plan.fuente && (
+          <p className="mt-2 text-[11px] text-[#64748b]">
+            Fuente: <span className="text-[#94a3b8]">{plan.fuente}</span>
+          </p>
+        )}
       </div>
     </div>
   );

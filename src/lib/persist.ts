@@ -1,5 +1,6 @@
 import type { PuntoSGC, Documento } from "../types/models";
-import { writeAgenda, writeDocumentos } from "./storage";
+import type { PlanRaw } from "./plan";
+import { writeAgenda, writeDocumentos, writePlan } from "./storage";
 import { githubConfigured, putJSON } from "./github";
 
 export interface SaveResult {
@@ -61,5 +62,12 @@ export async function saveDocumentos(
   return persist(
     () => writeDocumentos(data),
     () => putJSON("data/documentos.json", data, "SGC: actualizar documentos"),
+  );
+}
+
+export async function savePlan(data: PlanRaw): Promise<SaveResult> {
+  return persist(
+    () => writePlan(data),
+    () => putJSON("data/plan.json", data, "SGC: actualizar plan de trabajo"),
   );
 }

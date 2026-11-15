@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import type { PuntoSGC, Documento, HistorialCambio } from "../types/models";
+import type { PlanRaw } from "./plan";
 import { githubConfigured, getJSON } from "./github";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -68,6 +69,28 @@ export async function writeDocumentos(data: {
 }): Promise<void> {
   await fs.writeFile(
     path.join(DATA_DIR, "documentos.json"),
+    JSON.stringify(data, null, 2),
+    "utf-8",
+  );
+}
+
+export async function readPlan(): Promise<PlanRaw> {
+  if (preferRemote) {
+    try {
+      const data = await getJSON<PlanRaw>("data/plan.json");
+      if (data) return data;
+    } catch {
+      // caer al filesystem empaquetado
+    }
+  }
+
+  const raw = await fs.readFile(path.join(DATA_DIR, "plan.json"), "utf-8");
+  return JSON.parse(raw) as PlanRaw;
+}
+
+export async function writePlan(data: PlanRaw): Promise<void> {
+  await fs.writeFile(
+    path.join(DATA_DIR, "plan.json"),
     JSON.stringify(data, null, 2),
     "utf-8",
   );

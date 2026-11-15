@@ -1,30 +1,40 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
-import { githubConfigured, getJSON } from "@/lib/github";
+import { getSession } from "@/lib/auth";
+import { getPlan, updatePlan, type PlanSession } from "@/lib/plan-service";
+import { HttpError } from "@/lib/documentos";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+function sessionData(
+  session: Awaited<ReturnType<typeof getSession>>,
+): PlanSession | null {
+  if (!session) return null;
+  return { nombre: session.nombre, rol: session.rol };
+}
+
+function errorResponse(error: unknown) {
+  if (error instanceof HttpError) {
+    return NextResponse.json({ error: error.message }, { status: error.status });
+  }
+  return NextResponse.json(
+    { error: error instanceof Error ? error.message : "Error desconocido" },
+    { status: 500 },
+  );
+}
 
 export async function GET() {
-  if (
-    (process.env.VERCEL === "1" || process.env.NODE_ENV === "production") &&
-    githubConfigured()
-  ) {
-    try {
-      const data = await getJSON<unknown>("data/plan.json");
-      if (data) return NextResponse.json(data);
-    } catch {
-      // caer al filesystem empaquetado
-    }
-  }
-
   try {
-    const raw = await fs.readFile(path.join(DATA_DIR, "plan.json"), "utf-8");
-    return NextResponse.json(JSON.parse(raw));
-  } catch {
-    return NextResponse.json(
-      { error: "No se pudo cargar el plan de trabajo" },
-      { status: 500 },
-    );
+    return NextResponse.json(await getPlan());
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const session = sessionData(await getSession());
+    const result = await updatePlan(body, session);
+    return NextResponse.json({ success: true, ...result });
+  } catch (error) {
+    return errorResponse(error);
   }
 }
