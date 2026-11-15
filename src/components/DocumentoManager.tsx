@@ -123,7 +123,7 @@ export default function DocumentoManager({
 
   const fileRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
-  const docParamRef = useRef(false);
+  const openedDocRef = useRef<string | null>(null);
 
   const limpiarArchivo = () => {
     setFile(null);
@@ -255,16 +255,17 @@ export default function DocumentoManager({
     setAbierto(false);
     setMensaje(null);
     setMostrarDetalles(false);
+    openedDocRef.current = null;
   };
 
   // Abrir automáticamente un documento desde ?doc= (ej. botón Editar de la Documentoteca)
   useEffect(() => {
-    if (docParamRef.current || typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
     const id = new URLSearchParams(window.location.search).get("doc");
-    if (!id) return;
+    if (!id || id === openedDocRef.current) return;
     const doc = documentos.find((d) => d.id === id);
     if (!doc) return;
-    docParamRef.current = true;
+    openedDocRef.current = id;
     /* eslint-disable react-hooks/set-state-in-effect */
     editar(doc);
     /* eslint-enable react-hooks/set-state-in-effect */

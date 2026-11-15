@@ -120,14 +120,14 @@ export default function AccionesDocumento({
       </a>
 
       {canEdit && (
-        <Link
+        <a
           href={`/administracion?doc=${encodeURIComponent(documento.id)}#documentos`}
           className={`${base} ${dim} border-amber-400/30 bg-amber-400/10 text-amber-300 hover:bg-amber-400/20`}
           title="Editar documento"
         >
           <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
           {size === "md" && "Editar"}
-        </Link>
+        </a>
       )}
 
       {canEdit && !esObsoleto && (
