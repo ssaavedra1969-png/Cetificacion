@@ -397,7 +397,7 @@ export default function PlanPage() {
           <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gold">Línea de tiempo (Gantt)</h2>
           <span className="text-[11px] text-[#64748b]">{plan.semanas.length} semanas · {fmtFecha(plan.rango.inicio)} → {fmtFecha(plan.rango.fin)}</span>
         </div>
-        <div className="max-h-[72vh] overflow-auto bg-[#070b16]">
+        <div className="max-h-[72vh] overflow-auto bg-[#070b16] pb-10">
           <div className="min-w-[960px]">
             <div className="sticky top-0 z-20 flex border-b border-white/10 bg-[#0a0f1e]">
               <div className="sticky left-0 z-30 w-[280px] shrink-0 border-r border-white/10 bg-[#0a0f1e] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#64748b]">
@@ -581,7 +581,7 @@ export default function PlanPage() {
                     const ui = uiDe(t);
                     return (
                       <div key={t.id} className={`flex flex-wrap items-center gap-2 px-4 py-2.5 ${t.atrasada ? "bg-rose-500/5" : ""}`}>
-                        <span className="w-14 shrink-0 font-mono text-[11px] font-bold text-gold/80">{t.codigo}</span>
+                        <span className="w-14 shrink-0 font-mono-code text-[11px] font-bold text-gold/80">{t.codigo}</span>
                         <span className="min-w-0 flex-1 text-sm text-white">{t.tarea}</span>
                         <span className="hidden text-[11px] text-[#64748b] sm:block">{t.responsable}</span>
                         <span className="text-[11px] text-[#64748b]">{fmtFecha(t.inicio)}→{fmtFecha(t.fin)}</span>

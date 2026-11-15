@@ -15,14 +15,14 @@ export default function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <Sidebar />
-      {!sinAcceso && (
-        <div className="pointer-events-none fixed inset-x-0 top-0 z-30 hidden justify-end p-4 md:flex">
-          <div className="pointer-events-auto">
-            <SessionAccess />
-          </div>
+    {!sinAcceso && (
+      <div className="pointer-events-none fixed right-4 top-4 z-30 hidden md:flex">
+        <div className="pointer-events-auto">
+          <SessionAccess />
         </div>
-      )}
-      <div className="min-h-screen pt-14 md:pl-64 md:pt-0">{children}</div>
+      </div>
+    )}
+    <div className="min-h-screen pt-14 md:pl-64 md:pt-4">{children}</div>
     </div>
   );
 }

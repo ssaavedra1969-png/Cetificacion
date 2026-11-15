@@ -292,7 +292,7 @@ export default function MapaPage() {
                 }`}
               >
                 <span
-                  className={`min-w-[46px] rounded px-1.5 py-0.5 text-center text-[10.5px] font-bold text-white ${info.cls}`}
+                  className={`min-w-[46px] rounded px-1.5 py-0.5 text-center text-[10.5px] font-bold font-mono-code text-white ${info.cls}`}
                 >
                   {info.code || info.label}
                 </span>
@@ -350,7 +350,7 @@ export default function MapaPage() {
             Mapa de procesos
           </h2>
           <div className="grid gap-4 lg:grid-cols-[170px_minmax(0,1fr)_170px]">
-            <div className="hidden flex-col items-center justify-center gap-3 rounded-xl bg-gradient-to-b from-gold/80 to-gold-dark/80 p-4 text-center text-white lg:flex">
+            <div className="hidden h-fit max-h-[220px] flex-col items-center justify-center gap-2 self-start rounded-xl border border-gold/30 bg-gold/10 p-3 text-center text-white lg:flex">
               <div className="text-[12px] font-bold uppercase leading-tight tracking-[0.09em]">
                 Partes
                 <br />
@@ -465,7 +465,7 @@ export default function MapaPage() {
               </div>
             </div>
 
-            <div className="hidden flex-col items-center justify-center gap-3 rounded-xl bg-gradient-to-b from-gold/80 to-gold-dark/80 p-4 text-center text-white lg:flex">
+            <div className="hidden h-fit max-h-[220px] flex-col items-center justify-center gap-2 self-start rounded-xl border border-gold/30 bg-gold/10 p-3 text-center text-white lg:flex">
               <div className="text-[12px] font-bold uppercase leading-tight tracking-[0.09em]">
                 Partes
                 <br />

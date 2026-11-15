@@ -2,7 +2,7 @@ import "./globals.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Inter, Sora } from "next/font/google";
+import { Inter, JetBrains_Mono, Sora } from "next/font/google";
 import RootShell from "@/components/RootShell";
 
 const inter = Inter({
@@ -13,6 +13,12 @@ const inter = Inter({
 
 const sora = Sora({
   variable: "--font-sora",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const jetbrains = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
   display: "swap",
 });
@@ -31,7 +37,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${inter.variable} ${sora.variable} h-full antialiased`}
+      className={`${inter.variable} ${sora.variable} ${jetbrains.variable} h-full antialiased`}
     >
       <body className="min-h-full font-sans">
         <Suspense fallback={<div className="min-h-screen bg-[#020617]" />}>

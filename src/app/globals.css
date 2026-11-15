@@ -140,6 +140,24 @@
     -webkit-backdrop-filter: blur(12px);
   }
 
+  .font-mono-code {
+    font-family: var(--font-mono), ui-monospace, "JetBrains Mono", monospace;
+    font-feature-settings: "tnum" 1, "zero" 1;
+    letter-spacing: 0.02em;
+  }
+
+  .card-hover {
+    transition: all 0.2s ease;
+  }
+  .card-hover:hover {
+    border-color: rgba(245, 158, 11, 0.4);
+    box-shadow:
+      0 12px 40px -12px rgba(0, 0, 0, 0.6),
+      0 0 24px -8px rgba(245, 158, 11, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+  }
+
   .glass-hover {
     transition:
       border-color 0.3s var(--ease),
