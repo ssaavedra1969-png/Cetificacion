@@ -49,7 +49,7 @@ FROM "%s"
 con.execute("""
 CREATE OR REPLACE TABLE probetas_resumen_mensual AS
 SELECT
-  strftime(fecha_moldeo, '%%Y-%%m') AS periodo,
+  strftime(fecha_moldeo, '%Y-%m') AS periodo,
   clase,
   count(*) AS n,
   round(avg(fc_mpa), 1) AS fc_objetivo_prom,
@@ -78,8 +78,18 @@ WHERE "MATERIAL" IS NOT NULL
 
 temp_cols = [c[0] for c in con.execute('DESCRIBE "%s"' % T_TEMP).fetchall()
              if c[0].upper().startswith("TEMPERATURA")]
+# Solo las columnas de AGUA (sufijo par: TEMPERATURA_2, _4, _6).
+# Las impares (TEMPERATURA, _3, _5) corresponden a temperatura ambiente.
+agua_cols = []
+for c in temp_cols:
+    suf = c.upper().replace("TEMPERATURA", "").strip("_")
+    if suf == "" or suf.isdigit() and int(suf) % 2 == 1:
+        continue
+    agua_cols.append(c)
+if not agua_cols:
+    agua_cols = [c for c in temp_cols if c.upper().endswith(("2", "4", "6"))]
 unnest = ", ".join(
-    "TRY_CAST(replace(trim(\"%s\"), ',', '.') AS DOUBLE)" % c for c in temp_cols)
+    "TRY_CAST(replace(regexp_replace(trim(\"%s\"), '[^0-9,.-]', ''), ',', '.') AS DOUBLE)" % c for c in agua_cols)
 con.execute("""
 CREATE OR REPLACE TABLE temperatura_agua_limpio AS
 SELECT mes, fecha, count(*) AS lecturas,

@@ -108,6 +108,7 @@ export default function DocumentoManager({
   const [form, setForm] = useState<FormState>(emptyForm);
   const [abierto, setAbierto] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [enlace, setEnlace] = useState("");
   const [arrastrando, setArrastrando] = useState(false);
   const [mostrarDetalles, setMostrarDetalles] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -128,6 +129,7 @@ export default function DocumentoManager({
     setFile(null);
     if (fileRef.current) fileRef.current.value = "";
   };
+  const limpiarEnlace = () => setEnlace("");
 
   const editando = Boolean(form.id);
   const docEditando = useMemo(
@@ -240,6 +242,7 @@ export default function DocumentoManager({
       fecha: doc.fecha || hoy(),
     });
     limpiarArchivo();
+    setEnlace(/^https?:\/\//i.test(doc.archivoUrl || "") ? doc.archivoUrl : "");
     setMensaje(null);
     setMostrarDetalles(true);
     setAbierto(true);
@@ -248,6 +251,7 @@ export default function DocumentoManager({
   const cerrarForm = () => {
     setForm(emptyForm());
     limpiarArchivo();
+    limpiarEnlace();
     setAbierto(false);
     setMensaje(null);
     setMostrarDetalles(false);
@@ -313,10 +317,10 @@ export default function DocumentoManager({
       return;
     }
 
-    if (!editando && !file) {
+    if (!editando && !file && !enlace.trim()) {
       setMensaje({
         type: "error",
-        text: "Seleccioná o arrastrá el archivo que querés subir (Paso 1).",
+        text: "Seleccioná un archivo o ingresá un enlace externo (Drive).",
       });
       return;
     }
@@ -327,6 +331,12 @@ export default function DocumentoManager({
         setMensaje({ type: "error", text: error });
         return;
       }
+    } else if (enlace.trim() && !/^https?:\/\//i.test(enlace.trim())) {
+      setMensaje({
+        type: "error",
+        text: "El enlace externo debe comenzar con http:// o https://",
+      });
+      return;
     }
 
     setSaving(true);
@@ -343,6 +353,7 @@ export default function DocumentoManager({
     data.append("descripcion", form.descripcion.trim());
     data.append("fecha", form.fecha || hoy());
     if (file) data.append("file", file);
+    if (enlace.trim()) data.append("enlace", enlace.trim());
 
     try {
       const res = await fetch("/api/documentos", {
@@ -618,6 +629,24 @@ export default function DocumentoManager({
                         imágenes (.jpg, .png, .webp) · Máx. 10 MB
                       </p>
                     </div>
+                  </div>
+
+                  {/* Enlace externo (alternativa a subir archivo) */}
+                  <div className="mt-3">
+                    <label className="mb-1 block text-xs font-medium text-[#c7d2e3]">
+                      O enlace externo (Google Drive, etc.)
+                    </label>
+                    <input
+                      type="url"
+                      value={enlace}
+                      onChange={(e) => setEnlace(e.target.value)}
+                      placeholder="https://drive.google.com/..."
+                      className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-white placeholder-[#64748b] outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30"
+                    />
+                    <p className="mt-1 text-[10px] text-[#64748b]">
+                      Si el archivo supera 4 MB o ya está en Drive, pegá acá el
+                      enlace público y no subas archivo.
+                    </p>
                   </div>
 
                   {/* Chip / Card del archivo seleccionado */}

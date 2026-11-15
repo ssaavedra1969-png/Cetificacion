@@ -1,4 +1,7 @@
-export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+// Vercel rechaza cuerpos de request mayores a 4,5 MB en funciones serverless.
+// Limitamos a 4 MB para dejar margen. Para archivos más grandes, usá el
+// enlace externo (Drive) o agregá el archivo directo al repositorio.
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 export type TipoArchivo = "pdf" | "word" | "excel" | "imagen" | "otro";
 

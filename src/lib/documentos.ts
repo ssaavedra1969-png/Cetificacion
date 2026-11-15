@@ -232,18 +232,45 @@ export async function createDocumento(
   if (!nombre) throw new HttpError(400, "Ingresá un nombre para el documento");
 
   const file = form.get("file");
-  if (!isUpload(file)) {
-    throw new HttpError(400, "Seleccioná el archivo a subir");
+  const enlace = field(form, "enlace");
+
+  if (!isUpload(file) && !enlace) {
+    throw new HttpError(
+      400,
+      "Seleccioná el archivo a subir o ingresá un enlace externo (Drive)",
+    );
   }
 
-  const buffer = await readFileBuffer(file);
-  const ext = extFromName(file.name);
-  const id = `D${Date.now().toString(36)}${randomUUID().slice(0, 6)}`;
-  const filename = buildFilename(id, nombre, ext);
-  const guardado = await saveDocumentoFile(buffer, filename);
+  if (enlace && !/^https?:\/\//i.test(enlace)) {
+    throw new HttpError(
+      400,
+      "El enlace externo debe comenzar con http:// o https://",
+    );
+  }
 
+  const id = `D${Date.now().toString(36)}${randomUUID().slice(0, 6)}`;
   const data = await readDocumentos();
   const categoria = field(form, "categoria", "General");
+
+  let ruta: string | undefined;
+  let archivoUrl: string;
+  let tipo: Documento["tipo"];
+  let guardado = { local: false, remote: false };
+
+  if (isUpload(file)) {
+    const buffer = await readFileBuffer(file);
+    const ext = extFromName(file.name);
+    const filename = buildFilename(id, nombre, ext);
+    const saved = await saveDocumentoFile(buffer, filename);
+    ruta = saved.ruta;
+    archivoUrl = `/api/files?id=${encodeURIComponent(id)}`;
+    tipo = tipoFromExt(ext);
+    guardado = { local: saved.local, remote: saved.remote };
+  } else {
+    archivoUrl = enlace;
+    tipo = tipoFromExt(extFromName(enlace));
+  }
+
   const documento: Documento = {
     id,
     nombre,
@@ -254,9 +281,9 @@ export async function createDocumento(
     version: field(form, "version", "1.0"),
     responsable: field(form, "responsable", session?.nombre ?? "A definir"),
     descripcion: field(form, "descripcion"),
-    archivoUrl: `/api/files?id=${encodeURIComponent(id)}`,
-    ruta: guardado.ruta,
-    tipo: tipoFromExt(ext),
+    archivoUrl,
+    ruta,
+    tipo,
   };
 
   try {
@@ -266,7 +293,7 @@ export async function createDocumento(
       metadata: data.metadata ?? {},
     });
   } catch (error) {
-    await removeDocumentoFile(guardado.ruta);
+    if (ruta) await removeDocumentoFile(ruta);
     throw error;
   }
 
@@ -307,7 +334,15 @@ export async function updateDocumento(
   };
 
   const file = form.get("file");
+  const enlace = field(form, "enlace");
   let nuevoArchivo: string | null = null;
+
+  if (enlace && !/^https?:\/\//i.test(enlace)) {
+    throw new HttpError(
+      400,
+      "El enlace externo debe comenzar con http:// o https://",
+    );
+  }
 
   if (isUpload(file)) {
     const buffer = await readFileBuffer(file);
@@ -318,6 +353,13 @@ export async function updateDocumento(
     actualizado.ruta = guardado.ruta;
     actualizado.archivoUrl = `/api/files?id=${encodeURIComponent(id)}`;
     actualizado.tipo = tipoFromExt(ext);
+  } else if (enlace) {
+    if (actual.ruta) {
+      await removeDocumentoFile(actual.ruta);
+    }
+    actualizado.ruta = undefined;
+    actualizado.archivoUrl = enlace;
+    actualizado.tipo = tipoFromExt(extFromName(enlace));
   }
 
   const documentos = (data.documentos ?? []).map((doc) =>
