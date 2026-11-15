@@ -231,14 +231,16 @@ export default function Sidebar() {
     <>
       {/* Sidebar escritorio */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 hidden flex-col overflow-hidden border border-white/10 bg-[rgba(15,23,42,0.72)] shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-[16px] transition-[width] duration-300 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] md:flex`}
+        className={`hidden shrink-0 flex-col overflow-hidden border border-white/10 bg-[rgba(17,24,39,0.75)] shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-[16px] transition-[width] duration-300 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] md:flex`}
         style={{
-          top: 12,
-          left: 12,
-          height: "calc(100vh - 24px)",
+          margin: "14px 0 14px 14px",
+          height: "calc(100vh - 28px)",
           width: collapsed ? 76 : 250,
           borderRadius: 18,
-          margin: 0,
+          border: "1px solid rgba(255, 255, 255, 0.14)",
+          position: "sticky",
+          top: 14,
+          alignSelf: "flex-start",
         }}
       >
         <div className="relative flex h-full flex-col">

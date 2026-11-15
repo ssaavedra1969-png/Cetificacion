@@ -13,16 +13,16 @@ export default function RootShell({ children }: { children: React.ReactNode }) {
   if (sinSidebar) return <>{children}</>;
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen">
       <Sidebar />
-    {!sinAcceso && (
-      <div className="pointer-events-none fixed right-4 top-4 z-30 hidden md:flex">
-        <div className="pointer-events-auto">
-          <SessionAccess />
+      {!sinAcceso && (
+        <div className="pointer-events-none fixed right-4 top-4 z-30 hidden md:flex">
+          <div className="pointer-events-auto">
+            <SessionAccess />
+          </div>
         </div>
-      </div>
-    )}
-    <div className="min-h-screen pt-14 transition-[padding] duration-300 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] md:pl-[var(--sidebar-w,250px)] md:pt-4">{children}</div>
+      )}
+      <main className="flex-1 min-w-0 pt-14 md:pt-4">{children}</main>
     </div>
   );
 }
