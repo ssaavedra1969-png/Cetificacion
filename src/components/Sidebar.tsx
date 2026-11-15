@@ -91,8 +91,8 @@ export default function Sidebar() {
     <Link
       href="/"
       onClick={() => setOpen(false)}
-      className={`flex items-center gap-3 border-b border-white/10 px-4 py-4 ${
-        compact ? "justify-center px-2" : ""
+      className={`flex items-center gap-3 border-b border-white/10 px-4 py-4 pr-10 ${
+        compact ? "justify-center px-2 pr-2" : ""
       }`}
     >
       <Image
@@ -231,13 +231,13 @@ export default function Sidebar() {
     <>
       {/* Sidebar escritorio */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 hidden flex-col overflow-hidden border border-white/10 bg-[rgba(15,23,42,0.65)] shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-[width] duration-300 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] md:flex`}
+        className={`fixed inset-y-0 left-0 z-40 hidden flex-col overflow-hidden border border-white/10 bg-[rgba(15,23,42,0.72)] shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-[16px] transition-[width] duration-300 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] md:flex`}
         style={{
           top: 12,
           left: 12,
           height: "calc(100vh - 24px)",
           width: collapsed ? 76 : 250,
-          borderRadius: 20,
+          borderRadius: 18,
           margin: 0,
         }}
       >

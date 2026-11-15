@@ -303,7 +303,7 @@ export default function PlanPage() {
             <h1 className="mt-1 text-xl font-bold text-white sm:text-2xl">{plan.titulo}</h1>
             <p className="mt-1 text-sm text-[#94a3b8]">{plan.nota}</p>
           </div>
-          <div className="min-w-[200px]">
+          <div className="min-w-[200px] md:mt-11">
             <div className="flex items-baseline justify-between">
               <span className="text-xs uppercase tracking-[0.12em] text-[#64748b]">Avance general</span>
               <span className="text-2xl font-bold text-gold">{avancePct}%</span>

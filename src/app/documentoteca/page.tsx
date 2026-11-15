@@ -325,7 +325,7 @@ export default function Documentoteca() {
             </div>
           ) : (
             <div className="glass overflow-x-auto rounded-2xl">
-              <table className="w-full min-w-[900px] border-collapse text-left text-xs">
+              <table className="w-full min-w-[1080px] border-collapse text-left text-xs">
                 <thead>
                   <tr className="border-b border-white/10 bg-[#0f172a]/60 text-[10px] uppercase tracking-wider text-[#64748b]">
                     <th className="px-4 py-3 font-semibold">Documento</th>
