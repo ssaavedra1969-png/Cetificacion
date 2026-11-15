@@ -22,7 +22,7 @@ export default function RootShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     )}
-    <div className="min-h-screen pt-14 md:pl-64 md:pt-4">{children}</div>
+    <div className="min-h-screen pt-14 transition-[padding] duration-300 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] md:pl-[var(--sidebar-w,250px)] md:pt-4">{children}</div>
     </div>
   );
 }

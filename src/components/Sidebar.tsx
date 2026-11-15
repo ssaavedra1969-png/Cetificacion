@@ -22,12 +22,39 @@ const NAV = [
 const DRIVE_URL =
   "https://drive.google.com/drive/folders/1-KFqOdkE2knS6lYDoArJebB3M-qMkDgO";
 
+const STORAGE_KEY = "sidebarCollapsed";
+
 export default function Sidebar() {
   const pathname = usePathname() || "/";
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [checked, setChecked] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem(STORAGE_KEY);
+      if (v === "1") setCollapsed(true);
+    } catch {
+      // ignore
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
+    } catch {
+      // ignore
+    }
+    document.documentElement.style.setProperty(
+      "--sidebar-w",
+      collapsed ? "76px" : "250px",
+    );
+  }, [collapsed, hydrated]);
 
   useEffect(() => {
     let activo = true;
@@ -58,111 +85,143 @@ export default function Sidebar() {
     router.refresh();
   };
 
-  const renderBrand = () => (
+  const toggle = () => setCollapsed((v) => !v);
+
+  const renderBrand = (compact: boolean) => (
     <Link
       href="/"
       onClick={() => setOpen(false)}
-      className="flex items-center gap-3 border-b border-white/10 px-4 py-4"
+      className={`flex items-center gap-3 border-b border-white/10 px-4 py-4 ${
+        compact ? "justify-center px-2" : ""
+      }`}
     >
       <Image
         src="/images/logo-falpat.png"
         alt="Grupo Falpat Hormigones"
         width={150}
         height={78}
-        className="h-8 w-auto"
+        className={compact ? "h-7 w-auto" : "h-8 w-auto"}
         priority
       />
-      <span className="min-w-0 leading-tight">
-        <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-gold">
-          Gestión de la Calidad
+      {!compact && (
+        <span className="min-w-0 leading-tight">
+          <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-gold">
+            Gestión de la Calidad
+          </span>
+          <span className="block text-[9px] text-[#64748b]">Certificación</span>
         </span>
-        <span className="block text-[9px] text-[#64748b]">Certificación</span>
-      </span>
+      )}
     </Link>
   );
 
-  const renderNav = () => (
-    <nav className="flex-1 space-y-1 px-3 py-4">
+  const renderNav = (compact: boolean) => (
+    <nav className="flex-1 space-y-1 px-2 py-4">
       {NAV.map((item) => {
         const active = isActive(item.href);
         return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={() => setOpen(false)}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-              active
-                ? "bg-gold/15 text-gold"
-                : "text-[#94a3b8] hover:bg-white/5 hover:text-white"
-            }`}
-          >
-            <i
-              className={`fa-solid ${item.icon} w-4 text-center text-[13px]`}
-              aria-hidden="true"
-            />
-            {item.label}
-          </Link>
+          <div key={item.href} className="relative group">
+            <Link
+              href={item.href}
+              onClick={() => setOpen(false)}
+              className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+                compact ? "justify-center px-2" : ""
+              } ${
+                active
+                  ? "bg-amber-500/10 text-gold border border-amber-400/20"
+                  : "text-[#94a3b8] hover:bg-white/5 hover:text-white border border-transparent"
+              }`}
+            >
+              {active && (
+                <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-gold shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+              )}
+              <i
+                className={`fa-solid ${item.icon} w-4 text-center text-[13px]`}
+                aria-hidden="true"
+              />
+              {!compact && item.label}
+            </Link>
+            {compact && (
+              <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded-lg border border-white/10 bg-[#0a0f1e]/95 px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg backdrop-blur-xl transition-opacity duration-150 group-hover:opacity-100">
+                {item.label}
+              </span>
+            )}
+          </div>
         );
       })}
     </nav>
   );
 
-  const renderFooter = () => (
-    <div className="border-t border-white/10 p-3">
+  const renderFooter = (compact: boolean) => (
+    <div className="border-t border-white/10 p-2">
       <a
         href={DRIVE_URL}
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => setOpen(false)}
-        className="mb-2 flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-[#c7d2e3] transition-colors hover:border-emerald-400/30 hover:bg-white/10 hover:text-white"
+        className={`mb-2 flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-[#c7d2e3] transition-colors hover:border-emerald-400/30 hover:bg-white/10 hover:text-white ${
+          compact ? "justify-center px-2" : ""
+        }`}
         title="Abrir el Drive original del proyecto"
       >
         <i
           className="fa-brands fa-google-drive w-4 text-center text-[13px] text-emerald-300"
           aria-hidden="true"
         />
-        Drive del proyecto
-        <i
-          className="fa-solid fa-arrow-up-right-from-square ml-auto text-[9px] text-[#64748b]"
-          aria-hidden="true"
-        />
+        {!compact && (
+          <>
+            Drive del proyecto
+            <i
+              className="fa-solid fa-arrow-up-right-from-square ml-auto text-[9px] text-[#64748b]"
+              aria-hidden="true"
+            />
+          </>
+        )}
       </a>
       {!checked ? null : session ? (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2">
-            <i
-              className="fa-solid fa-circle-user text-gold"
-              aria-hidden="true"
-            />
-            <div className="min-w-0">
-              <p className="truncate text-xs font-semibold text-white">
-                {session.nombre}
-              </p>
-              <p className="text-[10px] uppercase tracking-[0.12em] text-[#64748b]">
-                {session.rol}
-              </p>
-            </div>
+          <div
+            className={`flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 ${
+              compact ? "justify-center px-2" : ""
+            }`}
+          >
+            <i className="fa-solid fa-circle-user text-gold" aria-hidden="true" />
+            {!compact && (
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold text-white">
+                  {session.nombre}
+                </p>
+                <p className="text-[10px] uppercase tracking-[0.12em] text-[#64748b]">
+                  {session.rol}
+                </p>
+              </div>
+            )}
           </div>
           <button
             type="button"
             onClick={logout}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[#94a3b8] transition-colors hover:bg-white/5 hover:text-white"
+            className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-[#94a3b8] transition-colors hover:bg-white/5 hover:text-white ${
+              compact ? "justify-center px-2" : ""
+            }`}
+            title="Cerrar sesión"
           >
             <i
               className="fa-solid fa-right-from-bracket w-4 text-center text-[13px]"
               aria-hidden="true"
             />
-            Cerrar sesión
+            {!compact && "Cerrar sesión"}
           </button>
         </div>
       ) : (
         <Link
           href="/login"
           onClick={() => setOpen(false)}
-          className="flex items-center justify-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2 text-sm font-semibold text-gold transition-colors hover:bg-gold/20"
+          className={`flex items-center justify-center gap-2 rounded-xl border border-gold/30 bg-gold/10 px-3 py-2 text-sm font-semibold text-gold transition-colors hover:bg-gold/20 ${
+            compact ? "px-2" : ""
+          }`}
+          title="Iniciar sesión"
         >
           <i className="fa-solid fa-lock text-[13px]" aria-hidden="true" />
-          Iniciar sesión
+          {!compact && "Iniciar sesión"}
         </Link>
       )}
     </div>
@@ -171,10 +230,36 @@ export default function Sidebar() {
   return (
     <>
       {/* Sidebar escritorio */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-white/10 bg-[#050810] md:flex">
-        {renderBrand()}
-        {renderNav()}
-        {renderFooter()}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 hidden flex-col overflow-hidden border border-white/10 bg-[rgba(15,23,42,0.65)] shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-[width] duration-300 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] md:flex`}
+        style={{
+          top: 12,
+          left: 12,
+          height: "calc(100vh - 24px)",
+          width: collapsed ? 76 : 250,
+          borderRadius: 20,
+          margin: 0,
+        }}
+      >
+        <div className="relative flex h-full flex-col">
+          <button
+            type="button"
+            onClick={toggle}
+            aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
+            title={collapsed ? "Expandir menú" : "Colapsar menú"}
+            className="absolute right-2 top-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[#94a3b8] transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <i
+              className={`fa-solid fa-angles-left text-[11px] transition-transform duration-300 ${
+                collapsed ? "rotate-180" : ""
+              }`}
+              aria-hidden="true"
+            />
+          </button>
+          {renderBrand(collapsed)}
+          {renderNav(collapsed)}
+          {renderFooter(collapsed)}
+        </div>
       </aside>
 
       {/* Barra superior móvil */}
@@ -221,8 +306,8 @@ export default function Sidebar() {
                 <i className="fa-solid fa-xmark" aria-hidden="true" />
               </button>
             </div>
-            {renderNav()}
-            {renderFooter()}
+            {renderNav(false)}
+            {renderFooter(false)}
           </aside>
         </div>
       )}
