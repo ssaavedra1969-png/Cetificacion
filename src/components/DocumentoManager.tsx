@@ -13,6 +13,7 @@ import {
   tipoFromExt,
 } from "@/lib/files";
 import { downloadUrl } from "@/lib/urls";
+import { useApp } from "@/components/AppProviders";
 
 interface Props {
   documentos: Documento[];
@@ -115,6 +116,7 @@ export default function DocumentoManager({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState<Mensaje | null>(null);
   const [docModal, setDocModal] = useState<Documento | null>(null);
+  const { auditMode } = useApp();
 
   // Filtros de tabla
   const [busqueda, setBusqueda] = useState("");
@@ -479,6 +481,7 @@ export default function DocumentoManager({
           </p>
         </div>
 
+        {!auditMode && (
         <button
           type="button"
           onClick={abrirNuevo}
@@ -490,6 +493,7 @@ export default function DocumentoManager({
           />
           Subir documento
         </button>
+        )}
       </div>
 
       {/* Mensajes globales de alerta */}
@@ -1228,6 +1232,7 @@ export default function DocumentoManager({
                               />
                             </a>
 
+                            {!auditMode && (
                             <button
                               type="button"
                               onClick={() => editar(doc)}
@@ -1240,7 +1245,9 @@ export default function DocumentoManager({
                                 aria-hidden="true"
                               />
                             </button>
+                            )}
 
+                            {!auditMode && (
                             <button
                               type="button"
                               onClick={() => eliminar(doc)}
@@ -1258,6 +1265,7 @@ export default function DocumentoManager({
                                 aria-hidden="true"
                               />
                             </button>
+                            )}
                           </div>
                         </td>
                       </tr>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useApp } from "@/components/AppProviders";
 import {
   ESTADOS,
   derivePlan,
@@ -55,6 +56,7 @@ export default function PlanPage() {
   const [savingTask, setSavingTask] = useState(false);
   const [expandidos, setExpandidos] = useState<Record<string, boolean>>({});
   const [ganttAbierto, setGanttAbierto] = useState(false);
+  const { auditMode, showToast } = useApp();
 
   const cargar = useCallback(() => {
     setLoading(true);
@@ -338,7 +340,7 @@ export default function PlanPage() {
             </span>
           )}
           <div className="ml-auto flex items-center gap-2">
-            {canEdit && !editando && (
+            {canEdit && !auditMode && !editando && (
               <button
                 type="button"
                 onClick={iniciarEdicion}
@@ -527,7 +529,7 @@ export default function PlanPage() {
                 <span className="font-mono text-xs text-gold/80">{t.codigo}</span>
                 <span className="flex-1 text-sm text-white">{t.tarea}</span>
                 <span className="text-[11px] text-rose-200">Venció {fmtFecha(t.fin)}</span>
-                {canEdit && (
+                {canEdit && !auditMode && (
                   <button type="button" onClick={() => marcarTerminada(t)} disabled={savingTask} className="rounded-md border border-emerald-400/30 bg-emerald-400/10 px-2 py-1 text-[11px] text-emerald-300 hover:bg-emerald-400/20 disabled:opacity-50">
                     <i className="fa-solid fa-check" aria-hidden="true" /> Terminar
                   </button>
@@ -540,7 +542,7 @@ export default function PlanPage() {
                 <span className="font-mono text-xs text-gold/80">{t.codigo}</span>
                 <span className="flex-1 text-sm text-white">{t.tarea}</span>
                 <span className="text-[11px] text-sky-200">Vence {fmtFecha(t.fin)}</span>
-                {canEdit && (
+                {canEdit && !auditMode && (
                   <button type="button" onClick={() => marcarTerminada(t)} disabled={savingTask} className="rounded-md border border-emerald-400/30 bg-emerald-400/10 px-2 py-1 text-[11px] text-emerald-300 hover:bg-emerald-400/20 disabled:opacity-50">
                     <i className="fa-solid fa-check" aria-hidden="true" /> Terminar
                   </button>
@@ -581,7 +583,19 @@ export default function PlanPage() {
                     const ui = uiDe(t);
                     return (
                       <div key={t.id} className={`flex flex-wrap items-center gap-2 px-4 py-2.5 ${t.atrasada ? "bg-rose-500/5" : ""}`}>
-                        <span className="w-14 shrink-0 font-mono-code text-[11px] font-bold text-gold/80">{t.codigo}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (t.codigo) {
+                              navigator.clipboard.writeText(t.codigo).then(() => showToast("✓ Código copiado al portapapeles")).catch(() => {});
+                            }
+                          }}
+                          className="w-14 shrink-0 cursor-pointer font-mono-code text-[11px] font-bold text-gold/80 transition hover:text-gold"
+                          title="Clic para copiar código"
+                        >
+                          {t.codigo}
+                        </button>
                         <span className="min-w-0 flex-1 text-sm text-white">{t.tarea}</span>
                         <span className="hidden text-[11px] text-[#64748b] sm:block">{t.responsable}</span>
                         <span className="text-[11px] text-[#64748b]">{fmtFecha(t.inicio)}→{fmtFecha(t.fin)}</span>
@@ -596,7 +610,7 @@ export default function PlanPage() {
                         </button>
                         <span className={`w-10 shrink-0 text-right text-xs font-bold ${ui.text}`}>{Math.round(t.avance * 100)}%</span>
                         {t.atrasada && <i className="fa-solid fa-triangle-exclamation shrink-0 text-xs text-rose-400" aria-hidden="true" />}
-                        {canEdit && (
+                        {canEdit && !auditMode && (
                           <button
                             type="button"
                             onClick={() => setEditTask(t)}

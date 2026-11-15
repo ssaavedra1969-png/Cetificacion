@@ -5,6 +5,8 @@ import Link from "next/link";
 import type { Documento } from "@/types/models";
 import DocumentoModal from "@/components/DocumentoModal";
 import AccionesDocumento from "@/components/AccionesDocumento";
+import DocDrawer from "@/components/DocDrawer";
+import { useApp } from "@/components/AppProviders";
 import { useSession } from "@/components/useSession";
 import { isOfficeTipo } from "@/lib/files";
 
@@ -59,11 +61,15 @@ function iconFor(tipo: string): { icon: string; color: string; bg: string } {
 
 export default function Documentoteca() {
   const { user, canEdit } = useSession();
+  const { auditMode } = useApp();
   const canDelete = user?.rol === "admin";
+  const effectiveCanEdit = canEdit && !auditMode;
+  const effectiveCanDelete = canDelete && !auditMode;
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalDoc, setModalDoc] = useState<Documento | null>(null);
+  const [drawerDoc, setDrawerDoc] = useState<Documento | null>(null);
 
   // Filtros
   const [busqueda, setBusqueda] = useState("");
@@ -91,6 +97,7 @@ export default function Documentoteca() {
 
   const documentosFiltrados = useMemo(() => {
     return documentos.filter((doc) => {
+      if (auditMode && doc.categoria === "Obsoletos") return false;
       if (filtroCategoria !== "Todas" && doc.categoria !== filtroCategoria) {
         return false;
       }
@@ -118,7 +125,7 @@ export default function Documentoteca() {
       }
       return true;
     });
-  }, [documentos, filtroCategoria, filtroPlanta, filtroTipo, busqueda]);
+  }, [documentos, filtroCategoria, filtroPlanta, filtroTipo, busqueda, auditMode]);
 
   return (
     <main className="min-h-screen">
@@ -139,7 +146,7 @@ export default function Documentoteca() {
             </p>
           </div>
 
-          {canEdit && (
+          {effectiveCanEdit && (
             <Link
               href="/administracion#documentos"
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-4 py-2.5 text-xs font-bold text-[#0f172a] shadow-[0_10px_25px_-5px_rgba(212,175,55,0.5)] transition-all hover:-translate-y-0.5"
@@ -340,14 +347,19 @@ export default function Documentoteca() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.05]">
-                  {documentosFiltrados.map((d) => {
-                    const style = iconFor(d.tipo);
+                   {documentosFiltrados.map((d) => {
+                     const style = iconFor(d.tipo);
 
-                    return (
-                      <tr
-                        key={d.id}
-                        className="group transition-colors hover:bg-white/[0.04]"
-                      >
+                     return (
+                       <tr
+                         key={d.id}
+                         onClick={(e) => {
+                           const target = e.target as HTMLElement;
+                           if (target.closest("button, a")) return;
+                           setDrawerDoc(d);
+                         }}
+                         className="group cursor-pointer transition-colors hover:bg-white/[0.04]"
+                       >
                          {/* Nombre e icono */}
                         <td className="max-w-[340px] px-4 py-3 pr-4">
                           <div className="flex items-center gap-3">
@@ -437,8 +449,8 @@ export default function Documentoteca() {
                             documento={d}
                             onVer={setModalDoc}
                             onChanged={cargar}
-                            canEdit={canEdit}
-                            canDelete={canDelete}
+                            canEdit={effectiveCanEdit}
+                            canDelete={effectiveCanDelete}
                             size="md"
                           />
                         </td>
@@ -459,6 +471,9 @@ export default function Documentoteca() {
           onClose={() => setModalDoc(null)}
         />
       )}
+
+      {/* Drawer de vista previa */}
+      <DocDrawer doc={drawerDoc} onClose={() => setDrawerDoc(null)} />
     </main>
   );
 }

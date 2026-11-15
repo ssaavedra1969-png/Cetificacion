@@ -5,6 +5,7 @@ import type { Documento } from "@/types/models";
 import DocumentoModal from "@/components/DocumentoModal";
 import AccionesDocumento from "@/components/AccionesDocumento";
 import { useSession } from "@/components/useSession";
+import { useApp } from "@/components/AppProviders";
 
 type CatKey =
   | "ALL"
@@ -175,7 +176,10 @@ function ProcessCard({
 
 export default function MapaPage() {
   const { user, canEdit } = useSession();
+  const { auditMode, showToast } = useApp();
   const canDelete = user?.rol === "admin";
+  const effectiveCanEdit = canEdit && !auditMode;
+  const effectiveCanDelete = canDelete && !auditMode;
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -211,8 +215,11 @@ export default function MapaPage() {
   }, []);
 
   const enriched = useMemo(
-    () => documentos.map((d) => ({ d, info: infoOf(d), cat: catOf(d) })),
-    [documentos],
+    () =>
+      documentos
+        .filter((d) => !(auditMode && d.categoria === "Obsoletos"))
+        .map((d) => ({ d, info: infoOf(d), cat: catOf(d) })),
+    [documentos, auditMode],
   );
 
   const term = norm(q.trim());
@@ -291,11 +298,18 @@ export default function MapaPage() {
                     : "opacity-40 hover:opacity-100 hover:bg-white/5"
                 }`}
               >
-                <span
-                  className={`min-w-[46px] rounded px-1.5 py-0.5 text-center text-[10.5px] font-bold font-mono-code text-white ${info.cls}`}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const code = info.code || info.label;
+                    navigator.clipboard.writeText(code).then(() => showToast("✓ Código copiado al portapapeles")).catch(() => {});
+                  }}
+                  className={`min-w-[46px] cursor-pointer rounded px-1.5 py-0.5 text-center text-[10.5px] font-bold font-mono-code text-white transition hover:opacity-80 ${info.cls}`}
+                  title="Clic para copiar código"
                 >
                   {info.code || info.label}
-                </span>
+                </button>
                 <button
                   type="button"
                   onClick={() => setModalDoc(d)}
@@ -311,8 +325,8 @@ export default function MapaPage() {
                   documento={d}
                   onVer={setModalDoc}
                   onChanged={cargar}
-                  canEdit={canEdit}
-                  canDelete={canDelete}
+                   canEdit={effectiveCanEdit}
+                   canDelete={effectiveCanDelete}
                 />
               </div>
             );
