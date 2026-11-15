@@ -391,6 +391,131 @@ export default function PlanPage() {
         </div>
       </div>
 
+      {/* Gantt (formato original) */}
+      <section className="glass overflow-hidden rounded-xl">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+          <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gold">Línea de tiempo (Gantt)</h2>
+          <span className="text-[11px] text-[#64748b]">{plan.semanas.length} semanas · {fmtFecha(plan.rango.inicio)} → {fmtFecha(plan.rango.fin)}</span>
+        </div>
+        <div className="max-h-[72vh] overflow-auto bg-[#070b16]">
+          <div className="min-w-[960px]">
+            <div className="sticky top-0 z-20 flex border-b border-white/10 bg-[#0a0f1e]">
+              <div className="sticky left-0 z-30 w-[280px] shrink-0 border-r border-white/10 bg-[#0a0f1e] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#64748b]">
+                Tarea / Bloque
+              </div>
+              <div className="relative flex-1">
+                <div className="flex h-7 items-end border-b border-white/[0.06]">
+                  {plan.meses.map((m) => (
+                    <div
+                      key={m.label}
+                      className="border-l border-white/10 px-2 pb-1 text-[11px] font-semibold text-gold/90"
+                      style={{
+                        width: `${
+                          ((plan.meses.find((x) => x.col > m.col)?.col ?? plan.semanas.length) - m.col) /
+                          plan.semanas.length *
+                          100
+                        }%`,
+                      }}
+                    >
+                      {m.label}
+                    </div>
+                  ))}
+                </div>
+                <div className="grid h-6" style={{ gridTemplateColumns: `repeat(${plan.semanas.length}, minmax(0, 1fr))` }}>
+                  {plan.semanas.map((s, i) => (
+                    <div
+                      key={s}
+                      className={`flex items-center justify-center border-l border-white/[0.06] text-[9px] font-medium ${
+                        i === plan.semanaActual ? "bg-gold/20 text-gold" : "text-[#475569]"
+                      }`}
+                    >
+                      {s.split("-")[2]}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {grupos.map((g) => {
+              const hijos = hojas.filter((t) => t.grupoId === g.id);
+              const gpos = posicion(g.inicio, g.fin, plan.rango.inicio, plan.semanas.length);
+              return (
+                <div key={g.id}>
+                  <div className="flex border-b border-white/[0.08] bg-gradient-to-r from-gold/10 to-transparent">
+                    <div className="sticky left-0 z-10 w-[280px] shrink-0 border-r border-white/10 bg-[#0c1222] px-4 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className="rounded border border-gold/30 bg-gold/10 px-1.5 py-0.5 text-[10px] font-bold text-gold">#{g.id}</span>
+                        <span className="truncate text-xs font-bold uppercase tracking-wide text-gold">{g.tarea}</span>
+                      </div>
+                      <div className="mt-0.5 text-[10px] text-[#64748b]">
+                        {fmtFecha(g.inicio)} → {fmtFecha(g.fin)} · {Math.round(g.avance * 100)}%
+                      </div>
+                    </div>
+                    <div className="relative flex-1 py-2">
+                      <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${plan.semanas.length}, minmax(0, 1fr))` }}>
+                        {plan.semanas.map((s, i) => (
+                          <div key={s} className={`border-l border-white/[0.04] ${i === plan.semanaActual ? "bg-gold/[0.05]" : ""}`} />
+                        ))}
+                      </div>
+                      <div className="absolute top-1/2 h-3 -translate-y-1/2 rounded-full bg-gradient-to-r from-gold-dark to-gold shadow-[0_0_8px_rgba(212,175,55,0.4)]" style={{ left: gpos.left, width: gpos.width }} />
+                    </div>
+                  </div>
+                  {hijos.map((t) => {
+                    const tpos = posicion(t.inicio, t.fin, plan.rango.inicio, plan.semanas.length);
+                    const ui = uiDe(t);
+                    return (
+                      <div key={t.id} className="flex border-b border-white/[0.04] hover:bg-white/[0.02]">
+                        <div className="sticky left-0 z-10 w-[280px] shrink-0 border-r border-white/10 bg-[#070b16] px-4 py-1.5">
+                          <div className="flex items-center gap-2">
+                            {t.codigo && (
+                              <span className="shrink-0 rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] font-bold text-[#c7d2e3]">{t.codigo}</span>
+                            )}
+                            <span className="truncate text-[12px] text-white">{t.tarea}</span>
+                          </div>
+                          <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[#64748b]">
+                            <span>{t.responsable}</span>
+                            <span>·</span>
+                            <span>{fmtFecha(t.inicio)}→{fmtFecha(t.fin)}</span>
+                            {t.atrasada && <i className="fa-solid fa-triangle-exclamation text-rose-400" aria-hidden="true" />}
+                          </div>
+                        </div>
+                        <div className="relative flex-1 py-1.5">
+                          <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${plan.semanas.length}, minmax(0, 1fr))` }}>
+                            {plan.semanas.map((s, i) => (
+                              <div key={s} className={`border-l border-white/[0.04] ${i === plan.semanaActual ? "bg-gold/[0.04]" : ""}`} />
+                            ))}
+                          </div>
+                          {plan.hoy && toUTC(plan.hoy) >= toUTC(plan.rango.inicio) && toUTC(plan.hoy) <= toUTC(plan.rango.fin) && (
+                            <div className="absolute inset-y-0 z-[3] w-px bg-gold/70" style={{ left: `${((toUTC(plan.hoy) - toUTC(plan.rango.inicio)) / MS_DIA) / (plan.semanas.length * 7) * 100}%` }} />
+                          )}
+                          {t.hito ? (
+                            <div className="absolute top-1/2 z-[5] h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[2px] bg-gold shadow-[0_0_10px_rgba(212,175,55,0.6)]" style={{ left: tpos.left }} title={`Hito · ${t.tarea}`} />
+                          ) : (
+                            <div className={`absolute top-1/2 z-[5] flex h-5 -translate-y-1/2 items-center overflow-hidden rounded-full ${ui.track}`} style={{ left: tpos.left, width: tpos.width }} title={`${t.tarea} · ${fmtFecha(t.inicio)} → ${fmtFecha(t.fin)} · ${t.estado} ${Math.round(t.avance * 100)}%`}>
+                              <div className={`h-full rounded-full ${ui.bar}`} style={{ width: `${Math.round(t.avance * 100)}%` }} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+
+            <div className="sticky bottom-0 flex items-center gap-4 border-t border-white/10 bg-[#0a0f1e] px-4 py-2 text-[10px] text-[#64748b]">
+              <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /> Terminado</span>
+              <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-sky-400" /> En curso</span>
+              <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-slate-400" /> Pendiente</span>
+              <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-400" /> Bloqueado/atrasado</span>
+              <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rotate-45 rounded-[2px] bg-gold" /> Hito</span>
+              <span className="inline-flex items-center gap-1.5"><span className="h-3 w-6 rounded-full bg-gold/60" /> Bloque</span>
+              <span className="ml-auto inline-flex items-center gap-1.5"><span className="h-4 w-px bg-gold/70" /> Hoy</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Atención esta semana / atrasadas */}
       {(atrasadas.length > 0 || estaSemana.length > 0) && (
         <section className="glass rounded-xl p-4">
@@ -490,79 +615,6 @@ export default function PlanPage() {
           );
         })}
       </div>
-
-      {/* Gantt (formato original) */}
-      <section className="glass rounded-xl p-4">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-gold">Línea de tiempo (Gantt)</h2>
-        <div className="max-h-[70vh] overflow-auto border-t border-white/10 bg-[#070b16] p-2">
-            <div className="min-w-[900px]">
-              <div className="sticky top-0 z-20 flex border-b border-white/10 bg-[#0a0f1e]">
-                <div className="sticky left-0 z-30 w-[260px] shrink-0 border-r border-white/10 bg-[#0a0f1e] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#64748b]">
-                  Tarea
-                </div>
-                <div className="relative flex-1">
-                  <div className="flex h-6 items-end">
-                    {plan.meses.map((m) => (
-                      <div
-                        key={m.label}
-                        className="border-l border-white/10 px-2 pb-0.5 text-[10px] font-semibold text-gold/90"
-                        style={{
-                          width: `${
-                            ((plan.meses.find((x) => x.col > m.col)?.col ?? plan.semanas.length) - m.col) /
-                            plan.semanas.length *
-                            100
-                          }%`,
-                        }}
-                      >
-                        {m.label}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              {grupos.map((g) => {
-                const hijos = hojas.filter((t) => t.grupoId === g.id);
-                return (
-                  <div key={g.id}>
-                    <div className="flex border-b border-white/[0.06] bg-white/[0.03]">
-                      <div className="sticky left-0 z-10 w-[260px] shrink-0 border-r border-white/10 bg-[#0c1222] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-gold">
-                        {g.tarea}
-                      </div>
-                      <div className="relative flex-1 py-1.5">
-                        {(() => {
-                          const pos = posicion(g.inicio, g.fin, plan.rango.inicio, plan.semanas.length);
-                          return (
-                            <div className="absolute top-1/2 h-2.5 -translate-y-1/2 rounded-full bg-gold/40" style={{ left: pos.left, width: pos.width }} />
-                          );
-                        })()}
-                      </div>
-                    </div>
-                    {hijos.map((t) => {
-                      const pos = posicion(t.inicio, t.fin, plan.rango.inicio, plan.semanas.length);
-                      const ui = uiDe(t);
-                      return (
-                        <div key={t.id} className="flex border-b border-white/[0.06]">
-                          <div className="sticky left-0 z-10 w-[260px] shrink-0 border-r border-white/10 bg-[#070b16] px-3 py-1.5">
-                            <span className="text-[11px] text-white">{t.codigo} {t.tarea}</span>
-                          </div>
-                          <div className="relative flex-1 py-1.5">
-                            {t.hito ? (
-                              <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[2px] bg-gold" style={{ left: pos.left }} />
-                            ) : (
-                              <div className={`absolute top-1/2 h-3.5 -translate-y-1/2 rounded-full ${ui.track}`} style={{ left: pos.left, width: pos.width }}>
-                                <div className={`h-full rounded-full ${ui.bar}`} style={{ width: `${Math.round(t.avance * 100)}%` }} />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-      </section>
 
       {/* Editor de estructura */}
       {editando && draft && (
