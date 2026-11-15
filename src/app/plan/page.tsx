@@ -5,9 +5,10 @@ import {
   ESTADOS,
   derivePlan,
   type PlanDerivado,
-  type PlanEstado,
   type PlanRaw,
+  type PlanEstado,
   type PlanTarea,
+  type PlanTareaCalc,
 } from "@/lib/plan";
 
 const MS_DIA = 86400000;
@@ -87,6 +88,9 @@ export default function PlanPage() {
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<string>("Todas");
   const [busqueda, setBusqueda] = useState("");
+  const [vista, setVista] = useState<"resumen" | "gantt" | "lista">("resumen");
+  const [editTask, setEditTask] = useState<PlanTareaCalc | null>(null);
+  const [savingTask, setSavingTask] = useState(false);
 
   const cargar = useCallback(() => {
     setLoading(true);
@@ -235,6 +239,67 @@ export default function PlanPage() {
     }
   };
 
+  const marcarTerminada = async (t: PlanTareaCalc) => {
+    if (!raw) return;
+    setSavingTask(true);
+    setMensaje(null);
+    try {
+      const nuevo: PlanRaw = {
+        ...raw,
+        tareas: raw.tareas.map((x) =>
+          x.id === t.id ? { ...x, estado: "Terminado", avance: 1 } : x,
+        ),
+      };
+      const res = await fetch("/api/plan", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevo),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      setRaw(nuevo);
+      setMensaje("Tarea marcada como terminada.");
+    } catch (e) {
+      setMensaje(`No se pudo guardar: ${e instanceof Error ? e.message : e}`);
+    } finally {
+      setSavingTask(false);
+    }
+  };
+
+  const guardarTarea = async (patch: Partial<PlanTarea>) => {
+    if (!raw || !editTask) return;
+    setSavingTask(true);
+    setMensaje(null);
+    try {
+      const nuevo: PlanRaw = {
+        ...raw,
+        tareas: raw.tareas.map((t) =>
+          t.id === editTask.id ? { ...t, ...patch } : t,
+        ),
+      };
+      // auto: si estado Terminado -> avance 100%
+      if (patch.estado === "Terminado") {
+        nuevo.tareas = nuevo.tareas.map((t) =>
+          t.id === editTask.id ? { ...t, avance: 1 } : t,
+        );
+      }
+      const res = await fetch("/api/plan", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevo),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      setRaw(nuevo);
+      setEditTask(null);
+      setMensaje("Tarea actualizada.");
+    } catch (e) {
+      setMensaje(`No se pudo guardar: ${e instanceof Error ? e.message : e}`);
+    } finally {
+      setSavingTask(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="glass animate-pulse rounded-xl p-10 text-center text-[#94a3b8]">
@@ -365,7 +430,28 @@ export default function PlanPage() {
         )}
       </header>
 
-      {!editando && (
+      {/* Vista */}
+  <div className="flex flex-wrap items-center gap-2">
+    {(["resumen", "gantt", "lista"] as const).map((v) => (
+      <button
+        key={v}
+        type="button"
+        onClick={() => setVista(v)}
+        className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+          vista === v
+            ? "border-gold/50 bg-gold/15 text-gold"
+            : "border-white/10 bg-white/5 text-[#94a3b8] hover:text-white"
+        }`}
+      >
+        {v === "resumen" ? "Resumen" : v === "gantt" ? "Gantt" : "Tareas"}
+      </button>
+    ))}
+    <span className="ml-auto text-xs text-[#64748b]">
+      {plan.tareas.filter((t) => !t.esGrupo).length} tareas · {plan.tareas.filter((t) => t.esGrupo).length} bloques
+    </span>
+  </div>
+
+  {!editando && (
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex flex-wrap gap-2">
             {estados.map((e) => (
@@ -398,7 +484,8 @@ export default function PlanPage() {
         </div>
       )}
 
-      <div className="max-h-[72vh] overflow-auto rounded-xl border border-white/10 bg-[#070b16]">
+      {vista === "gantt" && (
+  <div className="max-h-[72vh] overflow-auto rounded-xl border border-white/10 bg-[#070b16]">
         <div className="min-w-[1080px]">
           <div className="sticky top-0 z-20 flex border-b border-white/10 bg-[#0a0f1e]">
             <div className="sticky left-0 z-30 w-[340px] shrink-0 border-r border-white/10 bg-[#0a0f1e] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#64748b]">
@@ -538,8 +625,181 @@ export default function PlanPage() {
           })}
         </div>
       </div>
+  )}
 
-      {editando && draft && (
+
+  {vista === "resumen" && (
+    <div className="space-y-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {plan.tareas
+          .filter((t) => t.esGrupo)
+          .map((g) => {
+            const hijos = plan.tareas.filter((t) => !t.esGrupo && t.grupoId === g.id);
+            const term = hijos.filter((t) => t.estado === "Terminado").length;
+            const av = Math.round(g.avance * 100);
+            return (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => {
+                  setFiltro("Todas");
+                  setBusqueda(g.codigo || g.tarea);
+                  setVista("lista");
+                }}
+                className="glass rounded-xl p-4 text-left transition hover:border-gold/40 hover:-translate-y-0.5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-bold text-gold">{g.tarea}</span>
+                  <span className="text-xs font-bold text-white">{av}%</span>
+                </div>
+                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-gold-dark to-gold"
+                    style={{ width: `${av}%` }}
+                  />
+                </div>
+                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[#94a3b8]">
+                  <span>{hijos.length} tareas</span>
+                  <span className="text-emerald-300">{term} terminadas</span>
+                  <span>{fmtFecha(g.inicio)} → {fmtFecha(g.fin)}</span>
+                </div>
+              </button>
+            );
+          })}
+      </div>
+      {plan.tareas.some((t) => t.atrasada) && (
+        <div className="glass rounded-xl border border-rose-400/30 p-4">
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-rose-300">
+            Tareas atrasadas
+          </h3>
+          <ul className="space-y-1.5">
+            {plan.tareas
+              .filter((t) => t.atrasada)
+              .map((t) => (
+                <li key={t.id} className="flex items-center gap-2 text-sm">
+                  <i className="fa-solid fa-triangle-exclamation text-rose-400" aria-hidden="true" />
+                  <span className="font-mono text-xs text-gold/80">{t.codigo}</span>
+                  <span className="text-white">{t.tarea}</span>
+                  <span className="ml-auto text-[11px] text-[#64748b]">
+                    {fmtFecha(t.fin)} · {t.responsable}
+                  </span>
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )}
+
+
+  {vista === "lista" && (
+    <div className="space-y-4">
+      {plan.tareas
+        .filter((t) => t.esGrupo)
+        .map((g) => {
+          const hijos = visibles.filter((t) => !t.esGrupo && t.grupoId === g.id);
+          if (visibles.length !== plan.tareas.length && hijos.length === 0 && filtro !== "Todas") {
+            // still show group if any child matches filter via visibles? visibles already filtered
+          }
+          return (
+            <details key={g.id} open className="glass rounded-xl">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="text-sm font-bold uppercase tracking-wide text-gold">
+                    {g.tarea}
+                  </span>
+                  <span className="text-[11px] text-[#64748b]">
+                    {fmtFecha(g.inicio)} → {fmtFecha(g.fin)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="h-2 w-24 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-gold-dark to-gold"
+                      style={{ width: `${Math.round(g.avance * 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-white">
+                    {Math.round(g.avance * 100)}%
+                  </span>
+                </div>
+              </summary>
+              <div className="divide-y divide-white/[0.06] border-t border-white/10">
+                {plan.tareas
+                  .filter((t) => !t.esGrupo && t.grupoId === g.id)
+                  .filter((t) => (filtro === "Todas" || t.estado === filtro))
+                  .filter((t) =>
+                    !busqueda.trim() ||
+                    `${t.codigo} ${t.tarea} ${t.responsable} ${t.observaciones}`
+                      .toLowerCase()
+                      .includes(busqueda.trim().toLowerCase()),
+                  )
+                  .map((t) => {
+                    const ui = uiDe(t);
+                    const avance = Math.round(t.avance * 100);
+                    return (
+                      <div
+                        key={t.id}
+                        className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-white/[0.02]"
+                      >
+                        {t.codigo && (
+                          <span className="shrink-0 rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] font-bold text-[#c7d2e3]">
+                            {t.codigo}
+                          </span>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-white">{t.tarea}</p>
+                          <p className="text-[11px] text-[#64748b]">
+                            {t.responsable} · {fmtFecha(t.inicio)} → {fmtFecha(t.fin)}
+                            {t.observaciones ? ` · ${t.observaciones}` : ""}
+                          </p>
+                        </div>
+                        <span
+                          className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${ui.chip}`}
+                        >
+                          {t.estado || "Pendiente"} {avance}%
+                        </span>
+                        {t.atrasada && (
+                          <i
+                            className="fa-solid fa-triangle-exclamation text-rose-400"
+                            title="Atrasada"
+                            aria-hidden="true"
+                          />
+                        )}
+                        {canEdit && (
+                          <div className="flex items-center gap-1">
+                            {t.estado !== "Terminado" && (
+                              <button
+                                type="button"
+                                onClick={() => marcarTerminada(t)}
+                                disabled={savingTask}
+                                className="rounded-md border border-emerald-400/30 bg-emerald-400/10 px-2 py-1 text-[11px] text-emerald-300 hover:bg-emerald-400/20 disabled:opacity-50"
+                                title="Marcar como terminada"
+                              >
+                                <i className="fa-solid fa-check" aria-hidden="true" />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setEditTask(t)}
+                              className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-gold hover:bg-gold/15"
+                              title="Editar tarea"
+                            >
+                              <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </details>
+          );
+        })}
+    </div>
+  )}
+
+  {editando && draft && (
         <section className="glass rounded-xl p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gold">
@@ -788,6 +1048,132 @@ export default function PlanPage() {
           </p>
         )}
       </div>
+
+      {editTask && (
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setEditTask(null)}
+        >
+          <div
+            className="glass max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-gold/30 p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-white">Editar tarea</h3>
+              <button
+                type="button"
+                onClick={() => setEditTask(null)}
+                className="text-slate-400 hover:text-white"
+              >
+                <i className="fa-solid fa-xmark" aria-hidden="true" />
+              </button>
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const fd = new FormData(e.currentTarget);
+                const patch: Partial<PlanTarea> = {
+                  codigo: String(fd.get("codigo") || ""),
+                  tarea: String(fd.get("tarea") || ""),
+                  responsable: String(fd.get("responsable") || ""),
+                  estado: String(fd.get("estado") || "Pendiente") as PlanEstado,
+                  avance: Math.min(1, Math.max(0, Number(fd.get("avance")) / 100 || 0)),
+                  inicio: String(fd.get("inicio") || editTask.inicio),
+                  semanas: fd.get("hito") === "on" ? 0 : Math.max(1, Number(fd.get("semanas")) || 1),
+                  hito: fd.get("hito") === "on",
+                  observaciones: String(fd.get("observaciones") || ""),
+                };
+                guardarTarea(patch);
+              }}
+              className="space-y-3"
+            >
+              <div>
+                <label className="mb-1 block text-xs text-[#c7d2e3]">Código</label>
+                <input name="codigo" defaultValue={editTask.codigo} className={INP} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-[#c7d2e3]">Tarea</label>
+                <input name="tarea" defaultValue={editTask.tarea} className={INP} required />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-[#c7d2e3]">Responsable</label>
+                <input name="responsable" defaultValue={editTask.responsable} className={INP} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs text-[#c7d2e3]">Estado</label>
+                  <select name="estado" defaultValue={editTask.estado || "Pendiente"} className={INP}>
+                    {ESTADOS.map((e) => (
+                      <option key={e} value={e} className="bg-[#0a0f1e]">
+                        {e}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-[#c7d2e3]">Avance %</label>
+                  <input
+                    name="avance"
+                    type="number"
+                    min={0}
+                    max={100}
+                    defaultValue={Math.round(editTask.avance * 100)}
+                    className={INP}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs text-[#c7d2e3]">Inicio</label>
+                  <input name="inicio" type="date" defaultValue={editTask.inicio} className={INP} />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-[#c7d2e3]">Semanas</label>
+                  <input
+                    name="semanas"
+                    type="number"
+                    min={1}
+                    defaultValue={editTask.hito ? 1 : editTask.semanas ?? 1}
+                    disabled={editTask.hito}
+                    className={INP}
+                  />
+                </div>
+              </div>
+              <label className="flex items-center gap-2 text-xs text-[#c7d2e3]">
+                <input name="hito" type="checkbox" defaultChecked={editTask.hito} />
+                Hito (un solo día)
+              </label>
+              <div>
+                <label className="mb-1 block text-xs text-[#c7d2e3]">Observaciones</label>
+                <textarea
+                  name="observaciones"
+                  defaultValue={editTask.observaciones}
+                  rows={2}
+                  className={INP}
+                />
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditTask(null)}
+                  className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-[#94a3b8] hover:text-white"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingTask}
+                  className="inline-flex items-center gap-2 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/25 disabled:opacity-50"
+                >
+                  <i className={`fa-solid ${savingTask ? "fa-spinner fa-spin" : "fa-floppy-disk"}`} aria-hidden="true" />
+                  {savingTask ? "Guardando…" : "Guardar"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
