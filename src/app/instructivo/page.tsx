@@ -37,16 +37,32 @@ const NAV = [
 ];
 
 function Card({ id, n, icon, title, children, span = false }: { id: string; n: string; icon: string; title: string; children: React.ReactNode; span?: boolean }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const onExpand = () => setOpen(true);
+    const onCollapse = () => setOpen(false);
+    window.addEventListener("instructivo:expand", onExpand);
+    window.addEventListener("instructivo:collapse", onCollapse);
+    return () => {
+      window.removeEventListener("instructivo:expand", onExpand);
+      window.removeEventListener("instructivo:collapse", onCollapse);
+    };
+  }, []);
   return (
     <section id={id} className={`glass rounded-2xl p-6 scroll-mt-20 card-hover ${span ? "lg:col-span-2" : ""}`}>
-      <div className="mb-4 flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="mb-4 flex w-full items-center gap-3 text-left"
+      >
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gold/30 bg-gold/10 font-mono-code text-sm font-bold text-gold">{n}</span>
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gold/20 bg-gold/10 text-gold">
           <i className={`fa-solid ${icon} text-sm`} aria-hidden="true" />
         </span>
-        <h2 className="text-lg font-bold text-white">{title}</h2>
-      </div>
-      {children}
+        <h2 className="flex-1 text-lg font-bold text-white">{title}</h2>
+        <i className={`fa-solid ${open ? "fa-chevron-down" : "fa-chevron-right"} text-xs text-gold`} aria-hidden="true" />
+      </button>
+      {open && children}
     </section>
   );
 }
@@ -109,6 +125,23 @@ export default function InstructivoPage() {
             </a>
           ))}
         </nav>
+
+        <div className="mb-2 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("instructivo:expand"))}
+            className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-[#94a3b8] hover:text-white"
+          >
+            Expandir todo
+          </button>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("instructivo:collapse"))}
+            className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-[#94a3b8] hover:text-white"
+          >
+            Contraer todo
+          </button>
+        </div>
 
         {/* Grid */}
         <div className="grid gap-5 lg:grid-cols-2">

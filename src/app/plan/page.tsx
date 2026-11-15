@@ -554,11 +554,31 @@ export default function PlanPage() {
       )}
 
       {/* Bloques y tareas */}
+      <div className="mb-2 flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            const next: Record<string, boolean> = {};
+            grupos.forEach((g) => (next[g.id] = true));
+            setExpandidos(next);
+          }}
+          className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-[#94a3b8] hover:text-white"
+        >
+          Expandir todo
+        </button>
+        <button
+          type="button"
+          onClick={() => setExpandidos({})}
+          className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-[#94a3b8] hover:text-white"
+        >
+          Contraer todo
+        </button>
+      </div>
       <div className="space-y-3">
         {grupos.map((g) => {
           const hijos = hojas.filter((t) => t.grupoId === g.id).filter(filtrar);
           const todosHijos = hojas.filter((t) => t.grupoId === g.id);
-          const abierto = expandidos[g.id] ?? true;
+          const abierto = q ? true : (expandidos[g.id] ?? false);
           if (q && hijos.length === 0) return null;
           return (
             <section key={g.id} className="glass overflow-hidden rounded-xl">

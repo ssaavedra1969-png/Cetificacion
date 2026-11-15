@@ -7,6 +7,7 @@ import AgendaTable, { type PlantaFiltro } from "@/components/AgendaTable";
 import RepositorioPanel from "@/components/RepositorioPanel";
 import type { AgendaFiltersValue } from "@/components/AgendaFilters";
 import type { Documento, PuntoSGC } from "@/types/models";
+import { getFavoritos } from "@/lib/favoritos";
 
 type Planta = "Luján" | "Campana";
 
@@ -35,6 +36,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [filtros, setFiltros] = useState<AgendaFiltersValue>(initialFilters);
   const [plantaActiva, setPlantaActiva] = useState<PlantaFiltro>("Todo");
+  const [favs, setFavs] = useState<string[]>([]);
 
   const cargarTodo = useCallback(async (): Promise<AgendaCargada> => {
     const [agendaRes, docsRes] = await Promise.all([
@@ -60,6 +62,10 @@ export default function Dashboard() {
   const aplicarDatos = useCallback((data: AgendaCargada) => {
     setPuntos(data.puntos);
     setDocumentos(data.documentos);
+  }, []);
+
+  useEffect(() => {
+    setFavs(getFavoritos());
   }, []);
 
   useEffect(() => {
@@ -145,6 +151,30 @@ export default function Dashboard() {
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
         </div>
+
+        {favs.length > 0 && (
+          <div className="w-full px-4 sm:px-6 lg:px-8">
+            <div className="glass rounded-2xl p-4">
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#94a3b8]">
+                ⭐ Accesos rápidos / Favoritos
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {documentos.filter((d) => favs.includes(d.id)).map((d) => (
+                  <a
+                    key={d.id}
+                    href={d.archivoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold/20"
+                  >
+                    <i className="fa-solid fa-star text-[10px]" aria-hidden="true" />
+                    <span className="max-w-[220px] truncate">{d.nombre}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <RepositorioPanel documentos={documentos} />

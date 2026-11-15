@@ -8,6 +8,7 @@ import AccionesDocumento from "@/components/AccionesDocumento";
 import DocDrawer from "@/components/DocDrawer";
 import { useApp } from "@/components/AppProviders";
 import { useSession } from "@/components/useSession";
+import { getFavoritos, toggleFavorito } from "@/lib/favoritos";
 import { isOfficeTipo } from "@/lib/files";
 
 const ORDEN_CATEGORIAS: string[] = [
@@ -70,6 +71,8 @@ export default function Documentoteca() {
   const [error, setError] = useState<string | null>(null);
   const [modalDoc, setModalDoc] = useState<Documento | null>(null);
   const [drawerDoc, setDrawerDoc] = useState<Documento | null>(null);
+  const [favs, setFavs] = useState<string[]>([]);
+  const [vistaRapida, setVistaRapida] = useState<string>("todos");
 
   // Filtros
   const [busqueda, setBusqueda] = useState("");
@@ -95,9 +98,21 @@ export default function Documentoteca() {
     cargar();
   }, [cargar]);
 
+  useEffect(() => {
+    setFavs(getFavoritos());
+    const onStorage = () => setFavs(getFavoritos());
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   const documentosFiltrados = useMemo(() => {
     return documentos.filter((doc) => {
       if (auditMode && doc.categoria === "Obsoletos") return false;
+      if (vistaRapida === "lujan" && doc.planta !== "Luján") return false;
+      if (vistaRapida === "campana" && doc.planta !== "Campana") return false;
+      if (vistaRapida === "general" && doc.planta !== "General") return false;
+      if (vistaRapida === "vigentes" && doc.categoria === "Obsoletos") return false;
+      if (vistaRapida === "obsoletos" && doc.categoria !== "Obsoletos") return false;
       if (filtroCategoria !== "Todas" && doc.categoria !== filtroCategoria) {
         return false;
       }
@@ -125,7 +140,7 @@ export default function Documentoteca() {
       }
       return true;
     });
-  }, [documentos, filtroCategoria, filtroPlanta, filtroTipo, busqueda, auditMode]);
+  }, [documentos, filtroCategoria, filtroPlanta, filtroTipo, busqueda, auditMode, vistaRapida]);
 
   return (
     <main className="min-h-screen">
@@ -166,6 +181,55 @@ export default function Documentoteca() {
             {error}
           </div>
         )}
+
+        {/* Accesos rápidos / Favoritos */}
+        {favs.length > 0 && (
+          <section className="mb-6">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#94a3b8]">
+              ⭐ Accesos rápidos / Favoritos
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {documentos.filter((d) => favs.includes(d.id)).map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => setModalDoc(d)}
+                  className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold/20"
+                >
+                  <i className="fa-solid fa-star text-[10px]" aria-hidden="true" />
+                  <span className="max-w-[200px] truncate">{d.nombre}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Filtros rápidos (chips) */}
+        <section className="mb-6">
+          <div className="flex flex-wrap gap-2">
+            {[
+              { key: "todos", label: "Todos" },
+              { key: "lujan", label: "Luján" },
+              { key: "campana", label: "Campana" },
+              { key: "general", label: "General" },
+              { key: "vigentes", label: "Vigentes" },
+              { key: "obsoletos", label: "Obsoletos" },
+            ].map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                onClick={() => setVistaRapida(c.key)}
+                className={`rounded-full border px-3 py-1.5 text-[12px] font-semibold transition ${
+                  vistaRapida === c.key
+                    ? "border-gold bg-gold/15 text-gold"
+                    : "border-white/10 bg-white/[0.03] text-slate-300 hover:border-gold/40"
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+        </section>
 
         {/* Categorías con selector rápido */}
         <section className="mb-8">
@@ -445,14 +509,32 @@ export default function Documentoteca() {
 
                         {/* Acciones */}
                         <td className="px-4 py-3 text-right">
-                          <AccionesDocumento
-                            documento={d}
-                            onVer={setModalDoc}
-                            onChanged={cargar}
-                            canEdit={effectiveCanEdit}
-                            canDelete={effectiveCanDelete}
-                            size="md"
-                          />
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const next = toggleFavorito(d.id);
+                                setFavs(next);
+                              }}
+                              className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border transition ${
+                                favs.includes(d.id)
+                                  ? "border-gold/40 bg-gold/15 text-gold"
+                                  : "border-white/10 bg-white/5 text-slate-400 hover:text-gold"
+                              }`}
+                              title={favs.includes(d.id) ? "Quitar de favoritos" : "Marcar favorito"}
+                            >
+                              <i className={`fa-solid ${favs.includes(d.id) ? "fa-star" : "fa-star"} text-xs`} aria-hidden="true" />
+                            </button>
+                            <AccionesDocumento
+                              documento={d}
+                              onVer={setModalDoc}
+                              onChanged={cargar}
+                              canEdit={effectiveCanEdit}
+                              canDelete={effectiveCanDelete}
+                              size="md"
+                            />
+                          </div>
                         </td>
                       </tr>
                     );

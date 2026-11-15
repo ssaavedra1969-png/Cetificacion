@@ -195,6 +195,17 @@ export default function DocumentoManager({
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const siguienteCodigo = (prefijo: string): string => {
+    const nums = documentos
+      .map((d) => {
+        const m = (d.nombre || "").match(new RegExp(`^${prefijo}\\\\s+(\\\\d+)`, "i"));
+        return m ? parseInt(m[1], 10) : 0;
+      })
+      .filter((n) => Number.isFinite(n));
+    const max = nums.length ? Math.max(...nums) : 0;
+    return `${prefijo} ${String(max + 1).padStart(2, "0")}`;
+  };
+
   const seleccionarPunto = (puntoId: string) => {
     const punto = puntos.find((p) => p.id === puntoId);
     if (punto) {
@@ -718,6 +729,21 @@ export default function DocumentoManager({
                       </div>
                     </div>
                   )}
+                </div>
+
+                {/* Sugerencia de código correlativo */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[10px] text-[#64748b]">Sugerir código:</span>
+                  {["MSGC", "DC", "PG", "PO", "IT", "FG", "FO"].map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setField("nombre", siguienteCodigo(p))}
+                      className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-[#c7d2e3] transition hover:border-gold/40 hover:text-gold"
+                    >
+                      {p}
+                    </button>
+                  ))}
                 </div>
 
                 {/* Nombre (visible) */}
