@@ -71,6 +71,7 @@ export default function Documentoteca() {
   const [error, setError] = useState<string | null>(null);
   const [modalDoc, setModalDoc] = useState<Documento | null>(null);
   const [drawerDoc, setDrawerDoc] = useState<Documento | null>(null);
+  const [editDoc, setEditDoc] = useState<Documento | null>(null);
   const [favs, setFavs] = useState<string[]>([]);
   const [vistaRapida, setVistaRapida] = useState<string>("todos");
 
@@ -538,6 +539,7 @@ export default function Documentoteca() {
                             <AccionesDocumento
                               documento={d}
                               onVer={setModalDoc}
+                              onEdit={effectiveCanEdit ? setEditDoc : undefined}
                               onChanged={cargar}
                               canEdit={effectiveCanEdit}
                               canDelete={effectiveCanDelete}
@@ -565,6 +567,97 @@ export default function Documentoteca() {
 
       {/* Drawer de vista previa */}
       <DocDrawer doc={drawerDoc} onClose={() => setDrawerDoc(null)} />
+
+      {/* Modal de edición rápida en la misma página */}
+      {editDoc && (
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setEditDoc(null)}
+        >
+          <div
+            className="glass max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-gold/30 p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-white">Editar documento</h3>
+              <button type="button" onClick={() => setEditDoc(null)} className="text-slate-400 hover:text-white">
+                <i className="fa-solid fa-xmark" aria-hidden="true" />
+              </button>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.currentTarget);
+                const file = fd.get("file");
+                if (file instanceof File && file.size > 0) fd.append("file", file);
+                fd.append("id", editDoc.id);
+                try {
+                  const res = await fetch("/api/documentos", { method: "PATCH", body: fd });
+                  const data = await res.json().catch(() => ({}));
+                  if (!res.ok) throw new Error(data.error || "No se pudo guardar");
+                  setEditDoc(null);
+                  await cargar();
+                } catch (err) {
+                  alert(err instanceof Error ? err.message : "Error al guardar");
+                }
+              }}
+              className="space-y-3"
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-xs text-[#c7d2e3]">Nombre</label>
+                  <input name="nombre" defaultValue={editDoc.nombre} required className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white focus:border-gold/50 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-[#c7d2e3]">Categoría</label>
+                  <input name="categoria" defaultValue={editDoc.categoria} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white focus:border-gold/50 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-[#c7d2e3]">Planta</label>
+                  <select name="planta" defaultValue={editDoc.planta} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white focus:border-gold/50 focus:outline-none">
+                    <option value="General">General</option>
+                    <option value="Campana">Campana</option>
+                    <option value="Luján">Luján</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-[#c7d2e3]">Versión</label>
+                  <input name="version" defaultValue={editDoc.version} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white focus:border-gold/50 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-[#c7d2e3]">Responsable</label>
+                  <input name="responsable" defaultValue={editDoc.responsable} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white focus:border-gold/50 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-[#c7d2e3]">Fecha</label>
+                  <input name="fecha" type="date" defaultValue={editDoc.fecha} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white focus:border-gold/50 focus:outline-none" />
+                </div>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-[#c7d2e3]">Descripción</label>
+                <textarea name="descripcion" defaultValue={editDoc.descripcion} rows={2} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white focus:border-gold/50 focus:outline-none" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-[#c7d2e3]">Reemplazar archivo (opcional, máx. 4 MB)</label>
+                <input name="file" type="file" className="w-full text-xs text-slate-300" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-[#c7d2e3]">O enlace externo (Drive)</label>
+                <input name="enlace" defaultValue={/^https?:\/\//i.test(editDoc.archivoUrl) ? editDoc.archivoUrl : ""} placeholder="https://drive.google.com/..." className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white focus:border-gold/50 focus:outline-none" />
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setEditDoc(null)} className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-[#94a3b8] hover:text-white">
+                  Cancelar
+                </button>
+                <button type="submit" className="inline-flex items-center gap-2 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-4 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/25">
+                  <i className="fa-solid fa-floppy-disk" aria-hidden="true" />
+                  Guardar cambios
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

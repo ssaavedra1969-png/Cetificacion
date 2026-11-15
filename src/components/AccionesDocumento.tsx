@@ -8,6 +8,7 @@ import { downloadUrl } from "@/lib/urls";
 interface Props {
   documento: Documento;
   onVer: (documento: Documento) => void;
+  onEdit?: (documento: Documento) => void;
   onChanged?: () => void;
   canEdit?: boolean;
   canDelete?: boolean;
@@ -21,6 +22,7 @@ const base =
 export default function AccionesDocumento({
   documento,
   onVer,
+  onEdit,
   onChanged,
   canEdit = false,
   canDelete = false,
@@ -120,14 +122,26 @@ export default function AccionesDocumento({
       </a>
 
       {canEdit && (
-        <a
-          href={`/administracion?doc=${encodeURIComponent(documento.id)}#documentos`}
-          className={`${base} ${dim} border-amber-400/30 bg-amber-400/10 text-amber-300 hover:bg-amber-400/20`}
-          title="Editar documento"
-        >
-          <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
-          {size === "md" && "Editar"}
-        </a>
+        onEdit ? (
+          <button
+            type="button"
+            onClick={() => onEdit(documento)}
+            className={`${base} ${dim} border-amber-400/30 bg-amber-400/10 text-amber-300 hover:bg-amber-400/20`}
+            title="Editar documento"
+          >
+            <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
+            {size === "md" && "Editar"}
+          </button>
+        ) : (
+          <a
+            href={`/administracion?doc=${encodeURIComponent(documento.id)}#documentos`}
+            className={`${base} ${dim} border-amber-400/30 bg-amber-400/10 text-amber-300 hover:bg-amber-400/20`}
+            title="Editar documento"
+          >
+            <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
+            {size === "md" && "Editar"}
+          </a>
+        )
       )}
 
       {canEdit && !esObsoleto && (
