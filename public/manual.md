@@ -1,6 +1,6 @@
 # Manual de Usuario — Portal SGC Grupo Falpat
 
-**Sitio:** https://cetificacion.vercel.app/
+**Sitio:** https://certificacion.vercel.app/
 **Versión:** 1.0 · Noviembre 2026
 **Empresa:** Grupo Falpat S.R.L. · ISO 9001:2026
 
@@ -8,7 +8,7 @@
 
 ## 1. Acceso al sistema
 
-1. Ingresá a https://cetificacion.vercel.app/
+1. Ingresá a https://certificacion.vercel.app/
 2. Hacé clic en **Ingresar** (esquina superior derecha).
 3. Ingresá tu usuario y contraseña.
 4. La sesión se mantiene mediante una cookie segura (`sgc_session`).
@@ -179,4 +179,4 @@ URL: `/mapa`
 - Web: https://hormigon.grupofalpat.com.ar/
 - Tel: +54 11 3197-2072
 - Instagram: @grupofalpat
-- Portal: https://cetificacion.vercel.app/
+- Portal: https://certificacion.vercel.app/

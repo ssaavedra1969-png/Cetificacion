@@ -2,7 +2,7 @@
 
 Portal interno de certificación y seguimiento del Sistema de Gestión de la Calidad (SGC), con agenda por planta (Campana / Luján), mapa de procesos, plan de trabajo (Gantt) y documentoteca de PDF, Word, Excel e imágenes.
 
-- **Producción:** https://cetificacion.vercel.app/
+- **Producción:** https://certificacion.vercel.app/
 - **Repositorio:** https://github.com/ssaavedra1969-png/Cetificacion (privado, rama `main`)
 - **Documentación completa:** ver [`DOCUMENTACION.md`](./DOCUMENTACION.md)
 - **Continuidad y estado actual:** ver [`INSTRUCCIONES.md`](./INSTRUCCIONES.md)

@@ -3,7 +3,7 @@
 Manual completo del portal de certificación ISO 9001:2026 de **Grupo Falpat SRL**
 (Hormigones — plantas de **Campana** y **Luján**).
 
-- **Producción:** https://cetificacion.vercel.app/
+- **Producción:** https://certificacion.vercel.app/
 - **Repositorio:** https://github.com/ssaavedra1969-png/Cetificacion (privado)
 - **Ramas:** `main` = producción · `desarrollo` = preview/trabajo
 - **Última actualización:** 15 de noviembre de 2026

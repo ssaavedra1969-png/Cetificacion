@@ -2,7 +2,7 @@
 
 **Actualizado:** 15 de noviembre de 2026  
 **Repositorio:** https://github.com/ssaavedra1969-png/Cetificacion (rama `main`)  
-**Sitio:** https://cetificacion.vercel.app/  
+**Sitio:** https://certificacion.vercel.app/  
 **Carpeta local:** `C:\AI\Antigravity\FALPAT srl\Certificacion`  
 **Documentación completa:** [`DOCUMENTACION.md`](./DOCUMENTACION.md)
 

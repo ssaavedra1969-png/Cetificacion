@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Markdown from "@/components/Markdown";
 
 const META = [
-  { label: "Sitio", value: "cetificacion.vercel.app", icon: "fa-globe" },
+  { label: "Sitio", value: "certificacion.vercel.app", icon: "fa-globe" },
   { label: "Versión", value: "1.0 · Nov 2026", icon: "fa-code-branch" },
   { label: "Empresa", value: "Grupo Falpat S.R.L.", icon: "fa-building" },
   { label: "Norma", value: "ISO 9001:2026", icon: "fa-certificate" },
@@ -135,7 +135,7 @@ export default function InstructivoPage() {
               <h2 className="text-lg font-bold text-white">1. Acceso al sistema</h2>
             </div>
             <ol className="space-y-2 text-[13px] text-slate-200">
-              <li className="flex gap-2"><span className="font-bold text-gold">1.</span> Ingresá a <code className="rounded bg-white/10 px-1 text-gold">cetificacion.vercel.app</code></li>
+              <li className="flex gap-2"><span className="font-bold text-gold">1.</span> Ingresá a <code className="rounded bg-white/10 px-1 text-gold">certificacion.vercel.app</code></li>
               <li className="flex gap-2"><span className="font-bold text-gold">2.</span> Hacé clic en <strong>Ingresar</strong> (esquina superior derecha).</li>
               <li className="flex gap-2"><span className="font-bold text-gold">3.</span> Ingresá tu usuario y contraseña.</li>
               <li className="flex gap-2"><span className="font-bold text-gold">4.</span> La sesión se mantiene mediante cookie segura <code className="rounded bg-white/10 px-1 text-gold">sgc_session</code>.</li>

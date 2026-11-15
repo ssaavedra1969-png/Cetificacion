@@ -1,7 +1,7 @@
 # Portal SGC – Grupo Falpat SRL
 
 **Repositorio:** https://github.com/ssaavedra1969-png/Cetificacion  
-**Sitio:** https://cetificacion.vercel.app/
+**Sitio:** https://certificacion.vercel.app/
 
 > Para el estado actual del proyecto, roles y flujo de documentos, ver [`INSTRUCCIONES.md`](./INSTRUCCIONES.md) y [`README.md`](./README.md).
 
@@ -52,7 +52,7 @@ Este proyecto usa **dos ramas** y es la causa más frecuente de confusión al pu
 
 | Rama | Rol en Vercel | Contenido |
 |---|---|---|
-| `main` | **Producción** (`https://cetificacion.vercel.app/`) | Versión pública. Vercel solo despliega a producción desde acá. |
+| `main` | **Producción** (`https://certificacion.vercel.app/`) | Versión pública. Vercel solo despliega a producción desde acá. |
 | `desarrollo` | **Preview** | Rama de trabajo. Cada push genera un *Preview Deployment*, NO actualiza el sitio público. |
 
 ### Síntoma
@@ -87,7 +87,7 @@ Salida esperada del paso 4:
 
 ```
 ▲ Production  https://cetificacion-<hash>-<usuario>.vercel.app
-▲ Aliased     https://cetificacion.vercel.app
+▲ Aliased     https://certificacion.vercel.app
 ✓ Ready in 1m
 ```
 
@@ -106,7 +106,7 @@ O bien, en **Settings → Git → Production Branch**, cambiar de `main` a `desa
 $j = Get-Content -Raw "data\documentos.json" | ConvertFrom-Json; $j.documentos.Count
 ```
 
-Luego abrir https://cetificacion.vercel.app/ y confirmar que aparece el catálogo nuevo.
+Luego abrir https://certificacion.vercel.app/ y confirmar que aparece el catálogo nuevo.
 
 ### Notas
 
