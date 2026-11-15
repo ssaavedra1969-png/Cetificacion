@@ -46,6 +46,76 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
 ---
 
+## Ramas y despliegue a producción
+
+Este proyecto usa **dos ramas** y es la causa más frecuente de confusión al publicar.
+
+| Rama | Rol en Vercel | Contenido |
+|---|---|---|
+| `main` | **Producción** (`https://cetificacion.vercel.app/`) | Versión pública. Vercel solo despliega a producción desde acá. |
+| `desarrollo` | **Preview** | Rama de trabajo. Cada push genera un *Preview Deployment*, NO actualiza el sitio público. |
+
+### Síntoma
+
+> Se suben cambios a `desarrollo`, el push termina OK, pero la página pública **sigue mostrando la información anterior**.
+
+Ocurre porque Vercel tiene configurada la *Production Branch* = `main`. La rama `desarrollo` solo produce previews; el sitio público no se toca.
+
+### Solución (promover `desarrollo` a producción)
+
+Desde la raíz del repositorio:
+
+```powershell
+# 1. Verificar que el avance sea directo (sin conflictos)
+git merge-base --is-ancestor main desarrollo; if ($?) { "FAST-FORWARD OK" }
+
+# 2. Llevar main al nivel de desarrollo
+git checkout main
+git merge --ff-only desarrollo
+
+# 3. Publicar main en GitHub (dispara el deploy de producción)
+git push origin main
+
+# 4. Forzar el deploy a producción en Vercel (opcional pero recomendado)
+vercel --prod --confirm
+
+# 5. Volver a la rama de trabajo
+git checkout desarrollo
+```
+
+Salida esperada del paso 4:
+
+```
+▲ Production  https://cetificacion-<hash>-<usuario>.vercel.app
+▲ Aliased     https://cetificacion.vercel.app
+✓ Ready in 1m
+```
+
+### Alternativa desde el panel de Vercel
+
+1. Ir a https://vercel.com/ssaavedra1969-png/cetificacion → **Deployments**.
+2. Ubicar el deployment de `desarrollo`.
+3. Menú **⋯ → Promote to Production**.
+
+O bien, en **Settings → Git → Production Branch**, cambiar de `main` a `desarrollo` para que cada push a esa rama publique directo (no recomendado si se quiere mantener `main` como rama estable).
+
+### Verificar que quedó bien
+
+```powershell
+# Debe coincidir con la cantidad de documentos importados (hoy: 451)
+$j = Get-Content -Raw "data\documentos.json" | ConvertFrom-Json; $j.Count
+```
+
+Luego abrir https://cetificacion.vercel.app/ y confirmar que aparece el catálogo nuevo.
+
+### Notas
+
+- Si `git merge --ff-only` falla, hay divergencia entre ramas: resolver con un merge normal (`git merge desarrollo`) antes de publicar.
+- `main` **no** se debe tocar con `git checkout main` + edición directa: todo el trabajo va en `desarrollo` y se promueve a `main` al publicar.
+- Los archivos >4,5 MB no se sirven por la función serverless de Vercel (ver límite en la sección *Persistencia*).
+
+---
+
 ## Persistencia
 
 - **Metadatos:** `data/agenda.json`, `data/documentos.json`, `data/usuarios.json`.

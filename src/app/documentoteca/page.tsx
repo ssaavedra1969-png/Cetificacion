@@ -9,16 +9,16 @@ import { downloadUrl } from "@/lib/urls";
 import { isOfficeTipo } from "@/lib/files";
 
 const ORDEN_CATEGORIAS: string[] = [
-  "Resguardo de información",
-  "Muestras de Campana",
-  "Certificados de calibración",
-  "Layout",
-  "Seguridad vial",
-  "Administración",
-  "Muestreo",
-  "Control de calidad de áridos de cantera propia",
-  "Control de calidad del agua",
-  "Documentación del laboratorio",
+  "Documentos de Calidad",
+  "Procedimientos Generales",
+  "Procedimientos Operativos",
+  "Instructivos de Trabajo",
+  "Formularios",
+  "Registros de Calidad",
+  "Documentos Externos",
+  "Soporte",
+  "Obsoletos",
+  "Otros",
 ];
 function iconFor(tipo: string): { icon: string; color: string; bg: string } {
   if (tipo === "pdf") {
