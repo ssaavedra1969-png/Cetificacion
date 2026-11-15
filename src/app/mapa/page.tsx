@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Documento } from "@/types/models";
 import DocumentoModal from "@/components/DocumentoModal";
+import AccionesDocumento from "@/components/AccionesDocumento";
+import { useSession } from "@/components/useSession";
 
 type CatKey =
   | "ALL"
@@ -147,34 +149,65 @@ const MEJORA: [string, string][] = [
   ["Control de documentos y registros", "PG 01"],
 ];
 
-function ProcessCard({ title, code }: { title: string; code: string }) {
+function ProcessCard({
+  title,
+  code,
+  onClick,
+}: {
+  title: string;
+  code: string;
+  onClick?: () => void;
+}) {
   return (
-    <div className="flex min-w-[120px] flex-1 flex-col items-center justify-center gap-1 rounded-lg border border-white/10 bg-[#0e1329] px-3 py-3 text-center text-[12.5px] leading-tight text-slate-200 transition hover:-translate-y-0.5 hover:border-gold/50">
+    <button
+      type="button"
+      onClick={onClick}
+      title={`Ver documentos de ${code}`}
+      className="flex min-w-[120px] flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-white/10 bg-[#0e1329] px-3 py-3 text-center text-[12.5px] leading-tight text-slate-200 transition hover:-translate-y-0.5 hover:border-gold/50 focus:outline-none focus:ring-2 focus:ring-gold/40"
+    >
       <span>{title}</span>
       <span className="font-mono text-[10.5px] font-bold tracking-wide text-gold/80">
         {code}
       </span>
-    </div>
+    </button>
   );
 }
 
 export default function MapaPage() {
+  const { user, canEdit } = useSession();
+  const canDelete = user?.rol === "admin";
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<CatKey>("ALL");
   const [modalDoc, setModalDoc] = useState<Documento | null>(null);
+  const treeRef = useRef<HTMLElement>(null);
 
-  useEffect(() => {
-    fetch("/api/documentos")
+  const cargar = useCallback(() => {
+    return fetch("/api/documentos", { cache: "no-store" })
       .then((res) => {
         if (!res.ok) throw new Error("No se pudo cargar el mapa");
         return res.json();
       })
-      .then((data) => setDocumentos(data.documentos || []))
+      .then((data) => {
+        setDocumentos(data.documentos || []);
+        setError(null);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
+
+  const irAProceso = useCallback((code: string) => {
+    setCat("ALL");
+    setQ(code);
+    requestAnimationFrame(() =>
+      treeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
   }, []);
 
   const enriched = useMemo(
@@ -258,15 +291,13 @@ export default function MapaPage() {
                 <span className="hidden truncate text-[11px] text-slate-500 sm:block sm:max-w-[240px]">
                   {(d.ruta ?? "").replace("/" + d.nombre, "")}
                 </span>
-                <a
-                  href={`/documentos/${d.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-1 text-slate-500 hover:text-white"
-                  title="Abrir en página completa"
-                >
-                  <i className="fa-solid fa-arrow-up-right-from-square text-[11px]" />
-                </a>
+                <AccionesDocumento
+                  documento={d}
+                  onVer={setModalDoc}
+                  onChanged={cargar}
+                  canEdit={canEdit}
+                  canDelete={canDelete}
+                />
               </div>
             );
           })}
@@ -327,7 +358,12 @@ export default function MapaPage() {
                 </div>
                 <div className="flex flex-wrap gap-2.5">
                   {ESTRATEGICOS.map(([t, c]) => (
-                    <ProcessCard key={c} title={t} code={c} />
+                    <ProcessCard
+                      key={c}
+                      title={t}
+                      code={c}
+                      onClick={() => irAProceso(c)}
+                    />
                   ))}
                 </div>
               </div>
@@ -345,7 +381,11 @@ export default function MapaPage() {
                   {REALIZACION.map(([t, c]) => (
                     <div key={c} className="flex flex-1 items-center gap-2">
                       <span className="text-gold">→</span>
-                      <ProcessCard title={t} code={c} />
+                      <ProcessCard
+                        title={t}
+                        code={c}
+                        onClick={() => irAProceso(c)}
+                      />
                     </div>
                   ))}
                   <span className="self-center text-gold">→</span>
@@ -356,7 +396,12 @@ export default function MapaPage() {
                   </div>
                 </div>
                 <div className="mt-3">
-                  <div className="flex flex-col items-center gap-1 rounded-lg border border-white/10 bg-[#0e1329] px-4 py-3 text-center">
+                  <button
+                    type="button"
+                    onClick={() => irAProceso("PO 05")}
+                    title="Ver documentos de PO 05"
+                    className="flex w-full cursor-pointer flex-col items-center gap-1 rounded-lg border border-white/10 bg-[#0e1329] px-4 py-3 text-center transition hover:-translate-y-0.5 hover:border-gold/50 focus:outline-none focus:ring-2 focus:ring-gold/40"
+                  >
                     <span className="text-[12.5px] text-slate-200">
                       Control de calidad{" "}
                       <span className="font-mono text-[10.5px] font-bold text-gold/80">
@@ -367,7 +412,7 @@ export default function MapaPage() {
                       Laboratorio de Luján: materias primas, asentamiento,
                       probetas y rotura
                     </span>
-                  </div>
+                  </button>
                 </div>
               </div>
 
@@ -377,7 +422,12 @@ export default function MapaPage() {
                 </div>
                 <div className="flex flex-wrap gap-2.5">
                   {APOYO.map(([t, c]) => (
-                    <ProcessCard key={c} title={t} code={c} />
+                    <ProcessCard
+                      key={c}
+                      title={t}
+                      code={c}
+                      onClick={() => irAProceso(c)}
+                    />
                   ))}
                 </div>
               </div>
@@ -388,7 +438,12 @@ export default function MapaPage() {
                 </div>
                 <div className="flex flex-wrap gap-2.5">
                   {MEJORA.map(([t, c]) => (
-                    <ProcessCard key={c} title={t} code={c} />
+                    <ProcessCard
+                      key={c}
+                      title={t}
+                      code={c}
+                      onClick={() => irAProceso(c)}
+                    />
                   ))}
                 </div>
               </div>
@@ -457,7 +512,7 @@ export default function MapaPage() {
         </section>
 
         {/* Árbol */}
-        <section className="glass rounded-2xl p-4">
+        <section ref={treeRef} className="glass scroll-mt-20 rounded-2xl p-4">
           {loading ? (
             <div className="flex items-center justify-center p-12 text-sm text-slate-400">
               <i className="fa-solid fa-spinner fa-spin mr-2 text-gold" />

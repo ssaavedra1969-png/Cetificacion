@@ -122,6 +122,7 @@ export default function DocumentoManager({
 
   const fileRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
+  const docParamRef = useRef(false);
 
   const limpiarArchivo = () => {
     setFile(null);
@@ -251,6 +252,20 @@ export default function DocumentoManager({
     setMensaje(null);
     setMostrarDetalles(false);
   };
+
+  // Abrir automáticamente un documento desde ?doc= (ej. botón Editar de la Documentoteca)
+  useEffect(() => {
+    if (docParamRef.current || typeof window === "undefined") return;
+    const id = new URLSearchParams(window.location.search).get("doc");
+    if (!id) return;
+    const doc = documentos.find((d) => d.id === id);
+    if (!doc) return;
+    docParamRef.current = true;
+    /* eslint-disable react-hooks/set-state-in-effect */
+    editar(doc);
+    /* eslint-enable react-hooks/set-state-in-effect */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentos]);
 
   // Bloquear scroll del fondo y cerrar con Escape mientras el modal está abierto
   useEffect(() => {

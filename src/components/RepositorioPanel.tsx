@@ -1,5 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import type { Documento } from "@/types/models";
+import DocumentoModal from "@/components/DocumentoModal";
+import AccionesDocumento from "@/components/AccionesDocumento";
+import { useSession } from "@/components/useSession";
 
 type TipoDocumento = Documento["tipo"];
 
@@ -33,20 +39,6 @@ const tipoVisual: Record<
     label: "ARCHIVO",
   },
 };
-
-function archivoVisual(documento: Documento) {
-  const visual = tipoVisual[documento.tipo] ?? tipoVisual.otro;
-
-  return {
-    id: documento.id,
-    nombre: documento.nombre || "Documento sin nombre",
-    meta: `${visual.label} · ${documento.planta || "General"}`,
-    badge: documento.puntoId || "SGC",
-    icon: visual.icon,
-    tone: visual.tone,
-    badgeTone: "border-white/10 bg-white/[0.03] text-slate-300",
-  };
-}
 
 function ProgressRing({ value, tone }: { value: number; tone: string }) {
   const radio = 16;
@@ -88,10 +80,14 @@ export default function RepositorioPanel({
 }: {
   documentos?: Documento[];
 }) {
+  const { user, canEdit } = useSession();
+  const canDelete = user?.rol === "admin";
+  const [modalDoc, setModalDoc] = useState<Documento | null>(null);
+
   const totalDocumentos = documentos.length;
-  const normasIram = documentos.filter((documento) =>
-    `${documento.nombre} ${documento.categoria}`.toLowerCase().includes("iram"),
-  ).length;
+  const categorias = new Set(
+    documentos.map((documento) => documento.categoria).filter(Boolean),
+  ).size;
   const plantasConDocumentos = new Set(
     documentos
       .map((documento) => documento.planta)
@@ -110,12 +106,12 @@ export default function RepositorioPanel({
       bar: "from-amber-400 to-orange-500",
     },
     {
-      label: "Normas IRAM",
-      value: String(normasIram),
-      detail: "Vigentes",
-      icon: "fa-certificate",
+      label: "Categorías",
+      value: String(categorias).padStart(2, "0"),
+      detail: "Series documentales",
+      icon: "fa-layer-group",
       iconTone: "border-sky-400/20 bg-sky-400/10 text-sky-300",
-      ring: normasIram > 0 ? 100 : 0,
+      ring: categorias > 0 ? 100 : 0,
       ringTone: "text-sky-400",
       bar: "from-sky-400 to-cyan-400",
     },
@@ -131,11 +127,10 @@ export default function RepositorioPanel({
     },
   ];
 
-  const archivos = documentos
+  const recientes = documentos
     .slice()
     .sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""))
-    .slice(0, 4)
-    .map(archivoVisual);
+    .slice(0, 4);
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/40 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_30px_90px_-50px_rgba(0,0,0,1)] backdrop-blur-md sm:p-6">
@@ -158,7 +153,7 @@ export default function RepositorioPanel({
               Repositorio SGC
             </p>
             <h2 className="font-display text-xl font-bold tracking-tight text-slate-50">
-              Certificaciones 2026
+              Sistema de Gestión de la Calidad
             </h2>
           </div>
         </div>
@@ -169,7 +164,7 @@ export default function RepositorioPanel({
               className="fa-solid fa-certificate text-[10px]"
               aria-hidden="true"
             />
-            Normas IRAM
+            ISO 9001:2026
           </span>
           <span
             className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-semibold ${
@@ -190,22 +185,21 @@ export default function RepositorioPanel({
         </div>
       </div>
 
-      <div className="relative mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-xs text-slate-500 transition-colors hover:border-white/15">
+      <Link
+        href="/documentoteca"
+        className="relative mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-xs text-slate-500 transition-colors hover:border-amber-400/30"
+      >
         <i
           className="fa-solid fa-magnifying-glass text-[11px] text-slate-500"
           aria-hidden="true"
         />
-        <input
-          type="text"
-          readOnly
-          placeholder="Buscar norma, certificado o planta..."
-          aria-label="Buscar en el repositorio"
-          className="min-w-0 flex-1 bg-transparent text-xs text-slate-300 placeholder-slate-500 outline-none"
-        />
-        <span className="rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[9px] text-slate-500">
-          ⌘K
+        <span className="min-w-0 flex-1 text-left text-xs text-slate-400">
+          Buscar y gestionar todos los documentos del SGC...
         </span>
-      </div>
+        <span className="rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[9px] text-slate-500">
+          Ver todo
+        </span>
+      </Link>
 
       <div className="relative mb-6 mt-6 grid grid-cols-3 gap-4">
         {metricas.map((metrica) => (
@@ -247,7 +241,19 @@ export default function RepositorioPanel({
         ))}
       </div>
 
-      {archivos.length === 0 ? (
+      <div className="relative mb-2 flex items-center justify-between">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+          Documentos recientes
+        </h3>
+        <Link
+          href="/documentoteca"
+          className="text-[10px] font-semibold text-amber-300 transition-colors hover:text-amber-200"
+        >
+          Ver todos
+        </Link>
+      </div>
+
+      {recientes.length === 0 ? (
         <div className="relative rounded-xl border border-dashed border-slate-800 bg-slate-950/40 px-6 py-8 text-center">
           <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-900/60 text-slate-500">
             <i
@@ -263,35 +269,47 @@ export default function RepositorioPanel({
           </p>
         </div>
       ) : (
-        <div className="relative grid grid-cols-1 gap-2.5 md:grid-cols-2">
-          {archivos.map((archivo) => (
-            <div
-              key={archivo.id}
-              className="group flex items-center gap-3 rounded-xl border border-white/10 bg-slate-950/40 px-3.5 py-3 transition-all duration-300 hover:border-amber-400/20 hover:bg-slate-900/60"
-            >
-              <span
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${archivo.tone}`}
+        <div className="relative space-y-2.5">
+          {recientes.map((documento) => {
+            const visual = tipoVisual[documento.tipo] ?? tipoVisual.otro;
+            return (
+              <div
+                key={documento.id}
+                className="group flex flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-slate-950/40 px-3.5 py-3 transition-all duration-300 hover:border-amber-400/20 hover:bg-slate-900/60"
               >
-                <i
-                  className={`fa-solid ${archivo.icon} text-xs`}
-                  aria-hidden="true"
+                <button
+                  type="button"
+                  onClick={() => setModalDoc(documento)}
+                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  title="Ver documento"
+                >
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${visual.tone}`}
+                  >
+                    <i
+                      className={`fa-solid ${visual.icon} text-xs`}
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs font-semibold text-slate-200 group-hover:text-white">
+                      {documento.nombre}
+                    </span>
+                    <span className="mt-0.5 block truncate text-[10px] text-slate-500">
+                      {visual.label} · {documento.categoria} ·{" "}
+                      {documento.fecha}
+                    </span>
+                  </span>
+                </button>
+                <AccionesDocumento
+                  documento={documento}
+                  onVer={setModalDoc}
+                  canEdit={canEdit}
+                  canDelete={canDelete}
                 />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-slate-200">
-                  {archivo.nombre}
-                </p>
-                <p className="mt-0.5 text-[10px] text-slate-500">
-                  {archivo.meta}
-                </p>
               </div>
-              <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-semibold ${archivo.badgeTone}`}
-              >
-                {archivo.badge}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -314,6 +332,10 @@ export default function RepositorioPanel({
           />
         </Link>
       </div>
+
+      {modalDoc && (
+        <DocumentoModal documento={modalDoc} onClose={() => setModalDoc(null)} />
+      )}
     </section>
   );
 }

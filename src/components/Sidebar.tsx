@@ -17,6 +17,9 @@ const NAV = [
   { href: "/documentoteca", label: "Documentoteca", icon: "fa-folder-open" },
 ];
 
+const DRIVE_URL =
+  "https://drive.google.com/drive/folders/1-KFqOdkE2knS6lYDoArJebB3M-qMkDgO";
+
 export default function Sidebar() {
   const pathname = usePathname() || "/";
   const router = useRouter();
@@ -104,6 +107,24 @@ export default function Sidebar() {
 
   const renderFooter = () => (
     <div className="border-t border-white/10 p-3">
+      <a
+        href={DRIVE_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => setOpen(false)}
+        className="mb-2 flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-[#c7d2e3] transition-colors hover:border-emerald-400/30 hover:bg-white/10 hover:text-white"
+        title="Abrir el Drive original del proyecto"
+      >
+        <i
+          className="fa-brands fa-google-drive w-4 text-center text-[13px] text-emerald-300"
+          aria-hidden="true"
+        />
+        Drive del proyecto
+        <i
+          className="fa-solid fa-arrow-up-right-from-square ml-auto text-[9px] text-[#64748b]"
+          aria-hidden="true"
+        />
+      </a>
       {!checked ? null : session ? (
         <div className="space-y-2">
           <div className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2">

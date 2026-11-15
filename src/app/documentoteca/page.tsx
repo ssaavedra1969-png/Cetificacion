@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Documento } from "@/types/models";
 import DocumentoModal from "@/components/DocumentoModal";
+import AccionesDocumento from "@/components/AccionesDocumento";
 import { useSession } from "@/components/useSession";
-import { downloadUrl } from "@/lib/urls";
 import { isOfficeTipo } from "@/lib/files";
 
 const ORDEN_CATEGORIAS: string[] = [
+  "Manual del SGC",
   "Documentos de Calidad",
   "Procedimientos Generales",
   "Procedimientos Operativos",
@@ -63,10 +64,6 @@ export default function Documentoteca() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalDoc, setModalDoc] = useState<Documento | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [docParaEliminar, setDocParaEliminar] = useState<Documento | null>(
-    null,
-  );
 
   // Filtros
   const [busqueda, setBusqueda] = useState("");
@@ -74,18 +71,23 @@ export default function Documentoteca() {
   const [filtroPlanta, setFiltroPlanta] = useState("Todas");
   const [filtroTipo, setFiltroTipo] = useState("Todos");
 
-  useEffect(() => {
-    fetch("/api/documentos")
+  const cargar = useCallback(() => {
+    return fetch("/api/documentos", { cache: "no-store" })
       .then((res) => {
         if (!res.ok) throw new Error("No se pudo cargar la documentoteca");
         return res.json();
       })
       .then((data) => {
         setDocumentos(data.documentos || []);
+        setError(null);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
 
   const documentosFiltrados = useMemo(() => {
     return documentos.filter((doc) => {
@@ -117,27 +119,6 @@ export default function Documentoteca() {
       return true;
     });
   }, [documentos, filtroCategoria, filtroPlanta, filtroTipo, busqueda]);
-
-  async function eliminarDocumento(id: string) {
-    if (deletingId) return;
-    setDeletingId(id);
-    try {
-      const res = await fetch(`/api/documentos?id=${encodeURIComponent(id)}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "No se pudo eliminar el documento");
-      }
-      setDocumentos((prev) => prev.filter((d) => d.id !== id));
-      setDocParaEliminar(null);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al eliminar");
-    } finally {
-      setDeletingId(null);
-    }
-  }
 
   return (
     <main className="min-h-screen">
@@ -451,92 +432,14 @@ export default function Documentoteca() {
 
                         {/* Acciones */}
                         <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {/* Ver en Modal rápido */}
-                            <button
-                              type="button"
-                              onClick={() => setModalDoc(d)}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold text-emerald-300 transition-colors hover:bg-emerald-400/20"
-                              title="Abrir visor integrado"
-                            >
-                              <i
-                                className="fa-solid fa-eye text-[11px]"
-                                aria-hidden="true"
-                              />
-                              Ver
-                            </button>
-
-                            {/* Abrir en página completa / nueva pestaña */}
-                            <Link
-                              href={`/documentos/${d.id}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center rounded-lg border border-white/10 bg-white/5 p-1 text-xs text-[#94a3b8] transition-colors hover:bg-white/10 hover:text-white"
-                              title="Abrir en página completa / pestaña nueva"
-                            >
-                              <i
-                                className="fa-solid fa-arrow-up-right-from-square text-[11px]"
-                                aria-hidden="true"
-                              />
-                            </Link>
-
-                            {/* Descargar */}
-                            <a
-                              href={downloadUrl(d.archivoUrl)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center rounded-lg border border-white/10 bg-white/5 p-1 text-xs text-[#94a3b8] transition-colors hover:bg-white/10 hover:text-white"
-                              title="Descargar archivo"
-                            >
-                              <i
-                                className="fa-solid fa-download text-[11px]"
-                                aria-hidden="true"
-                              />
-                            </a>
-
-                            {/* Eliminar (solo admin) */}
-                            {canDelete && (
-                              <>
-                                {docParaEliminar?.id === d.id ? (
-                                  <div className="flex items-center gap-1.5">
-                                    <button
-                                      type="button"
-                                      onClick={() => eliminarDocumento(d.id)}
-                                      disabled={deletingId === d.id}
-                                      className="inline-flex items-center gap-1 rounded-lg border border-rose-400/30 bg-rose-400/10 px-2 py-1 text-[11px] font-semibold text-rose-400 hover:bg-rose-400/20 disabled:opacity-60"
-                                      title="Eliminar documento"
-                                    >
-                                      {deletingId === d.id ? (
-                                        <i className="fa-solid fa-spinner fa-spin text-[10px]" />
-                                      ) : (
-                                        <i className="fa-solid fa-trash-can text-[10px]" />
-                                      )}
-                                      Sí
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => setDocParaEliminar(null)}
-                                      className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-semibold text-slate-400 hover:bg-white/10 hover:text-white"
-                                      title="Cancelar"
-                                    >
-                                      <i className="fa-solid fa-xmark text-[10px]" />
-                                      No
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => setDocParaEliminar(d)}
-                                    className="inline-flex items-center gap-1 rounded-lg border border-rose-400/30 bg-rose-400/10 px-2 py-1 text-[11px] font-semibold text-rose-400 hover:bg-rose-400/20"
-                                    title="Eliminar documento"
-                                  >
-                                    <i className="fa-solid fa-trash-can text-[10px]" />
-                                    Eliminar
-                                  </button>
-                                )}
-                              </>
-                            )}
-                          </div>
+                          <AccionesDocumento
+                            documento={d}
+                            onVer={setModalDoc}
+                            onChanged={cargar}
+                            canEdit={canEdit}
+                            canDelete={canDelete}
+                            size="md"
+                          />
                         </td>
                       </tr>
                     );
