@@ -87,33 +87,6 @@ export default function Sidebar() {
 
   const toggle = () => setCollapsed((v) => !v);
 
-  const renderBrand = (compact: boolean) => (
-    <Link
-      href="/"
-      onClick={() => setOpen(false)}
-      className={`flex items-center gap-3 border-b border-white/10 px-4 py-4 pr-10 ${
-        compact ? "justify-center px-2 pr-2" : ""
-      }`}
-    >
-      <Image
-        src="/images/logo-falpat.png"
-        alt="Grupo Falpat Hormigones"
-        width={150}
-        height={78}
-        className={compact ? "h-7 w-auto" : "h-8 w-auto"}
-        priority
-      />
-      {!compact && (
-        <span className="min-w-0 leading-tight">
-          <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-gold">
-            Gestión de la Calidad
-          </span>
-          <span className="block text-[9px] text-[#64748b]">Certificación</span>
-        </span>
-      )}
-    </Link>
-  );
-
   const renderNav = (compact: boolean) => (
     <nav className="flex-1 space-y-1 px-2 py-4">
       {NAV.map((item) => {
@@ -243,22 +216,50 @@ export default function Sidebar() {
           alignSelf: "flex-start",
         }}
       >
-        <div className="relative flex h-full flex-col">
-          <button
-            type="button"
-            onClick={toggle}
-            aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
-            title={collapsed ? "Expandir menú" : "Colapsar menú"}
-            className="absolute right-2 top-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[#94a3b8] transition-colors hover:bg-white/10 hover:text-white"
+        <div className={`flex h-full flex-col ${collapsed ? "items-center" : ""}`}>
+          <div
+            className={`flex border-b border-white/10 px-4 py-4 ${
+              collapsed ? "flex-col items-center gap-2" : "items-center justify-between gap-3"
+            }`}
           >
-            <i
-              className={`fa-solid fa-angles-left text-[11px] transition-transform duration-300 ${
-                collapsed ? "rotate-180" : ""
-              }`}
-              aria-hidden="true"
-            />
-          </button>
-          {renderBrand(collapsed)}
+            <Link
+              href="/"
+              onClick={() => setOpen(false)}
+              className="flex items-center"
+            >
+              <Image
+                src="/images/logo-falpat.png"
+                alt="Grupo Falpat Hormigones"
+                width={150}
+                height={78}
+                style={{ objectFit: "contain", width: "auto", maxWidth: "100%", height: 32, flexShrink: 0 }}
+                className="h-8 w-auto"
+                priority
+              />
+            </Link>
+            {!collapsed && (
+              <span className="min-w-0 leading-tight">
+                <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-gold">
+                  Gestión de la Calidad
+                </span>
+                <span className="block text-[9px] text-[#64748b]">Certificación</span>
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={toggle}
+              aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
+              title={collapsed ? "Expandir menú" : "Colapsar menú"}
+              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[#94a3b8] transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <i
+                className={`fa-solid fa-angles-left text-[11px] transition-transform duration-300 ${
+                  collapsed ? "rotate-180" : ""
+                }`}
+                aria-hidden="true"
+              />
+            </button>
+          </div>
           {renderNav(collapsed)}
           {renderFooter(collapsed)}
         </div>

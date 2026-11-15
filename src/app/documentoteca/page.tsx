@@ -349,7 +349,7 @@ export default function Documentoteca() {
                         className="group transition-colors hover:bg-white/[0.04]"
                       >
                          {/* Nombre e icono */}
-                        <td className="max-w-[340px] px-4 py-3">
+                        <td className="max-w-[340px] px-4 py-3 pr-4">
                           <div className="flex items-center gap-3">
                             <button
                               type="button"
@@ -362,11 +362,12 @@ export default function Documentoteca() {
                                 aria-hidden="true"
                               />
                             </button>
-                            <div className="min-w-0 max-w-[280px]">
+                            <div className="min-w-0 max-w-[280px] overflow-hidden">
                               <button
                                 type="button"
                                 onClick={() => setModalDoc(d)}
                                 className="block truncate text-left text-xs font-semibold text-white transition-colors hover:text-gold"
+                                style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                                 title={d.nombre}
                               >
                                 {d.nombre}
